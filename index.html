@@ -26,10 +26,19 @@
                 <h1 class="text-xl font-black text-green-800 hidden sm:block">FishNet</h1>
             </div>
             <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <img id="my-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Guest" class="w-8 h-8 rounded-full border border-green-600 bg-white" alt="Me">
-                    <span id="my-name" class="text-sm font-bold hidden sm:block">Завантаження...</span>
+                <!-- Блок користувача (прихований до входу) -->
+                <div id="user-info" class="hidden flex items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <img id="my-avatar" src="" class="w-8 h-8 rounded-full border border-green-600 bg-white" alt="Me">
+                        <span id="my-name" class="text-sm font-bold hidden sm:block">...</span>
+                    </div>
+                    <button onclick="window.logout()" class="text-xs text-red-500 hover:text-red-700 font-bold border border-red-200 px-2 py-1 rounded-lg">Вийти</button>
                 </div>
+                
+                <!-- Кнопка входу (якщо не авторизований) -->
+                <button id="login-btn" onclick="openAuthModal()" class="bg-green-700 text-white px-4 py-1.5 rounded-full text-sm font-bold hover:bg-green-800 transition shadow-lg hidden">
+                    Увійти
+                </button>
             </div>
         </div>
     </nav>
@@ -38,20 +47,25 @@
     <main class="max-w-2xl mx-auto mt-6 px-4 pb-20 space-y-6">
         
         <!-- Створення поста -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+        <div id="create-post-box" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hidden">
             <div class="flex gap-3">
-                <img id="post-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Guest" class="w-10 h-10 rounded-full bg-slate-100" alt="User">
+                <img id="post-avatar" src="" class="w-10 h-10 rounded-full bg-slate-100" alt="User">
                 <button onclick="openModal()" class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-4 py-2 rounded-full text-slate-500 transition-colors">
                     Хвалися уловом сьогодні...
                 </button>
             </div>
+        </div>
+        
+        <div id="guest-banner" class="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center hidden">
+            <p class="text-blue-800 mb-2">Увійдіть або зареєструйтесь, щоб публікувати звіти!</p>
+            <button onclick="openAuthModal()" class="text-sm font-bold text-blue-600 underline">Увійти в акаунт</button>
         </div>
 
         <!-- Стрічка постів -->
         <div id="posts-container" class="space-y-6">
             <div class="text-center py-10 text-slate-400">
                 <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
-                <p>Підключення до озера даних...</p>
+                <p>Завантаження стрічки...</p>
             </div>
         </div>
 
@@ -62,51 +76,55 @@
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black"><i class="fas fa-times fa-lg"></i></button>
             <h2 class="text-xl font-bold mb-4">Новий звіт</h2>
-            
             <textarea id="post-text" rows="4" class="w-full border p-3 rounded-xl text-lg placeholder-slate-300 focus:ring-2 focus:ring-green-500 outline-none mb-4" placeholder="Що спіймали?"></textarea>
-            
             <input type="text" id="post-image-url" placeholder="Посилання на фото (необов'язково)" class="w-full border p-2 rounded-lg text-sm mb-6 bg-slate-50">
-
-            <button id="btn-publish" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg flex justify-center items-center gap-2">
-                Опублікувати
-            </button>
+            <button id="btn-publish" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg flex justify-center items-center gap-2">Опублікувати</button>
         </div>
     </div>
 
-    <!-- Модалка НАЛАШТУВАННЯ (З'явиться, якщо немає ключів) -->
-    <div id="setup-modal" class="fixed inset-0 bg-slate-900 z-[100] p-4 hidden flex-col items-center justify-center text-white overflow-y-auto">
-        <div class="max-w-2xl w-full text-center space-y-6 py-10">
-            <div class="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/50">
-                <i class="fas fa-database fa-2x"></i>
-            </div>
-            <h1 class="text-3xl font-black">Майже готово!</h1>
-            <p class="text-lg text-slate-300">Щоб сайт працював в інтернеті та синхронізував пости між друзями, потрібно підключити базу даних Firebase.</p>
+    <!-- Модалка АВТОРИЗАЦІЇ (Вхід/Реєстрація) -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-500"><i class="fas fa-times fa-lg"></i></button>
             
-            <div class="bg-slate-800 text-left p-6 rounded-2xl border border-slate-700">
-                <h3 class="font-bold text-green-400 mb-4">Як це зробити (це безкоштовно):</h3>
-                <ol class="list-decimal list-inside space-y-3 text-sm text-slate-300">
-                    <li>Зайдіть на <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-400 underline">console.firebase.google.com</a>.</li>
-                    <li>Натисніть <b>"Create a project"</b> (назвіть його fishnet).</li>
-                    <li>В меню зліва натисніть <b>"Build" -> "Firestore Database"</b> і створіть базу (виберіть "Start in test mode").</li>
-                    <li>Натисніть на шестерню налаштувань (Project Settings).</li>
-                    <li>Внизу сторінки натисніть іконку <b>Web (</>)</b>, щоб створити додаток.</li>
-                    <li>Скопіюйте <code>firebaseConfig</code> і вставте його в код файлу <code>index.html</code> (рядки 106-113).</li>
-                </ol>
+            <div class="bg-green-700 p-6 text-center">
+                <h2 class="text-2xl font-black text-white mb-2">FishNet ID</h2>
+                <div class="flex justify-center gap-4 text-sm font-bold text-green-200">
+                    <button onclick="switchTab('login')" id="tab-login" class="text-white border-b-2 border-white pb-1">Вхід</button>
+                    <button onclick="switchTab('register')" id="tab-register" class="hover:text-white pb-1">Реєстрація</button>
+                </div>
             </div>
-            <button onclick="location.reload()" class="bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition">
-                Я вставив ключі, оновити!
-            </button>
+
+            <div class="p-8 space-y-4">
+                <div id="auth-error" class="hidden bg-red-50 text-red-600 text-xs p-2 rounded-lg text-center"></div>
+                
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
+                    <input type="email" id="auth-email" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-green-500 transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Пароль</label>
+                    <input type="password" id="auth-password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-green-500 transition">
+                </div>
+
+                <button id="auth-submit-btn" onclick="handleAuth()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg mt-4">
+                    Увійти
+                </button>
+                
+                <p class="text-center text-xs text-slate-400 mt-4">
+                    або <button onclick="handleGuest()" class="text-green-600 hover:underline">продовжити як Гість</button>
+                </p>
+            </div>
         </div>
     </div>
 
+    <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // ВАШІ НАЛАШТУВАННЯ (ЗАПОВНІТЬ ЦЕ ДЛЯ GITHUB)
-        // ==========================================
+        // ВАШІ КЛЮЧІ (Вже вставлені з попереднього кроку)
         const manualConfig = {
             apiKey: "AIzaSyD6IAvXTRgBLlmgIeziYeY9kDPrZXzD_O4",
             authDomain: "fishnet-1bcb5.firebaseapp.com",
@@ -116,77 +134,150 @@
             appId: "1:863937283187:web:49e96a534e1315ecd71606"
         };
 
-        // Логіка вибору конфігурації
-        let firebaseConfig;
-        let appId = 'fishnet-prod';
-
-        // 1. Перевіряємо, чи ми в Canvas (автоматично)
-        if (typeof __firebase_config !== 'undefined') {
-            firebaseConfig = JSON.parse(__firebase_config);
-            if (typeof __app_id !== 'undefined') appId = __app_id;
-        } 
-        // 2. Якщо ні, використовуємо ручні налаштування
-        else {
-            firebaseConfig = manualConfig;
-            // Перевірка, чи користувач вставив ключі (тепер вони є!)
-            if (firebaseConfig.apiKey.includes("ВСТАВТЕ")) {
-                document.getElementById('setup-modal').classList.replace('hidden', 'flex');
-                throw new Error("Configuration required");
-            }
-        }
-
         // Ініціалізація
+        let firebaseConfig = manualConfig;
+        if (typeof __firebase_config !== 'undefined') firebaseConfig = JSON.parse(__firebase_config);
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-prod';
         const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
 
         let currentUser = null;
+        let isRegisterMode = false;
 
-        // Авторизація
-        signInAnonymously(auth).catch(console.error);
-
+        // --- AUTH LOGIC ---
+        
         onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            const loginBtn = document.getElementById('login-btn');
+            const userInfo = document.getElementById('user-info');
+            const createBox = document.getElementById('create-post-box');
+            const guestBanner = document.getElementById('guest-banner');
+
             if (user) {
-                currentUser = user;
-                const shortId = user.uid.substring(0, 5);
-                const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+                // User is logged in
+                loginBtn.classList.add('hidden');
+                userInfo.classList.remove('hidden');
+                userInfo.classList.add('flex');
+                createBox.classList.remove('hidden');
+                guestBanner.classList.add('hidden');
                 
-                document.getElementById('my-name').innerText = `Рибалка #${shortId}`;
-                document.getElementById('my-avatar').src = avatarUrl;
-                document.getElementById('post-avatar').src = avatarUrl;
+                // Show info
+                const name = user.isAnonymous ? `Гість #${user.uid.substring(0,4)}` : (user.email.split('@')[0]);
+                document.getElementById('my-name').innerText = name;
+                const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+                document.getElementById('my-avatar').src = avatar;
+                document.getElementById('post-avatar').src = avatar;
                 
-                loadPosts();
+                closeAuthModal();
+            } else {
+                // User is logged out
+                loginBtn.classList.remove('hidden');
+                userInfo.classList.remove('flex');
+                userInfo.classList.add('hidden');
+                createBox.classList.add('hidden');
+                guestBanner.classList.remove('hidden');
+                
+                // Open auth modal immediately if first visit
+                // openAuthModal(); 
             }
+            loadPosts();
         });
 
-        // Завантаження постів (Real-time)
-        function loadPosts() {
-            // Rule 2 compliant query
-            const q = query(postsCol); // Просто беремо колекцію, сортуємо в пам'яті
+        window.handleAuth = async () => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            const errorBox = document.getElementById('auth-error');
+            const btn = document.getElementById('auth-submit-btn');
+
+            if(!email || !pass) {
+                errorBox.innerText = "Заповніть всі поля";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Обробка...";
+            errorBox.classList.add('hidden');
+
+            try {
+                if (isRegisterMode) {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                }
+            } catch (e) {
+                let msg = "Помилка: " + e.message;
+                if(e.code === 'auth/email-already-in-use') msg = "Ця пошта вже зайнята!";
+                if(e.code === 'auth/invalid-credential') msg = "Невірний email або пароль";
+                if(e.code === 'auth/weak-password') msg = "Пароль має бути не менше 6 символів";
+                
+                errorBox.innerText = msg;
+                errorBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = isRegisterMode ? "Зареєструватися" : "Увійти";
+            }
+        };
+
+        window.handleGuest = async () => {
+            await signInAnonymously(auth);
+        };
+
+        window.logout = async () => {
+            await signOut(auth);
+            location.reload();
+        };
+
+        // --- UI TABS ---
+        window.switchTab = (mode) => {
+            const loginTab = document.getElementById('tab-login');
+            const regTab = document.getElementById('tab-register');
+            const btn = document.getElementById('auth-submit-btn');
+            const errorBox = document.getElementById('auth-error');
             
+            errorBox.classList.add('hidden');
+            
+            if(mode === 'register') {
+                isRegisterMode = true;
+                regTab.classList.add('text-white', 'border-b-2', 'border-white');
+                regTab.classList.remove('hover:text-white');
+                loginTab.classList.remove('text-white', 'border-b-2', 'border-white');
+                loginTab.classList.add('hover:text-white');
+                btn.innerText = "Зареєструватися";
+            } else {
+                isRegisterMode = false;
+                loginTab.classList.add('text-white', 'border-b-2', 'border-white');
+                loginTab.classList.remove('hover:text-white');
+                regTab.classList.remove('text-white', 'border-b-2', 'border-white');
+                regTab.classList.add('hover:text-white');
+                btn.innerText = "Увійти";
+            }
+        };
+
+        // --- POSTS LOGIC (Same as before) ---
+        function loadPosts() {
+            const q = query(postsCol);
             onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('posts-container');
                 const posts = [];
                 snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
-
-                // Сортування клієнтське
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 if (posts.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-10 text-slate-400 border-2 border-dashed rounded-xl">
-                            <p>Поки що порожньо. Станьте першим!</p>
-                        </div>`;
+                    container.innerHTML = `<div class="text-center py-10 text-slate-400"><p>Ще немає звітів. Будьте першим!</p></div>`;
                     return;
                 }
-
                 container.innerHTML = posts.map(renderPost).join('');
             });
         }
 
         function renderPost(post) {
             const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+            // Визначаємо ім'я (для старих анонімних постів або нових)
+            let authorName = `Рибалка #${post.userId.substring(0,5)}`; 
             
             return `
                 <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card mb-4">
@@ -194,7 +285,7 @@
                         <div class="flex items-center gap-3">
                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}" class="w-10 h-10 rounded-full bg-slate-100">
                             <div>
-                                <p class="font-bold text-slate-800">Рибалка #${post.userId.substring(0,5)}</p>
+                                <p class="font-bold text-slate-800">${authorName}</p>
                                 <p class="text-xs text-slate-400">${date}</p>
                             </div>
                         </div>
@@ -211,13 +302,11 @@
             `;
         }
 
-        // Публікація
         const btn = document.getElementById('btn-publish');
         btn.onclick = async () => {
             const text = document.getElementById('post-text').value;
             const img = document.getElementById('post-image-url').value;
-            
-            if (!text) return;
+            if (!text || !currentUser) return;
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -232,16 +321,11 @@
                 });
                 document.getElementById('post-text').value = '';
                 document.getElementById('post-image-url').value = '';
-                window.closeModal();
-            } catch (e) {
-                alert("Помилка: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Опублікувати';
-            }
+                closeModal();
+            } catch (e) { alert("Помилка: " + e.message); } 
+            finally { btn.disabled = false; btn.innerText = 'Опублікувати'; }
         };
 
-        // Лайки
         window.like = async (id) => {
             const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
             await updateDoc(ref, { likes: increment(1) });
@@ -250,7 +334,10 @@
         // UI Helpers
         window.openModal = () => document.getElementById('modal').classList.replace('hidden', 'flex');
         window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
+        window.openAuthModal = () => document.getElementById('auth-modal').classList.replace('hidden', 'flex');
+        window.closeAuthModal = () => document.getElementById('auth-modal').classList.replace('flex', 'hidden');
 
+        // Check if user is logged out initially to show login button logic is handled in onAuthStateChanged
     </script>
 </body>
 </html>
