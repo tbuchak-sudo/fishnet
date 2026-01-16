@@ -37,7 +37,7 @@
                         <p id="my-name" class="font-bold text-sm text-slate-700">...</p>
                         <p class="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Рибалка</p>
                     </div>
-                    <img id="my-avatar" src="" class="w-9 h-9 rounded-full border-2 border-white shadow-md bg-slate-200" alt="Me">
+                    <img id="my-avatar" src="" class="w-9 h-9 rounded-full border-2 border-white shadow-md bg-slate-200 object-cover" alt="Me">
                     <button onclick="window.logout()" class="text-slate-400 hover:text-red-500 transition ml-1" title="Вийти">
                         <i class="fas fa-sign-out-alt fa-lg"></i>
                     </button>
@@ -150,7 +150,17 @@
                     Увійти
                 </button>
                 
-                <div class="text-center pt-2 border-t border-slate-100">
+                <div class="relative my-2">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">або</span></div>
+                </div>
+
+                <button onclick="handleGoogleAuth()" class="w-full bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 group">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 group-hover:scale-110 transition" alt="Google">
+                    <span>Google</span>
+                </button>
+
+                <div class="text-center pt-2">
                     <button onclick="handleGuest()" class="text-xs font-bold text-slate-400 hover:text-green-600 transition uppercase tracking-wide">
                         Тільки подивитись (Гість)
                     </button>
@@ -162,13 +172,14 @@
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, increment, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-id';
         
         // References
@@ -209,10 +220,17 @@
                 createBox.classList.remove('hidden');
                 guestBanner.classList.add('hidden');
                 
-                const name = user.isAnonymous ? `Гість` : (user.email.split('@')[0]);
+                // Get Name: Google DisplayName OR Email OR Guest
+                const name = user.displayName || (user.isAnonymous ? `Гість` : (user.email.split('@')[0]));
                 document.getElementById('my-name').innerText = name;
-                const seed = user.isAnonymous ? user.uid : user.email;
-                const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=c0aede,b6e3f4`;
+                
+                // Get Avatar: Google Photo OR Dicebear
+                let avatar = user.photoURL;
+                if (!avatar) {
+                    const seed = user.isAnonymous ? user.uid : (user.email || user.uid);
+                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=c0aede,b6e3f4`;
+                }
+                
                 document.getElementById('my-avatar').src = avatar;
                 document.getElementById('post-avatar-mini').src = avatar;
                 
@@ -226,10 +244,17 @@
             }
         }
 
+        window.handleGoogleAuth = async () => {
+            try {
+                await signInWithPopup(auth, googleProvider);
+            } catch (e) {
+                showError("Помилка Google: " + e.message);
+            }
+        };
+
         window.handleAuth = async () => {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-password').value;
-            const errorBox = document.getElementById('auth-error');
             const btn = document.getElementById('auth-submit-btn');
 
             if(!email || !pass) {
@@ -239,7 +264,7 @@
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            errorBox.classList.add('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
 
             try {
                 if (isRegisterMode) {
@@ -249,9 +274,9 @@
                 }
             } catch (e) {
                 let msg = "Помилка авторизації";
-                if(e.code.includes('email-already-in-use')) msg = "Ця пошта вже зайнята";
-                if(e.code.includes('invalid-credential')) msg = "Невірний логін або пароль";
-                if(e.code.includes('weak-password')) msg = "Пароль надто простий";
+                if(e.code && e.code.includes('email-already-in-use')) msg = "Ця пошта вже зайнята";
+                if(e.code && e.code.includes('invalid-credential')) msg = "Невірний логін або пароль";
+                if(e.code && e.code.includes('weak-password')) msg = "Пароль надто простий";
                 showError(msg);
             } finally {
                 btn.disabled = false;
@@ -302,13 +327,19 @@
             const isOwner = currentUser && post.userId === currentUser.uid;
             const timeAgo = getTimeAgo(post.createdAt?.seconds);
             const tagConfig = FISH_TAGS.find(t => t.id === post.tag) || FISH_TAGS[0];
-            const avatarSeed = post.userEmail || post.userId; // fallback
+            
+            // Avatar Fallback logic for old posts or posts without user photo
+            let avatar = post.userPhoto; // New field we will save
+            if (!avatar) {
+                 const avatarSeed = post.userEmail || post.userId;
+                 avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}&backgroundColor=c0aede,b6e3f4`;
+            }
 
             return `
                 <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card" id="post-${post.id}">
                     <div class="p-4 flex justify-between items-start">
                         <div class="flex items-center gap-3">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}&backgroundColor=c0aede,b6e3f4" class="w-10 h-10 rounded-full bg-slate-100 border border-white shadow-sm">
+                            <img src="${avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-white shadow-sm object-cover">
                             <div>
                                 <div class="flex items-center gap-2">
                                     <p class="font-bold text-slate-800 text-sm">${escapeHtml(post.userName || 'Рибалка')}</p>
@@ -409,15 +440,20 @@
                     return;
                 }
 
-                list.innerHTML = comments.map(c => `
+                list.innerHTML = comments.map(c => {
+                    let cAvatar = c.userPhoto;
+                    if(!cAvatar) {
+                         cAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userSeed || 'guest'}&backgroundColor=c0aede,b6e3f4`;
+                    }
+                    return `
                     <div class="flex gap-2 text-sm animate-fade-in">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userSeed || 'guest'}&backgroundColor=c0aede,b6e3f4" class="w-6 h-6 rounded-full bg-white border border-slate-200 flex-shrink-0">
+                        <img src="${cAvatar}" class="w-6 h-6 rounded-full bg-white border border-slate-200 flex-shrink-0 object-cover">
                         <div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm max-w-[85%]">
                             <p class="font-bold text-xs text-slate-600 mb-0.5">${escapeHtml(c.userName)}</p>
                             <p class="text-slate-800 leading-snug">${escapeHtml(c.text)}</p>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
                 list.scrollTop = list.scrollHeight;
             });
         }
@@ -429,14 +465,16 @@
             if (!currentUser) { alert("Спершу увійдіть в акаунт!"); openAuthModal(); return; }
             if (!text) return;
 
-            const name = currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]);
-            
+            const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
+            const photo = currentUser.photoURL || null;
+
             try {
                 input.value = ''; // clear immediately
                 await addDoc(commentsCol, {
                     postId: postId,
                     userId: currentUser.uid,
                     userName: name,
+                    userPhoto: photo,
                     userSeed: currentUser.isAnonymous ? currentUser.uid : currentUser.email,
                     text: text,
                     createdAt: serverTimestamp()
@@ -483,11 +521,13 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const name = currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]);
+                const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
+                
                 await addDoc(postsCol, {
                     userId: currentUser.uid,
                     userName: name,
                     userEmail: currentUser.email || 'guest',
+                    userPhoto: currentUser.photoURL || null, // Saving actual google photo
                     content: text,
                     imageUrl: img,
                     tag: tag,
