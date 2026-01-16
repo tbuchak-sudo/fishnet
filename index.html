@@ -26,10 +26,9 @@
                 <h1 class="text-xl font-black text-green-800 hidden sm:block">FishNet</h1>
             </div>
             <div class="flex items-center gap-4">
-                <button onclick="resetDemo()" class="text-xs text-red-400 hover:text-red-600 underline">Скинути демо</button>
                 <div class="flex items-center gap-2">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MyUser" class="w-8 h-8 rounded-full border border-green-600 bg-white" alt="Me">
-                    <span class="text-sm font-bold hidden sm:block">Я (Рибалка)</span>
+                    <img id="my-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Guest" class="w-8 h-8 rounded-full border border-green-600 bg-white" alt="Me">
+                    <span id="my-name" class="text-sm font-bold hidden sm:block">Завантаження...</span>
                 </div>
             </div>
         </div>
@@ -41,7 +40,7 @@
         <!-- Створення поста -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
             <div class="flex gap-3">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MyUser" class="w-10 h-10 rounded-full bg-slate-100" alt="User">
+                <img id="post-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Guest" class="w-10 h-10 rounded-full bg-slate-100" alt="User">
                 <button onclick="openModal()" class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-4 py-2 rounded-full text-slate-500 transition-colors">
                     Хвалися уловом сьогодні...
                 </button>
@@ -50,13 +49,16 @@
 
         <!-- Стрічка постів -->
         <div id="posts-container" class="space-y-6">
-            <!-- Пости будуть тут -->
+            <div class="text-center py-10 text-slate-400">
+                <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                <p>Підключення до озера даних...</p>
+            </div>
         </div>
 
     </main>
 
-    <!-- Модалка створення -->
-    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
+    <!-- Модалка створення поста -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[50] p-4">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black"><i class="fas fa-times fa-lg"></i></button>
             <h2 class="text-xl font-bold mb-4">Новий звіт</h2>
@@ -65,125 +67,190 @@
             
             <input type="text" id="post-image-url" placeholder="Посилання на фото (необов'язково)" class="w-full border p-2 rounded-lg text-sm mb-6 bg-slate-50">
 
-            <button onclick="addPost()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg">
+            <button id="btn-publish" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg flex justify-center items-center gap-2">
                 Опублікувати
             </button>
         </div>
     </div>
 
-    <script>
-        // --- СИСТЕМА ФЕЙКОВОЇ БАЗИ ДАНИХ (Local Storage) ---
-        
-        // Стартові дані для демо (щоб стрічка не була порожньою)
-        const initialPosts = [
-            {
-                id: 1,
-                user: "Олег Щукар",
-                avatar: "Fisherman1",
-                time: "2 год. тому",
-                content: "Взяла на орбіт 110! Вага 3.2 кг. Дніпро радує!",
-                image: "https://images.unsplash.com/photo-1544551763-47a0159f9234?w=600",
-                likes: 42
-            },
-            {
-                id: 2,
-                user: "Карполов_PRO",
-                avatar: "Fisherman2",
-                time: "5 год. тому",
-                content: "Нічна рибалка вдалася. Короп дзеркальний, 8 кг. Бойл - полуниця.",
-                image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600",
-                likes: 128
-            }
-        ];
+    <!-- Модалка НАЛАШТУВАННЯ (З'явиться, якщо немає ключів) -->
+    <div id="setup-modal" class="fixed inset-0 bg-slate-900 z-[100] p-4 hidden flex-col items-center justify-center text-white overflow-y-auto">
+        <div class="max-w-2xl w-full text-center space-y-6 py-10">
+            <div class="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-green-500/50">
+                <i class="fas fa-database fa-2x"></i>
+            </div>
+            <h1 class="text-3xl font-black">Майже готово!</h1>
+            <p class="text-lg text-slate-300">Щоб сайт працював в інтернеті та синхронізував пости між друзями, потрібно підключити базу даних Firebase.</p>
+            
+            <div class="bg-slate-800 text-left p-6 rounded-2xl border border-slate-700">
+                <h3 class="font-bold text-green-400 mb-4">Як це зробити (це безкоштовно):</h3>
+                <ol class="list-decimal list-inside space-y-3 text-sm text-slate-300">
+                    <li>Зайдіть на <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-400 underline">console.firebase.google.com</a>.</li>
+                    <li>Натисніть <b>"Create a project"</b> (назвіть його fishnet).</li>
+                    <li>В меню зліва натисніть <b>"Build" -> "Firestore Database"</b> і створіть базу (виберіть "Start in test mode").</li>
+                    <li>Натисніть на шестерню налаштувань (Project Settings).</li>
+                    <li>Внизу сторінки натисніть іконку <b>Web (</>)</b>, щоб створити додаток.</li>
+                    <li>Скопіюйте <code>firebaseConfig</code> і вставте його в код файлу <code>index.html</code> (рядки 106-113).</li>
+                </ol>
+            </div>
+            <button onclick="location.reload()" class="bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition">
+                Я вставив ключі, оновити!
+            </button>
+        </div>
+    </div>
 
-        // Завантаження постів
-        function loadPosts() {
-            let posts = JSON.parse(localStorage.getItem('fishnet_posts'));
-            if (!posts) {
-                posts = initialPosts;
-                localStorage.setItem('fishnet_posts', JSON.stringify(posts));
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // ВАШІ НАЛАШТУВАННЯ (ЗАПОВНІТЬ ЦЕ ДЛЯ GITHUB)
+        // ==========================================
+        const manualConfig = {
+            apiKey: "AIzaSyD6IAvXTRgBLlmgIeziYeY9kDPrZXzD_O4",
+            authDomain: "fishnet-1bcb5.firebaseapp.com",
+            projectId: "fishnet-1bcb5",
+            storageBucket: "fishnet-1bcb5.firebasestorage.app",
+            messagingSenderId: "863937283187",
+            appId: "1:863937283187:web:49e96a534e1315ecd71606"
+        };
+
+        // Логіка вибору конфігурації
+        let firebaseConfig;
+        let appId = 'fishnet-prod';
+
+        // 1. Перевіряємо, чи ми в Canvas (автоматично)
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+            if (typeof __app_id !== 'undefined') appId = __app_id;
+        } 
+        // 2. Якщо ні, використовуємо ручні налаштування
+        else {
+            firebaseConfig = manualConfig;
+            // Перевірка, чи користувач вставив ключі (тепер вони є!)
+            if (firebaseConfig.apiKey.includes("ВСТАВТЕ")) {
+                document.getElementById('setup-modal').classList.replace('hidden', 'flex');
+                throw new Error("Configuration required");
             }
-            renderPosts(posts);
         }
 
-        // Відображення
-        function renderPosts(posts) {
-            const container = document.getElementById('posts-container');
-            container.innerHTML = posts.map(post => `
-                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card">
+        // Ініціалізація
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+
+        let currentUser = null;
+
+        // Авторизація
+        signInAnonymously(auth).catch(console.error);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                const shortId = user.uid.substring(0, 5);
+                const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+                
+                document.getElementById('my-name').innerText = `Рибалка #${shortId}`;
+                document.getElementById('my-avatar').src = avatarUrl;
+                document.getElementById('post-avatar').src = avatarUrl;
+                
+                loadPosts();
+            }
+        });
+
+        // Завантаження постів (Real-time)
+        function loadPosts() {
+            // Rule 2 compliant query
+            const q = query(postsCol); // Просто беремо колекцію, сортуємо в пам'яті
+            
+            onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('posts-container');
+                const posts = [];
+                snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+
+                // Сортування клієнтське
+                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                if (posts.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-slate-400 border-2 border-dashed rounded-xl">
+                            <p>Поки що порожньо. Станьте першим!</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = posts.map(renderPost).join('');
+            });
+        }
+
+        function renderPost(post) {
+            const date = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '...';
+            
+            return `
+                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card mb-4">
                     <div class="p-4 flex justify-between items-center">
                         <div class="flex items-center gap-3">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${post.avatar}" class="w-10 h-10 rounded-full bg-slate-100">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}" class="w-10 h-10 rounded-full bg-slate-100">
                             <div>
-                                <p class="font-bold text-slate-800">${post.user}</p>
-                                <p class="text-xs text-slate-400">${post.time}</p>
+                                <p class="font-bold text-slate-800">Рибалка #${post.userId.substring(0,5)}</p>
+                                <p class="text-xs text-slate-400">${date}</p>
                             </div>
                         </div>
                     </div>
                     <p class="px-4 pb-3 text-slate-800 text-lg">${post.content}</p>
-                    ${post.image ? `<div class="bg-slate-100 aspect-video"><img src="${post.image}" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>` : ''}
+                    ${post.imageUrl ? `<div class="bg-slate-100 aspect-video"><img src="${post.imageUrl}" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>` : ''}
                     <div class="p-4 border-t border-slate-50 flex gap-4">
-                        <button onclick="likePost(${post.id})" class="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group">
-                            <i class="fas fa-fish fa-xl group-hover:scale-110 transition"></i>
-                            <span class="font-bold">${post.likes}</span>
+                        <button onclick="window.like('${post.id}')" class="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group">
+                            <i class="fas fa-fish fa-xl group-hover:scale-110 transition ${post.likes > 0 ? 'text-green-600' : ''}"></i>
+                            <span class="font-bold">${post.likes || 0}</span>
                         </button>
                     </div>
                 </article>
-            `).join('');
+            `;
         }
 
-        // Додавання поста
-        function addPost() {
+        // Публікація
+        const btn = document.getElementById('btn-publish');
+        btn.onclick = async () => {
             const text = document.getElementById('post-text').value;
             const img = document.getElementById('post-image-url').value;
             
-            if (!text) return alert("Напишіть хоч щось!");
+            if (!text) return;
 
-            const newPost = {
-                id: Date.now(),
-                user: "Я (Рибалка)",
-                avatar: "MyUser",
-                time: "Щойно",
-                content: text,
-                image: img,
-                likes: 0
-            };
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-            const posts = JSON.parse(localStorage.getItem('fishnet_posts')) || [];
-            posts.unshift(newPost); // Додаємо на початок
-            localStorage.setItem('fishnet_posts', JSON.stringify(posts));
-            
-            loadPosts();
-            closeModal();
-            document.getElementById('post-text').value = '';
-            document.getElementById('post-image-url').value = '';
-        }
-
-        // Лайк
-        window.likePost = function(id) {
-            const posts = JSON.parse(localStorage.getItem('fishnet_posts'));
-            const post = posts.find(p => p.id == id);
-            if (post) {
-                post.likes++;
-                localStorage.setItem('fishnet_posts', JSON.stringify(posts));
-                renderPosts(posts);
-            }
-        }
-
-        // Управління модалкою
-        window.openModal = () => document.getElementById('modal').classList.replace('hidden', 'flex');
-        window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
-
-        // Скидання
-        window.resetDemo = () => {
-            if(confirm('Скинути всі дані до початкових?')) {
-                localStorage.removeItem('fishnet_posts');
-                location.reload();
+            try {
+                await addDoc(postsCol, {
+                    userId: currentUser.uid,
+                    content: text,
+                    imageUrl: img,
+                    likes: 0,
+                    createdAt: serverTimestamp()
+                });
+                document.getElementById('post-text').value = '';
+                document.getElementById('post-image-url').value = '';
+                window.closeModal();
+            } catch (e) {
+                alert("Помилка: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Опублікувати';
             }
         };
 
-        // Старт
-        loadPosts();
+        // Лайки
+        window.like = async (id) => {
+            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
+            await updateDoc(ref, { likes: increment(1) });
+        };
+
+        // UI Helpers
+        window.openModal = () => document.getElementById('modal').classList.replace('hidden', 'flex');
+        window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
+
     </script>
 </body>
 </html>
