@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -7,361 +7,183 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #15803d;
-            --primary-dark: #166534;
-        }
-        body {
-            background-color: #f8fafc;
-            font-family: 'Inter', -apple-system, sans-serif;
-        }
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .post-card {
-            transition: transform 0.2s ease;
-        }
-        .post-card:hover {
-            transform: translateY(-2px);
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #999; }
+        :root { --primary: #15803d; }
+        body { background-color: #f8fafc; font-family: sans-serif; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .post-card { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
     </style>
 </head>
 <body class="text-slate-900">
 
     <!-- Навігація -->
-    <nav class="glass-nav sticky top-0 z-50 border-b border-slate-200 px-4 py-2.5">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <nav class="glass-nav sticky top-0 z-50 border-b border-slate-200 px-4 py-2.5 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-                <div class="bg-green-700 p-2 rounded-xl text-white shadow-lg shadow-green-200">
-                    <i class="fas fa-fish-symbol fa-lg"></i>
+                <div class="bg-green-700 p-2 rounded-xl text-white">
+                    <i class="fas fa-fish fa-lg"></i>
                 </div>
-                <h1 class="text-2xl font-black tracking-tight text-green-800 hidden sm:block">FishNet</h1>
+                <h1 class="text-xl font-black text-green-800 hidden sm:block">FishNet</h1>
             </div>
-            
-            <div class="flex-1 max-w-lg mx-8 hidden md:block">
-                <div class="relative">
-                    <input type="text" placeholder="Пошук звітів, водойм, друзів..." class="w-full bg-slate-100 border-none rounded-2xl py-2 px-10 focus:ring-2 focus:ring-green-500 transition-all outline-none">
-                    <i class="fas fa-search absolute left-4 top-3 text-slate-400"></i>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-3 sm:gap-6">
-                <button class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition"><i class="fas fa-home text-xl"></i></button>
-                <button class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition relative">
-                    <i class="fas fa-bell text-xl"></i>
-                    <span class="absolute top-1.5 right-1.5 bg-red-500 w-2.5 h-2.5 rounded-full border-2 border-white"></span>
-                </button>
-                <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                    <div class="text-right hidden sm:block">
-                        <p id="user-name-nav" class="text-sm font-bold leading-none">Завантаження...</p>
-                        <p class="text-[10px] text-slate-400 font-mono" id="user-id-nav"></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl border-2 border-green-600 overflow-hidden cursor-pointer hover:opacity-80 transition" id="user-avatar">
-                        <img src="" class="w-full h-full object-cover" alt="Profile">
-                    </div>
+            <div class="flex items-center gap-4">
+                <button onclick="resetDemo()" class="text-xs text-red-400 hover:text-red-600 underline">Скинути демо</button>
+                <div class="flex items-center gap-2">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MyUser" class="w-8 h-8 rounded-full border border-green-600 bg-white" alt="Me">
+                    <span class="text-sm font-bold hidden sm:block">Я (Рибалка)</span>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Основний контент -->
-    <main class="max-w-6xl mx-auto mt-6 grid grid-cols-1 md:grid-cols-12 gap-8 px-4 pb-20">
+    <main class="max-w-2xl mx-auto mt-6 px-4 pb-20 space-y-6">
         
-        <!-- Ліва панель (Профіль) -->
-        <aside class="hidden lg:block lg:col-span-3 space-y-6">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 overflow-hidden relative">
-                <div class="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-green-600 to-teal-600"></div>
-                <div class="relative pt-4 text-center">
-                    <div class="w-20 h-20 mx-auto rounded-2xl border-4 border-white shadow-md overflow-hidden bg-white mb-3">
-                        <img id="side-profile-img" src="" class="w-full h-full" alt="Avatar">
-                    </div>
-                    <h2 id="user-display-name" class="font-bold text-xl text-slate-800">...</h2>
-                    <p class="text-sm text-slate-500 mb-6">Професійний рибалка</p>
-                    
-                    <div class="grid grid-cols-3 gap-2 py-4 border-y border-slate-50">
-                        <div><p class="font-black text-slate-800">0</p><p class="text-[10px] uppercase tracking-wider text-slate-400">Пости</p></div>
-                        <div><p class="font-black text-slate-800">12</p><p class="text-[10px] uppercase tracking-wider text-slate-400">Кльов</p></div>
-                        <div><p class="font-black text-slate-800">4</p><p class="text-[10px] uppercase tracking-wider text-slate-400">Друзі</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200">
-                <p class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Меню</p>
-                <a href="#" class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl text-slate-700 font-medium transition group">
-                    <span class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </span> Карта водойм
-                </a>
-                <a href="#" class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl text-slate-700 font-medium transition group">
-                    <span class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition">
-                        <i class="fas fa-shopping-bag"></i>
-                    </span> Рибальський маркет
-                </a>
-            </div>
-        </aside>
-
-        <!-- Центральна стрічка -->
-        <div class="col-span-1 md:col-span-12 lg:col-span-6 space-y-6">
-            
-            <!-- Поле створення поста -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-                <div class="flex gap-4">
-                    <img id="post-creator-img" src="" class="w-12 h-12 rounded-xl" alt="User">
-                    <button onclick="openModal()" class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-5 py-3 rounded-2xl text-slate-500 transition-all font-medium border border-slate-100">
-                        Який улов сьогодні, <span class="user-first-name">рибалко</span>?
-                    </button>
-                </div>
-                <div class="flex justify-between mt-5 pt-4 border-t border-slate-50">
-                    <button class="flex items-center gap-2 text-slate-600 hover:bg-blue-50 hover:text-blue-600 px-4 py-2 rounded-xl transition font-semibold text-sm">
-                        <i class="fas fa-image"></i> Фото
-                    </button>
-                    <button class="flex items-center gap-2 text-slate-600 hover:bg-red-50 hover:text-red-600 px-4 py-2 rounded-xl transition font-semibold text-sm">
-                        <i class="fas fa-location-dot"></i> Локація
-                    </button>
-                    <button class="flex items-center gap-2 text-slate-600 hover:bg-yellow-50 hover:text-yellow-600 px-4 py-2 rounded-xl transition font-semibold text-sm">
-                        <i class="fas fa-tags"></i> Теги
-                    </button>
-                </div>
-            </div>
-
-            <!-- Контейнер постів -->
-            <div id="posts-container" class="space-y-6">
-                <div class="flex flex-col items-center justify-center py-20 text-slate-400">
-                    <div class="relative w-16 h-16 mb-4">
-                        <i class="fas fa-fish fa-3x absolute inset-0 animate-ping opacity-20"></i>
-                        <i class="fas fa-fish fa-3x relative text-green-200"></i>
-                    </div>
-                    <p class="font-medium animate-pulse">Закидаємо невід...</p>
-                </div>
+        <!-- Створення поста -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <div class="flex gap-3">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=MyUser" class="w-10 h-10 rounded-full bg-slate-100" alt="User">
+                <button onclick="openModal()" class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-4 py-2 rounded-full text-slate-500 transition-colors">
+                    Хвалися уловом сьогодні...
+                </button>
             </div>
         </div>
 
-        <!-- Права панель (Активність) -->
-        <aside class="hidden md:block md:col-span-4 lg:col-span-3 space-y-6">
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-                <h3 class="font-black text-slate-800 mb-4 flex items-center justify-between uppercase text-xs tracking-widest">
-                    Зараз клює
-                    <span class="flex h-2 w-2 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
-                </h3>
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
-                        <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center text-white font-bold italic">
-                            Щ
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold">Щука</p>
-                            <p class="text-[10px] text-green-600 font-bold">ВИСОКА АКТИВНІСТЬ</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition cursor-pointer">
-                        <div class="w-10 h-10 rounded-lg bg-orange-400 flex items-center justify-center text-white font-bold italic">
-                            К
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold">Короп</p>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Середня</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                <i class="fas fa-anchor absolute -bottom-4 -right-4 text-white opacity-10 fa-6x rotate-12"></i>
-                <h4 class="font-bold mb-2">FishNet Pro</h4>
-                <p class="text-xs text-slate-400 mb-4 leading-relaxed">Отримайте доступ до секретних точок кльову та детальних карт глибин.</p>
-                <button class="w-full bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-xl font-bold text-sm transition shadow-lg shadow-green-900/20">
-                    Спробувати безкоштовно
-                </button>
-            </div>
-        </aside>
+        <!-- Стрічка постів -->
+        <div id="posts-container" class="space-y-6">
+            <!-- Пости будуть тут -->
+        </div>
 
     </main>
 
-    <!-- Модалка -->
+    <!-- Модалка створення -->
     <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
-        <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h2 class="text-xl font-black text-slate-800">Новий звіт</h2>
-                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <img id="modal-user-img" src="" class="w-10 h-10 rounded-xl" alt="U">
-                    <div>
-                        <p id="modal-user-name" class="font-bold text-sm">...</p>
-                        <select class="text-[10px] bg-slate-100 border-none rounded-lg py-1 pl-2 pr-6 focus:ring-0 text-slate-500 font-bold uppercase">
-                            <option>🌐 Публічно</option>
-                            <option>🔒 Тільки друзі</option>
-                        </select>
-                    </div>
-                </div>
-                <textarea id="post-text" rows="5" class="w-full border-none focus:ring-0 text-lg placeholder-slate-300 resize-none mb-4" placeholder="На що клюнуло?"></textarea>
-                <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center cursor-pointer hover:border-green-400 hover:bg-green-50 transition-all group" id="upload-zone">
-                    <i class="fas fa-cloud-upload-alt text-slate-300 group-hover:text-green-500 text-3xl mb-2 transition"></i>
-                    <p class="text-sm font-bold text-slate-400 group-hover:text-green-700">Натисніть або перетягніть фото улову</p>
-                    <input type="text" id="post-image-url" placeholder="Або вставте посилання на фото" class="mt-4 w-full bg-white border border-slate-200 rounded-xl p-2 text-xs focus:ring-2 focus:ring-green-500 outline-none">
-                </div>
-            </div>
-            <div class="px-6 py-4 bg-slate-50 flex justify-end">
-                <button id="submit-post" class="bg-green-700 hover:bg-green-800 text-white px-10 py-3 rounded-2xl font-black transition-all shadow-lg shadow-green-900/20 disabled:opacity-50">
-                    ЗАКИНУТИ В СТРІЧКУ
-                </button>
-            </div>
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black"><i class="fas fa-times fa-lg"></i></button>
+            <h2 class="text-xl font-bold mb-4">Новий звіт</h2>
+            
+            <textarea id="post-text" rows="4" class="w-full border p-3 rounded-xl text-lg placeholder-slate-300 focus:ring-2 focus:ring-green-500 outline-none mb-4" placeholder="Що спіймали?"></textarea>
+            
+            <input type="text" id="post-image-url" placeholder="Посилання на фото (необов'язково)" class="w-full border p-2 rounded-lg text-sm mb-6 bg-slate-50">
+
+            <button onclick="addPost()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold transition shadow-lg">
+                Опублікувати
+            </button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, increment, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fish-net-prod';
+    <script>
+        // --- СИСТЕМА ФЕЙКОВОЇ БАЗИ ДАНИХ (Local Storage) ---
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let user = null;
-        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-
-        // Авторизація
-        const start = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+        // Стартові дані для демо (щоб стрічка не була порожньою)
+        const initialPosts = [
+            {
+                id: 1,
+                user: "Олег Щукар",
+                avatar: "Fisherman1",
+                time: "2 год. тому",
+                content: "Взяла на орбіт 110! Вага 3.2 кг. Дніпро радує!",
+                image: "https://images.unsplash.com/photo-1544551763-47a0159f9234?w=600",
+                likes: 42
+            },
+            {
+                id: 2,
+                user: "Карполов_PRO",
+                avatar: "Fisherman2",
+                time: "5 год. тому",
+                content: "Нічна рибалка вдалася. Короп дзеркальний, 8 кг. Бойл - полуниця.",
+                image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600",
+                likes: 128
             }
-        };
-        start();
+        ];
 
-        onAuthStateChanged(auth, (u) => {
-            if (u) {
-                user = u;
-                updateUI();
-                listenPosts();
+        // Завантаження постів
+        function loadPosts() {
+            let posts = JSON.parse(localStorage.getItem('fishnet_posts'));
+            if (!posts) {
+                posts = initialPosts;
+                localStorage.setItem('fishnet_posts', JSON.stringify(posts));
             }
-        });
-
-        function updateUI() {
-            const avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
-            const name = `Рибалка ${user.uid.substring(0, 5)}`;
-            
-            document.querySelectorAll('#user-avatar img, #side-profile-img, #post-creator-img, #modal-user-img').forEach(img => img.src = avatar);
-            document.getElementById('user-name-nav').innerText = name;
-            document.getElementById('user-display-name').innerText = name;
-            document.getElementById('modal-user-name').innerText = name;
-            document.getElementById('user-id-nav').innerText = `ID: ${user.uid.substring(0,8)}`;
-            document.querySelectorAll('.user-first-name').forEach(el => el.innerText = name.split(' ')[1]);
+            renderPosts(posts);
         }
 
-        function listenPosts() {
-            onSnapshot(postsCol, (snap) => {
-                const container = document.getElementById('posts-container');
-                const posts = [];
-                snap.forEach(d => posts.push({id: d.id, ...d.data()}));
-                
-                posts.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-                if(posts.length === 0) {
-                    container.innerHTML = `<div class="bg-white rounded-2xl p-12 text-center border-2 border-dashed text-slate-300"><i class="fas fa-anchor fa-3x mb-4"></i><p class="font-bold">Поки що тихо... Час першого закиду!</p></div>`;
-                    return;
-                }
-
-                container.innerHTML = posts.map(p => `
-                    <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card">
-                        <div class="p-4 flex justify-between items-start">
-                            <div class="flex items-center gap-3">
-                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}" class="w-10 h-10 rounded-xl bg-slate-100 shadow-sm" alt="U">
-                                <div>
-                                    <p class="font-black text-sm text-slate-800">Рибалка ${p.userId.substring(0,5)}</p>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleTimeString() : 'Щойно'}</p>
-                                </div>
-                            </div>
-                            ${p.userId === user.uid ? `<button onclick="window.deletePost('${p.id}')" class="text-slate-300 hover:text-red-500 p-2 transition"><i class="fas fa-trash-alt"></i></button>` : ''}
-                        </div>
-                        <div class="px-5 pb-4 text-slate-700 leading-relaxed font-medium">
-                            ${p.content}
-                        </div>
-                        ${p.imageUrl ? `
-                            <div class="bg-slate-100 border-y border-slate-50">
-                                <img src="${p.imageUrl}" class="w-full h-auto max-h-[500px] object-contain mx-auto" alt="Catch" onerror="this.parentElement.style.display='none'">
-                            </div>
-                        ` : ''}
-                        <div class="p-4 bg-slate-50/50 flex justify-between items-center border-t border-slate-50">
-                            <div class="flex gap-4">
-                                <button onclick="window.like('${p.id}')" class="flex items-center gap-2 group transition-all">
-                                    <span class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 group-hover:bg-green-50 group-hover:text-green-600 group-hover:border-green-200 transition-all">
-                                        <i class="fas fa-fish"></i>
-                                    </span>
-                                    <span class="font-black text-slate-600">${p.likes || 0}</span>
-                                </button>
-                                <button class="flex items-center gap-2 group">
-                                    <span class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200 transition">
-                                        <i class="fas fa-comment"></i>
-                                    </span>
-                                    <span class="font-black text-slate-600">0</span>
-                                </button>
+        // Відображення
+        function renderPosts(posts) {
+            const container = document.getElementById('posts-container');
+            container.innerHTML = posts.map(post => `
+                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card">
+                    <div class="p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${post.avatar}" class="w-10 h-10 rounded-full bg-slate-100">
+                            <div>
+                                <p class="font-bold text-slate-800">${post.user}</p>
+                                <p class="text-xs text-slate-400">${post.time}</p>
                             </div>
                         </div>
-                    </article>
-                `).join('');
-            });
+                    </div>
+                    <p class="px-4 pb-3 text-slate-800 text-lg">${post.content}</p>
+                    ${post.image ? `<div class="bg-slate-100 aspect-video"><img src="${post.image}" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>` : ''}
+                    <div class="p-4 border-t border-slate-50 flex gap-4">
+                        <button onclick="likePost(${post.id})" class="flex items-center gap-2 text-slate-500 hover:text-green-600 transition group">
+                            <i class="fas fa-fish fa-xl group-hover:scale-110 transition"></i>
+                            <span class="font-bold">${post.likes}</span>
+                        </button>
+                    </div>
+                </article>
+            `).join('');
         }
 
-        window.like = async (id) => {
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
-            await updateDoc(ref, { likes: increment(1) });
-        };
-
-        window.deletePost = async (id) => {
-            if(confirm('Видалити цей звіт?')) {
-                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
-                await deleteDoc(ref);
-            }
-        };
-
-        document.getElementById('submit-post').onclick = async () => {
-            const text = document.getElementById('post-text').value.trim();
-            const img = document.getElementById('post-image-url').value.trim();
-            const btn = document.getElementById('submit-post');
+        // Додавання поста
+        function addPost() {
+            const text = document.getElementById('post-text').value;
+            const img = document.getElementById('post-image-url').value;
             
-            if(!text) return;
+            if (!text) return alert("Напишіть хоч щось!");
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ЗАКИДАЄМО...';
+            const newPost = {
+                id: Date.now(),
+                user: "Я (Рибалка)",
+                avatar: "MyUser",
+                time: "Щойно",
+                content: text,
+                image: img,
+                likes: 0
+            };
 
-            try {
-                await addDoc(postsCol, {
-                    userId: user.uid,
-                    content: text,
-                    imageUrl: img,
-                    likes: 0,
-                    createdAt: serverTimestamp()
-                });
-                document.getElementById('post-text').value = '';
-                document.getElementById('post-image-url').value = '';
-                window.closeModal();
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = 'ЗАКИНУТИ В СТРІЧКУ';
+            const posts = JSON.parse(localStorage.getItem('fishnet_posts')) || [];
+            posts.unshift(newPost); // Додаємо на початок
+            localStorage.setItem('fishnet_posts', JSON.stringify(posts));
+            
+            loadPosts();
+            closeModal();
+            document.getElementById('post-text').value = '';
+            document.getElementById('post-image-url').value = '';
+        }
+
+        // Лайк
+        window.likePost = function(id) {
+            const posts = JSON.parse(localStorage.getItem('fishnet_posts'));
+            const post = posts.find(p => p.id == id);
+            if (post) {
+                post.likes++;
+                localStorage.setItem('fishnet_posts', JSON.stringify(posts));
+                renderPosts(posts);
             }
-        };
+        }
 
+        // Управління модалкою
         window.openModal = () => document.getElementById('modal').classList.replace('hidden', 'flex');
         window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
 
+        // Скидання
+        window.resetDemo = () => {
+            if(confirm('Скинути всі дані до початкових?')) {
+                localStorage.removeItem('fishnet_posts');
+                location.reload();
+            }
+        };
+
+        // Старт
+        loadPosts();
     </script>
 </body>
 </html>
