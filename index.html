@@ -76,6 +76,7 @@
             <div class="text-center py-12 text-slate-400">
                 <i class="fas fa-spinner fa-spin fa-2x mb-3 text-green-500"></i>
                 <p>Закидаємо вудки...</p>
+                <p id="loading-error-msg" class="text-red-500 text-xs mt-2 hidden"></p>
             </div>
         </div>
 
@@ -175,12 +176,45 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, increment, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-id';
+        // ===============================================
+        // НАЛАШТУВАННЯ (ЗМІНІТЬ ЦЕ ДЛЯ GITHUB)
+        // ===============================================
+        const manualConfig = {
+            apiKey: "ВСТАВТЕ_ТУТ_СВІЙ_API_KEY",
+            authDomain: "fishnet-xxxx.firebaseapp.com",
+            projectId: "fishnet-xxxx",
+            storageBucket: "fishnet-xxxx.firebasestorage.app",
+            messagingSenderId: "12345678",
+            appId: "1:12345678:web:xxxxxx"
+        };
+        // ===============================================
+
+        let firebaseConfig;
+        try {
+            // Спроба взяти з Canvas
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } else {
+                // Якщо Canvas нема, беремо manualConfig
+                firebaseConfig = manualConfig;
+            }
+        } catch (e) {
+            firebaseConfig = manualConfig;
+        }
+
+        let app, auth, db, googleProvider;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-prod';
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            googleProvider = new GoogleAuthProvider();
+        } catch (e) {
+            console.error("Firebase init failed:", e);
+            document.getElementById('loading-error-msg').innerText = "Помилка конфігурації. Перевірте API ключі в коді.";
+            document.getElementById('loading-error-msg').classList.remove('hidden');
+        }
         
         // References
         const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
@@ -321,23 +355,30 @@
                 // Re-render only if count changes or simplistic check (React is better for this, but Vanilla JS works)
                 container.innerHTML = posts.map(post => renderPost(post)).join('');
             }, (error) => {
-                // *** ERROR HANDLING ADDED HERE ***
+                // *** ERROR HANDLING UPDATED ***
                 console.error("Firestore Error:", error);
                 const container = document.getElementById('posts-container');
+                
+                let errorMsg = "Помилка завантаження";
+                let errorDesc = "Перевірте інтернет з'єднання.";
+
                 if (error.code === 'permission-denied') {
-                    container.innerHTML = `
-                        <div class="text-center py-10 bg-red-50 border border-red-200 rounded-2xl text-red-600 p-6 mx-4">
-                            <i class="fas fa-lock fa-3x mb-3 text-red-400"></i>
-                            <h3 class="font-bold text-lg">Доступ заборонено</h3>
-                            <p class="text-sm mt-2 mb-4">База даних закрита для читання. Вам потрібно оновити правила безпеки (Rules) в консолі Firebase.</p>
-                            <div class="bg-white p-3 rounded-xl border border-red-100 text-left shadow-sm">
-                                <p class="text-xs font-bold text-slate-500 mb-1">Скопіюйте це в Rules:</p>
-                                <code class="text-xs font-mono bg-slate-100 block p-2 rounded text-slate-700">
-                                    allow read, write: if true;
-                                </code>
-                            </div>
-                        </div>`;
+                    errorMsg = "Доступ заборонено (Rules)";
+                    errorDesc = "Змініть правила в Firebase Console: allow read, write: if true;";
+                } else if (error.code === 'unavailable') {
+                    errorMsg = "Немає з'єднання";
+                    errorDesc = "Сервер не відповідає. Ви офлайн?";
                 }
+
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-red-50 border border-red-200 rounded-2xl text-red-600 p-6 mx-4 animate-fade-in">
+                        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-red-400"></i>
+                        <h3 class="font-bold text-lg">${errorMsg}</h3>
+                        <p class="text-sm mt-2 mb-4 text-slate-600">${errorDesc}</p>
+                        <button onclick="location.reload()" class="bg-white border border-red-200 text-red-600 px-6 py-2 rounded-full text-sm font-bold hover:bg-red-50 transition shadow-sm">
+                            Спробувати ще раз
+                        </button>
+                    </div>`;
             });
         }
 
