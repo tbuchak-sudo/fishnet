@@ -177,25 +177,23 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, increment, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ===============================================
-        // НАЛАШТУВАННЯ (ЗМІНІТЬ ЦЕ ДЛЯ GITHUB)
+        // НАЛАШТУВАННЯ (ВАШІ КЛЮЧІ)
         // ===============================================
         const manualConfig = {
-            apiKey: "ВСТАВТЕ_ТУТ_СВІЙ_API_KEY",
-            authDomain: "fishnet-xxxx.firebaseapp.com",
-            projectId: "fishnet-xxxx",
-            storageBucket: "fishnet-xxxx.firebasestorage.app",
-            messagingSenderId: "12345678",
-            appId: "1:12345678:web:xxxxxx"
+            apiKey: "AIzaSyD6IAvXTRgBLlmgIeziYeY9kDPrZXzD_O4",
+            authDomain: "fishnet-1bcb5.firebaseapp.com",
+            projectId: "fishnet-1bcb5",
+            storageBucket: "fishnet-1bcb5.firebasestorage.app",
+            messagingSenderId: "863937283187",
+            appId: "1:863937283187:web:49e96a534e1315ecd71606"
         };
         // ===============================================
 
         let firebaseConfig;
         try {
-            // Спроба взяти з Canvas
-            if (typeof __firebase_config !== 'undefined') {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 firebaseConfig = JSON.parse(__firebase_config);
             } else {
-                // Якщо Canvas нема, беремо manualConfig
                 firebaseConfig = manualConfig;
             }
         } catch (e) {
@@ -203,7 +201,7 @@
         }
 
         let app, auth, db, googleProvider;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-prod';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-prod-v1';
 
         try {
             app = initializeApp(firebaseConfig);
@@ -212,18 +210,16 @@
             googleProvider = new GoogleAuthProvider();
         } catch (e) {
             console.error("Firebase init failed:", e);
-            document.getElementById('loading-error-msg').innerText = "Помилка конфігурації. Перевірте API ключі в коді.";
-            document.getElementById('loading-error-msg').classList.remove('hidden');
+            const container = document.getElementById('posts-container');
+            container.innerHTML = `<div class="p-6 text-center text-red-500 font-bold bg-white rounded-2xl border border-red-100 shadow-sm">Помилка конфігурації. Перевірте ключі в коді.</div>`;
         }
         
-        // References
         const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
         const commentsCol = collection(db, 'artifacts', appId, 'public', 'data', 'comments');
 
         let currentUser = null;
         let isRegisterMode = false;
         
-        // Tags Config
         const FISH_TAGS = [
             { id: 'Інше', color: 'bg-slate-100 text-slate-600' },
             { id: 'Щука', color: 'bg-green-100 text-green-700' },
@@ -234,11 +230,10 @@
             { id: 'Сом', color: 'bg-purple-100 text-purple-700' },
         ];
 
-        // --- AUTH ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             updateUI(user);
-            loadPosts(); // Reload to update delete buttons based on new user ID
+            loadPosts();
         });
 
         function updateUI(user) {
@@ -254,11 +249,9 @@
                 createBox.classList.remove('hidden');
                 guestBanner.classList.add('hidden');
                 
-                // Get Name: Google DisplayName OR Email OR Guest
                 const name = user.displayName || (user.isAnonymous ? `Гість` : (user.email.split('@')[0]));
                 document.getElementById('my-name').innerText = name;
                 
-                // Get Avatar: Google Photo OR Dicebear
                 let avatar = user.photoURL;
                 if (!avatar) {
                     const seed = user.isAnonymous ? user.uid : (user.email || user.uid);
@@ -319,7 +312,10 @@
         };
 
         window.handleGuest = async () => await signInAnonymously(auth);
-        window.logout = async () => await signOut(auth);
+        window.logout = async () => {
+            await signOut(auth);
+            location.reload();
+        };
 
         function showError(msg) {
             const errorBox = document.getElementById('auth-error');
@@ -327,9 +323,7 @@
             errorBox.classList.remove('hidden');
         }
 
-        // --- POSTS ---
         function loadPosts() {
-            // Simple query, sorting in memory to avoid index requirement
             const q = query(postsCol);
             
             onSnapshot(q, (snapshot) => {
@@ -337,7 +331,6 @@
                 const posts = [];
                 snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
                 
-                // Client-side sort
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 if (posts.length === 0) {
@@ -352,33 +345,22 @@
                     return;
                 }
                 
-                // Re-render only if count changes or simplistic check (React is better for this, but Vanilla JS works)
                 container.innerHTML = posts.map(post => renderPost(post)).join('');
             }, (error) => {
-                // *** ERROR HANDLING UPDATED ***
                 console.error("Firestore Error:", error);
                 const container = document.getElementById('posts-container');
                 
-                let errorMsg = "Помилка завантаження";
-                let errorDesc = "Перевірте інтернет з'єднання.";
-
                 if (error.code === 'permission-denied') {
-                    errorMsg = "Доступ заборонено (Rules)";
-                    errorDesc = "Змініть правила в Firebase Console: allow read, write: if true;";
-                } else if (error.code === 'unavailable') {
-                    errorMsg = "Немає з'єднання";
-                    errorDesc = "Сервер не відповідає. Ви офлайн?";
+                    container.innerHTML = `
+                        <div class="text-center py-10 bg-red-50 border border-red-200 rounded-2xl text-red-600 p-6 mx-4 animate-fade-in">
+                            <i class="fas fa-lock fa-3x mb-3 text-red-400"></i>
+                            <h3 class="font-bold text-lg">Доступ заборонено (Rules)</h3>
+                            <p class="text-sm mt-2 mb-4 text-slate-600 leading-relaxed">Вам потрібно змінити правила Firestore в консолі Firebase на:<br><code class="bg-white p-1 rounded font-mono text-xs">allow read, write: if true;</code></p>
+                            <button onclick="location.reload()" class="bg-white border border-red-200 text-red-600 px-6 py-2 rounded-full text-sm font-bold hover:bg-red-50 transition shadow-sm">
+                                Спробувати ще раз
+                            </button>
+                        </div>`;
                 }
-
-                container.innerHTML = `
-                    <div class="text-center py-10 bg-red-50 border border-red-200 rounded-2xl text-red-600 p-6 mx-4 animate-fade-in">
-                        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-red-400"></i>
-                        <h3 class="font-bold text-lg">${errorMsg}</h3>
-                        <p class="text-sm mt-2 mb-4 text-slate-600">${errorDesc}</p>
-                        <button onclick="location.reload()" class="bg-white border border-red-200 text-red-600 px-6 py-2 rounded-full text-sm font-bold hover:bg-red-50 transition shadow-sm">
-                            Спробувати ще раз
-                        </button>
-                    </div>`;
             });
         }
 
@@ -387,8 +369,7 @@
             const timeAgo = getTimeAgo(post.createdAt?.seconds);
             const tagConfig = FISH_TAGS.find(t => t.id === post.tag) || FISH_TAGS[0];
             
-            // Avatar Fallback logic for old posts or posts without user photo
-            let avatar = post.userPhoto; // New field we will save
+            let avatar = post.userPhoto;
             if (!avatar) {
                  const avatarSeed = post.userEmail || post.userId;
                  avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}&backgroundColor=c0aede,b6e3f4`;
@@ -438,13 +419,10 @@
                         </button>
                     </div>
 
-                    <!-- Comments Section (Hidden by default) -->
                     <div id="comments-${post.id}" class="hidden bg-slate-50 border-t border-slate-100 p-4">
                         <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-60 overflow-y-auto comments-section">
-                            <!-- JS loads comments here -->
                             <p class="text-xs text-slate-400 text-center">Завантаження...</p>
                         </div>
-                        
                         <form onsubmit="postComment(event, '${post.id}')" class="relative">
                             <input type="text" name="commentText" placeholder="Написати коментар..." class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition shadow-sm">
                             <button type="submit" class="absolute right-1.5 top-1.5 text-blue-600 hover:bg-blue-50 p-1.5 rounded-full transition w-8 h-8 flex items-center justify-center">
@@ -456,9 +434,6 @@
             `;
         }
 
-        // --- NEW FEATURES LOGIC ---
-
-        // 1. Delete Post
         window.deletePost = async (id) => {
             if(!confirm("Видалити цей звіт?")) return;
             try {
@@ -466,11 +441,9 @@
             } catch(e) { console.error(e); alert("Помилка видалення"); }
         };
 
-        // 2. Comments System
         window.toggleComments = (postId) => {
             const section = document.getElementById(`comments-${postId}`);
             const isHidden = section.classList.contains('hidden');
-            
             if (isHidden) {
                 section.classList.remove('hidden');
                 loadComments(postId);
@@ -483,15 +456,13 @@
 
         function loadComments(postId) {
             const list = document.getElementById(`comments-list-${postId}`);
-            if (commentUnsubscribes[postId]) commentUnsubscribes[postId](); // clear old listener
+            if (commentUnsubscribes[postId]) commentUnsubscribes[postId]();
 
-            // Query comments for this post
             const q = query(commentsCol, where("postId", "==", postId));
             
             commentUnsubscribes[postId] = onSnapshot(q, (snapshot) => {
                 const comments = [];
                 snapshot.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
-                // Sort by time ascending
                 comments.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
 
                 if (comments.length === 0) {
@@ -514,11 +485,6 @@
                     </div>
                 `}).join('');
                 list.scrollTop = list.scrollHeight;
-            }, (error) => {
-                // Handle permission error for comments too
-                if (error.code === 'permission-denied') {
-                    list.innerHTML = `<p class="text-xs text-red-500 text-center">Помилка доступу до коментарів.</p>`;
-                }
             });
         }
 
@@ -526,14 +492,14 @@
             e.preventDefault();
             const input = e.target.commentText;
             const text = input.value.trim();
-            if (!currentUser) { alert("Спершу увійдіть в акаунт!"); openAuthModal(); return; }
+            if (!currentUser) { openAuthModal(); return; }
             if (!text) return;
 
             const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
             const photo = currentUser.photoURL || null;
 
             try {
-                input.value = ''; // clear immediately
+                input.value = '';
                 await addDoc(commentsCol, {
                     postId: postId,
                     userId: currentUser.uid,
@@ -545,17 +511,14 @@
                 });
             } catch (err) {
                 console.error("Comment failed", err);
-                input.value = text; // restore on fail
-                alert("Не вдалося додати коментар. Перевірте дозволи бази даних.");
+                input.value = text;
             }
         };
 
-        // 3. Helpers
         function getTimeAgo(seconds) {
             if (!seconds) return 'щойно';
             const now = Math.floor(Date.now() / 1000);
             const diff = now - seconds;
-            
             if (diff < 60) return 'щойно';
             if (diff < 3600) return `${Math.floor(diff/60)} хв. тому`;
             if (diff < 86400) return `${Math.floor(diff/3600)} год. тому`;
@@ -567,7 +530,6 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // --- CORE ACTIONS ---
         window.like = async (id) => {
             if (!currentUser) { openAuthModal(); return; }
             const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
@@ -587,20 +549,17 @@
 
             try {
                 const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
-                
                 await addDoc(postsCol, {
                     userId: currentUser.uid,
                     userName: name,
                     userEmail: currentUser.email || 'guest',
-                    userPhoto: currentUser.photoURL || null, // Saving actual google photo
+                    userPhoto: currentUser.photoURL || null,
                     content: text,
                     imageUrl: img,
                     tag: tag,
                     likes: 0,
                     createdAt: serverTimestamp()
                 });
-                
-                // Reset form
                 document.getElementById('post-text').value = '';
                 document.getElementById('post-image-url').value = '';
                 closeModal();
@@ -611,21 +570,17 @@
             }
         };
 
-        // --- INIT UI ---
-        // Generate tag buttons
         const tagContainer = document.getElementById('fish-tags');
         FISH_TAGS.forEach(tag => {
             const btn = document.createElement('button');
             btn.className = `px-3 py-1 rounded-full text-xs font-bold border border-slate-200 transition bg-slate-50 text-slate-500 hover:bg-slate-100`;
             btn.innerText = tag.id;
             btn.onclick = () => {
-                // reset all
                 Array.from(tagContainer.children).forEach(c => c.className = `px-3 py-1 rounded-full text-xs font-bold border border-slate-200 transition bg-slate-50 text-slate-500 hover:bg-slate-100`);
-                // active style
                 btn.className = `px-3 py-1 rounded-full text-xs font-bold border border-transparent shadow-sm transform scale-105 ${tag.color} ring-2 ring-offset-1 ring-green-100`;
                 document.getElementById('selected-tag').value = tag.id;
             };
-            if(tag.id === 'Інше') btn.click(); // Select default
+            if(tag.id === 'Інше') btn.click();
             tagContainer.appendChild(btn);
         });
 
@@ -641,9 +596,7 @@
             const loginTab = document.getElementById('tab-login');
             const regTab = document.getElementById('tab-register');
             const btn = document.getElementById('auth-submit-btn');
-            
             document.getElementById('auth-error').classList.add('hidden');
-            
             if(mode === 'register') {
                 isRegisterMode = true;
                 regTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all";
