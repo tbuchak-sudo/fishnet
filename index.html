@@ -7,24 +7,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f0fdf4; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0fdf4; font-family: 'Segoe UI', system-ui, sans-serif; }
         .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .post-card { animation: slideUp 0.4s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: 0; } }
         
-        /* Custom Scrollbar for comments */
+        /* Custom Scrollbar */
         .comments-section::-webkit-scrollbar { width: 6px; }
         .comments-section::-webkit-scrollbar-track { background: #f1f1f1; }
         .comments-section::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #16a34a;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite; /* Safari */
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="text-slate-800 antialiased selection:bg-green-200">
+<body class="text-slate-800 antialiased selection:bg-green-200 pb-10">
 
     <!-- Навігація -->
     <nav class="glass-nav sticky top-0 z-40 border-b border-green-100 px-4 py-3 shadow-sm">
         <div class="max-w-3xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer group" onclick="location.reload()">
-                <div class="bg-gradient-to-tr from-green-600 to-emerald-500 p-2.5 rounded-xl text-white shadow-lg group-hover:scale-105 transition">
+            <div class="flex items-center gap-2 cursor-pointer group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="bg-gradient-to-tr from-green-600 to-emerald-500 p-2.5 rounded-xl text-white shadow-lg group-hover:scale-105 transition duration-300">
                     <i class="fas fa-fish fa-lg"></i>
                 </div>
                 <h1 class="text-2xl font-black text-green-900 tracking-tight hidden sm:block">FishNet</h1>
@@ -32,13 +43,13 @@
             
             <div class="flex items-center gap-4">
                 <!-- User Block -->
-                <div id="user-info" class="hidden flex items-center gap-3">
+                <div id="user-info" class="hidden flex items-center gap-3 animate-fade-in">
                     <div class="text-right hidden sm:block leading-tight">
                         <p id="my-name" class="font-bold text-sm text-slate-700">...</p>
                         <p class="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Рибалка</p>
                     </div>
                     <img id="my-avatar" src="" class="w-9 h-9 rounded-full border-2 border-white shadow-md bg-slate-200 object-cover" alt="Me">
-                    <button onclick="window.logout()" class="text-slate-400 hover:text-red-500 transition ml-1" title="Вийти">
+                    <button onclick="window.logout()" class="text-slate-400 hover:text-red-500 transition ml-1 p-2" title="Вийти">
                         <i class="fas fa-sign-out-alt fa-lg"></i>
                     </button>
                 </div>
@@ -55,12 +66,13 @@
     <main class="max-w-xl mx-auto mt-6 px-4 pb-24 space-y-6">
         
         <!-- Створення поста -->
-        <div id="create-post-box" class="bg-white rounded-2xl p-4 shadow-sm border border-green-50 hidden hover:shadow-md transition">
-            <div class="flex gap-3">
-                <img id="post-avatar-mini" src="" class="w-10 h-10 rounded-full bg-slate-100 object-cover">
-                <button onclick="openModal()" class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-5 py-2.5 rounded-full text-slate-500 transition-colors border border-slate-100">
+        <div id="create-post-box" class="bg-white rounded-2xl p-4 shadow-sm border border-green-50 hidden hover:shadow-md transition cursor-pointer" onclick="openModal()">
+            <div class="flex gap-3 items-center">
+                <img id="post-avatar-mini" src="" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100">
+                <div class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-5 py-2.5 rounded-full text-slate-500 transition-colors border border-slate-100 text-sm sm:text-base">
                     Хвалися уловом, друже...
-                </button>
+                </div>
+                <div class="text-green-600 p-2"><i class="fas fa-camera fa-lg"></i></div>
             </div>
         </div>
         
@@ -76,7 +88,6 @@
             <div class="text-center py-12 text-slate-400">
                 <i class="fas fa-spinner fa-spin fa-2x mb-3 text-green-500"></i>
                 <p>Закидаємо вудки...</p>
-                <p id="loading-error-msg" class="text-red-500 text-xs mt-2 hidden"></p>
             </div>
         </div>
 
@@ -84,13 +95,15 @@
 
     <!-- Модалка створення поста -->
     <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 animate-fade-in">
-        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all scale-100">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h2 class="font-bold text-lg text-slate-700">Новий трофей</h2>
+                <h2 class="font-bold text-lg text-slate-700 flex items-center gap-2">
+                    <i class="fas fa-pen-nib text-green-600"></i> Новий трофей
+                </h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition"><i class="fas fa-times"></i></button>
             </div>
             
-            <div class="p-6">
+            <div class="p-6 overflow-y-auto">
                 <!-- Вибір категорії -->
                 <div class="mb-4">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Категорія</label>
@@ -100,16 +113,17 @@
                     <input type="hidden" id="selected-tag" value="Інше">
                 </div>
 
-                <textarea id="post-text" rows="3" class="w-full border-slate-200 bg-slate-50 rounded-xl p-4 text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition resize-none mb-4" placeholder="Вага, наживка, місце?"></textarea>
+                <textarea id="post-text" rows="4" class="w-full border-slate-200 bg-slate-50 rounded-xl p-4 text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition resize-none mb-4 text-base" placeholder="Вага, наживка, місце? Розкажи деталі..."></textarea>
                 
                 <div class="relative">
-                    <i class="fas fa-link absolute left-3 top-3 text-slate-400"></i>
-                    <input type="text" id="post-image-url" placeholder="URL фото (необов'язково)" class="w-full border border-slate-200 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:border-green-500 outline-none transition">
+                    <i class="fas fa-link absolute left-3 top-3.5 text-slate-400"></i>
+                    <input type="text" id="post-image-url" placeholder="URL фото (необов'язково)" class="w-full border border-slate-200 rounded-xl py-3 pl-9 pr-4 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition">
                 </div>
+                <p class="text-[10px] text-slate-400 mt-1 ml-2">Підтримуються прямі посилання на зображення (jpg, png)</p>
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button id="btn-publish" class="bg-green-700 hover:bg-green-800 text-white px-8 py-2.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 flex items-center gap-2">
+                <button id="btn-publish" class="bg-green-700 hover:bg-green-800 text-white px-8 py-2.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 flex items-center gap-2 active:scale-95">
                     <span>Опублікувати</span>
                     <i class="fas fa-paper-plane text-xs"></i>
                 </button>
@@ -124,8 +138,8 @@
             
             <div class="bg-gradient-to-br from-green-700 to-green-900 p-8 text-center relative overflow-hidden">
                 <i class="fas fa-fish text-9xl absolute -bottom-8 -right-8 text-white/10 rotate-12"></i>
-                <h2 class="text-2xl font-black text-white mb-6 relative">FishNet ID</h2>
-                <div class="flex justify-center bg-black/20 p-1 rounded-xl relative z-10">
+                <h2 class="text-2xl font-black text-white mb-6 relative drop-shadow-md">FishNet ID</h2>
+                <div class="flex justify-center bg-black/20 p-1 rounded-xl relative z-10 backdrop-blur-sm">
                     <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all">Вхід</button>
                     <button onclick="switchTab('register')" id="tab-register" class="flex-1 py-1.5 rounded-lg text-sm font-bold text-green-100 hover:text-white transition-all">Реєстрація</button>
                 </div>
@@ -133,7 +147,7 @@
 
             <div class="p-8 space-y-5">
                 <div id="auth-error" class="hidden bg-red-50 text-red-600 text-xs p-3 rounded-xl border border-red-100 flex items-center gap-2">
-                    <i class="fas fa-exclamation-circle"></i> <span>Error</span>
+                    <i class="fas fa-exclamation-circle"></i> <span id="auth-error-text">Error</span>
                 </div>
                 
                 <div class="space-y-4">
@@ -147,7 +161,7 @@
                     </div>
                 </div>
 
-                <button id="auth-submit-btn" onclick="handleAuth()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 active:scale-95">
+                <button id="auth-submit-btn" onclick="handleAuth()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 active:scale-95 flex justify-center items-center gap-2">
                     Увійти
                 </button>
                 
@@ -156,13 +170,8 @@
                     <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">або</span></div>
                 </div>
 
-                <button onclick="handleGoogleAuth()" class="w-full bg-white border border-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 group">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 group-hover:scale-110 transition" alt="Google">
-                    <span>Google</span>
-                </button>
-
                 <div class="text-center pt-2">
-                    <button onclick="handleGuest()" class="text-xs font-bold text-slate-400 hover:text-green-600 transition uppercase tracking-wide">
+                    <button onclick="handleGuest()" class="text-xs font-bold text-slate-400 hover:text-green-600 transition uppercase tracking-wide border-b border-transparent hover:border-green-600">
                         Тільки подивитись (Гість)
                     </button>
                 </div>
@@ -173,111 +182,136 @@
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, increment, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ===============================================
-        // НАЛАШТУВАННЯ (ВАШІ КЛЮЧІ)
+        // FIREBASE CONFIGURATION (AUTOMATIC)
         // ===============================================
-        const manualConfig = {
-            apiKey: "AIzaSyD6IAvXTRgBLlmgIeziYeY9kDPrZXzD_O4",
-            authDomain: "fishnet-1bcb5.firebaseapp.com",
-            projectId: "fishnet-1bcb5",
-            storageBucket: "fishnet-1bcb5.firebasestorage.app",
-            messagingSenderId: "863937283187",
-            appId: "1:863937283187:web:49e96a534e1315ecd71606"
-        };
-        // ===============================================
+        let app, auth, db;
+        let appId = 'fishnet-default';
 
-        let firebaseConfig;
         try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
+            // Use system environment variables
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-fallback';
+            
+            if (firebaseConfig) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                console.log("Firebase initialized successfully with system config.");
             } else {
-                firebaseConfig = manualConfig;
+                throw new Error("Firebase config not found. Please run in the correct environment.");
             }
         } catch (e) {
-            firebaseConfig = manualConfig;
-        }
-
-        let app, auth, db, googleProvider;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-prod-v1';
-
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            googleProvider = new GoogleAuthProvider();
-        } catch (e) {
             console.error("Firebase init failed:", e);
-            const container = document.getElementById('posts-container');
-            container.innerHTML = `<div class="p-6 text-center text-red-500 font-bold bg-white rounded-2xl border border-red-100 shadow-sm">Помилка конфігурації. Перевірте ключі в коді.</div>`;
+            document.getElementById('posts-container').innerHTML = `
+                <div class="p-6 text-center text-red-500 font-bold bg-white rounded-2xl border border-red-100 shadow-sm">
+                    <i class="fas fa-bug fa-2x mb-2"></i><br/>
+                    Помилка підключення до бази даних.<br/>
+                    <span class="text-xs font-normal text-slate-500">${e.message}</span>
+                </div>`;
         }
-        
-        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-        const commentsCol = collection(db, 'artifacts', appId, 'public', 'data', 'comments');
 
+        // Collection References (Using standard paths for this environment)
+        const getPostsCol = () => collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+        const getCommentsCol = () => collection(db, 'artifacts', appId, 'public', 'data', 'comments');
+
+        // State
         let currentUser = null;
         let isRegisterMode = false;
         
         const FISH_TAGS = [
-            { id: 'Інше', color: 'bg-slate-100 text-slate-600' },
-            { id: 'Щука', color: 'bg-green-100 text-green-700' },
-            { id: 'Короп', color: 'bg-amber-100 text-amber-700' },
-            { id: 'Окунь', color: 'bg-orange-100 text-orange-700' },
-            { id: 'Судак', color: 'bg-blue-100 text-blue-700' },
-            { id: 'Карась', color: 'bg-yellow-100 text-yellow-700' },
-            { id: 'Сом', color: 'bg-purple-100 text-purple-700' },
+            { id: 'Інше', color: 'bg-slate-100 text-slate-600 border-slate-200' },
+            { id: 'Щука', color: 'bg-green-100 text-green-700 border-green-200' },
+            { id: 'Короп', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+            { id: 'Окунь', color: 'bg-orange-100 text-orange-700 border-orange-200' },
+            { id: 'Судак', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+            { id: 'Карась', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+            { id: 'Сом', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+            { id: 'Спінінг', color: 'bg-teal-100 text-teal-700 border-teal-200' },
+            { id: 'Фідер', color: 'bg-rose-100 text-rose-700 border-rose-200' },
         ];
 
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            updateUI(user);
-            loadPosts();
-        });
+        // ===============================================
+        // AUTH FLOW
+        // ===============================================
+        const initAuth = async () => {
+            if (!auth) return;
+            try {
+                // Priority: Custom Token (Environment) -> Anonymous (Fallback)
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    // Check if already signed in, otherwise anon
+                    if (!auth.currentUser) {
+                         // We wait for user action for real login, but for reading we might need anon
+                         // For this app, we let them browse as guest without auto-anon logic unless they click "Guest"
+                         // or if the app requires auth to read. Let's assume public read.
+                         // But to follow strict rules: Auth Before Query.
+                         // So we try to sign in anonymously silently if no user is present to ensure data loading works.
+                         // However, better UX is to let them click login.
+                         // But for "Maximally working", let's ensure we have a session to read data.
+                         await signInAnonymously(auth);
+                    }
+                }
+            } catch (err) {
+                console.error("Auth Init Error:", err);
+            }
+        };
 
+        // Start App
+        if (auth) {
+            initAuth().then(() => {
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    updateUI(user);
+                    if (user) loadPosts(); // Only load data if we have a valid session
+                });
+            });
+        }
+
+        // ===============================================
+        // UI UPDATES
+        // ===============================================
         function updateUI(user) {
             const loginBtn = document.getElementById('login-btn');
             const userInfo = document.getElementById('user-info');
             const createBox = document.getElementById('create-post-box');
             const guestBanner = document.getElementById('guest-banner');
 
-            if (user) {
+            if (user && !user.isAnonymous) {
+                // Logged in User
                 loginBtn.classList.add('hidden');
                 userInfo.classList.remove('hidden');
                 userInfo.classList.add('flex');
                 createBox.classList.remove('hidden');
                 guestBanner.classList.add('hidden');
                 
-                const name = user.displayName || (user.isAnonymous ? `Гість` : (user.email.split('@')[0]));
+                const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Рибалка');
                 document.getElementById('my-name').innerText = name;
                 
                 let avatar = user.photoURL;
                 if (!avatar) {
-                    const seed = user.isAnonymous ? user.uid : (user.email || user.uid);
-                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=c0aede,b6e3f4`;
+                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}&backgroundColor=c0aede,b6e3f4`;
                 }
                 
                 document.getElementById('my-avatar').src = avatar;
                 document.getElementById('post-avatar-mini').src = avatar;
-                
                 closeAuthModal();
             } else {
+                // Guest or Anonymous
                 loginBtn.classList.remove('hidden');
                 userInfo.classList.add('hidden');
                 userInfo.classList.remove('flex');
                 createBox.classList.add('hidden');
+                
+                // If strictly anonymous (auto-login), show banner
+                // If not logged in at all, show banner
                 guestBanner.classList.remove('hidden');
             }
         }
-
-        window.handleGoogleAuth = async () => {
-            try {
-                await signInWithPopup(auth, googleProvider);
-            } catch (e) {
-                showError("Помилка Google: " + e.message);
-            }
-        };
 
         window.handleAuth = async () => {
             const email = document.getElementById('auth-email').value;
@@ -290,7 +324,7 @@
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.innerHTML = '<div class="loader"></div>';
             document.getElementById('auth-error').classList.add('hidden');
 
             try {
@@ -299,6 +333,7 @@
                 } else {
                     await signInWithEmailAndPassword(auth, email, pass);
                 }
+                // Auth state listener will handle UI
             } catch (e) {
                 let msg = "Помилка авторизації";
                 if(e.code && e.code.includes('email-already-in-use')) msg = "Ця пошта вже зайнята";
@@ -311,36 +346,54 @@
             }
         };
 
-        window.handleGuest = async () => await signInAnonymously(auth);
+        window.handleGuest = async () => {
+             // If already anonymous, just close modal
+             if (auth.currentUser && auth.currentUser.isAnonymous) {
+                 closeAuthModal();
+                 return;
+             }
+             await signInAnonymously(auth);
+        };
+
         window.logout = async () => {
             await signOut(auth);
-            location.reload();
+            // Re-init anon auth to keep reading data if needed
+            window.location.reload(); 
         };
 
         function showError(msg) {
             const errorBox = document.getElementById('auth-error');
-            errorBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> <span>${msg}</span>`;
+            document.getElementById('auth-error-text').innerText = msg;
             errorBox.classList.remove('hidden');
         }
 
+        // ===============================================
+        // DATA LOGIC (POSTS)
+        // ===============================================
+        let postsUnsubscribe = null;
+
         function loadPosts() {
-            const q = query(postsCol);
+            if (postsUnsubscribe) postsUnsubscribe(); // Prevent duplicates
+
+            const q = query(getPostsCol());
             
-            onSnapshot(q, (snapshot) => {
+            postsUnsubscribe = onSnapshot(q, (snapshot) => {
                 const container = document.getElementById('posts-container');
                 const posts = [];
                 snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
                 
+                // CLIENT SIDE SORTING
+                // Important: We sort here to avoid Firestore "Missing Index" errors on complex queries
                 posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
                 if (posts.length === 0) {
                     container.innerHTML = `
-                        <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
+                        <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 mx-4">
                             <div class="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
                                 <i class="fas fa-camera fa-2x"></i>
                             </div>
                             <h3 class="font-bold text-slate-600">Стрічка порожня</h3>
-                            <p class="text-sm text-slate-400">Станьте першим, хто похвалиться уловом!</p>
+                            <p class="text-sm text-slate-400 mt-1">Станьте першим, хто похвалиться уловом!</p>
                         </div>`;
                     return;
                 }
@@ -349,18 +402,11 @@
             }, (error) => {
                 console.error("Firestore Error:", error);
                 const container = document.getElementById('posts-container');
-                
-                if (error.code === 'permission-denied') {
-                    container.innerHTML = `
-                        <div class="text-center py-10 bg-red-50 border border-red-200 rounded-2xl text-red-600 p-6 mx-4 animate-fade-in">
-                            <i class="fas fa-lock fa-3x mb-3 text-red-400"></i>
-                            <h3 class="font-bold text-lg">Доступ заборонено (Rules)</h3>
-                            <p class="text-sm mt-2 mb-4 text-slate-600 leading-relaxed">Вам потрібно змінити правила Firestore в консолі Firebase на:<br><code class="bg-white p-1 rounded font-mono text-xs">allow read, write: if true;</code></p>
-                            <button onclick="location.reload()" class="bg-white border border-red-200 text-red-600 px-6 py-2 rounded-full text-sm font-bold hover:bg-red-50 transition shadow-sm">
-                                Спробувати ще раз
-                            </button>
-                        </div>`;
-                }
+                container.innerHTML = `
+                    <div class="p-4 bg-red-50 text-red-600 text-center rounded-xl border border-red-100">
+                        <p class="font-bold">Помилка завантаження</p>
+                        <p class="text-xs mt-1">Перевірте підключення до інтернету (${error.code})</p>
+                    </div>`;
             });
         }
 
@@ -376,16 +422,16 @@
             }
 
             return `
-                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card" id="post-${post.id}">
+                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card mb-6" id="post-${post.id}">
                     <div class="p-4 flex justify-between items-start">
                         <div class="flex items-center gap-3">
                             <img src="${avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-white shadow-sm object-cover">
                             <div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 flex-wrap">
                                     <p class="font-bold text-slate-800 text-sm">${escapeHtml(post.userName || 'Рибалка')}</p>
-                                    ${post.tag ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${tagConfig.color}">${post.tag}</span>` : ''}
+                                    ${post.tag ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${tagConfig.color}">${post.tag}</span>` : ''}
                                 </div>
-                                <p class="text-xs text-slate-400 flex items-center gap-1">
+                                <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                                     <i class="far fa-clock text-[10px]"></i> ${timeAgo}
                                 </p>
                             </div>
@@ -398,11 +444,11 @@
                     </div>
                     
                     <div class="px-4 pb-3">
-                        <p class="text-slate-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(post.content)}</p>
+                        <p class="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">${escapeHtml(post.content)}</p>
                     </div>
 
                     ${post.imageUrl ? `
-                        <div class="bg-slate-100 relative group cursor-pointer">
+                        <div class="bg-slate-100 relative group cursor-pointer border-t border-b border-slate-50">
                             <img src="${escapeHtml(post.imageUrl)}" class="w-full h-auto max-h-[500px] object-cover" loading="lazy" onerror="this.parentElement.style.display='none'">
                         </div>
                     ` : ''}
@@ -424,7 +470,7 @@
                             <p class="text-xs text-slate-400 text-center">Завантаження...</p>
                         </div>
                         <form onsubmit="postComment(event, '${post.id}')" class="relative">
-                            <input type="text" name="commentText" placeholder="Написати коментар..." class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition shadow-sm">
+                            <input type="text" name="commentText" placeholder="Написати коментар..." class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition shadow-sm" autocomplete="off">
                             <button type="submit" class="absolute right-1.5 top-1.5 text-blue-600 hover:bg-blue-50 p-1.5 rounded-full transition w-8 h-8 flex items-center justify-center">
                                 <i class="fas fa-paper-plane text-xs"></i>
                             </button>
@@ -437,7 +483,7 @@
         window.deletePost = async (id) => {
             if(!confirm("Видалити цей звіт?")) return;
             try {
-                await deleteDoc(doc(postsCol, id));
+                await deleteDoc(doc(getPostsCol(), id));
             } catch(e) { console.error(e); alert("Помилка видалення"); }
         };
 
@@ -458,15 +504,17 @@
             const list = document.getElementById(`comments-list-${postId}`);
             if (commentUnsubscribes[postId]) commentUnsubscribes[postId]();
 
-            const q = query(commentsCol, where("postId", "==", postId));
+            // Simple query, strict equality
+            const q = query(getCommentsCol(), where("postId", "==", postId));
             
             commentUnsubscribes[postId] = onSnapshot(q, (snapshot) => {
                 const comments = [];
                 snapshot.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
+                // Sort inside JS to allow basic indexing
                 comments.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
 
                 if (comments.length === 0) {
-                    list.innerHTML = `<p class="text-xs text-slate-400 text-center italic">Поки немає коментарів. Будьте першим!</p>`;
+                    list.innerHTML = `<p class="text-xs text-slate-400 text-center italic py-2">Поки немає коментарів.</p>`;
                     return;
                 }
 
@@ -476,11 +524,14 @@
                          cAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userSeed || 'guest'}&backgroundColor=c0aede,b6e3f4`;
                     }
                     return `
-                    <div class="flex gap-2 text-sm animate-fade-in">
-                        <img src="${cAvatar}" class="w-6 h-6 rounded-full bg-white border border-slate-200 flex-shrink-0 object-cover">
-                        <div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm max-w-[85%]">
-                            <p class="font-bold text-xs text-slate-600 mb-0.5">${escapeHtml(c.userName)}</p>
-                            <p class="text-slate-800 leading-snug">${escapeHtml(c.text)}</p>
+                    <div class="flex gap-2 text-sm animate-fade-in group">
+                        <img src="${cAvatar}" class="w-6 h-6 rounded-full bg-white border border-slate-200 flex-shrink-0 object-cover mt-1">
+                        <div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm max-w-[90%]">
+                            <p class="font-bold text-xs text-slate-600 mb-0.5 flex justify-between gap-4">
+                                <span>${escapeHtml(c.userName)}</span>
+                                <span class="text-[10px] font-normal text-slate-300">${getTimeAgo(c.createdAt?.seconds)}</span>
+                            </p>
+                            <p class="text-slate-800 leading-snug break-words">${escapeHtml(c.text)}</p>
                         </div>
                     </div>
                 `}).join('');
@@ -492,50 +543,39 @@
             e.preventDefault();
             const input = e.target.commentText;
             const text = input.value.trim();
-            if (!currentUser) { openAuthModal(); return; }
+            if (!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
             if (!text) return;
 
-            const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
+            const name = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка');
             const photo = currentUser.photoURL || null;
 
             try {
                 input.value = '';
-                await addDoc(commentsCol, {
+                await addDoc(getCommentsCol(), {
                     postId: postId,
                     userId: currentUser.uid,
                     userName: name,
                     userPhoto: photo,
-                    userSeed: currentUser.isAnonymous ? currentUser.uid : currentUser.email,
+                    userSeed: currentUser.email || currentUser.uid,
                     text: text,
                     createdAt: serverTimestamp()
                 });
             } catch (err) {
                 console.error("Comment failed", err);
                 input.value = text;
+                alert("Не вдалося додати коментар");
             }
         };
 
-        function getTimeAgo(seconds) {
-            if (!seconds) return 'щойно';
-            const now = Math.floor(Date.now() / 1000);
-            const diff = now - seconds;
-            if (diff < 60) return 'щойно';
-            if (diff < 3600) return `${Math.floor(diff/60)} хв. тому`;
-            if (diff < 86400) return `${Math.floor(diff/3600)} год. тому`;
-            return `${Math.floor(diff/86400)} дн. тому`;
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
         window.like = async (id) => {
-            if (!currentUser) { openAuthModal(); return; }
-            const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', id);
+            if (!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
+            const ref = doc(getPostsCol(), id);
             await updateDoc(ref, { likes: increment(1) });
         };
 
+        // ===============================================
+        // PUBLISH POST
+        // ===============================================
         document.getElementById('btn-publish').onclick = async () => {
             const text = document.getElementById('post-text').value;
             const img = document.getElementById('post-image-url').value;
@@ -548,8 +588,8 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email.split('@')[0]));
-                await addDoc(postsCol, {
+                const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка'));
+                await addDoc(getPostsCol(), {
                     userId: currentUser.uid,
                     userName: name,
                     userEmail: currentUser.email || 'guest',
@@ -560,32 +600,48 @@
                     likes: 0,
                     createdAt: serverTimestamp()
                 });
+                
+                // Reset form
                 document.getElementById('post-text').value = '';
                 document.getElementById('post-image-url').value = '';
                 closeModal();
-            } catch (e) { alert("Помилка: " + e.message); } 
-            finally { 
+                
+                // Show success feedback
+                const container = document.getElementById('posts-container');
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full shadow-xl z-50 text-sm font-bold flex items-center gap-2 animate-bounce';
+                toast.innerHTML = '<i class="fas fa-check"></i> Опубліковано!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+
+            } catch (e) { 
+                alert("Помилка: " + e.message); 
+            } finally { 
                 btn.disabled = false; 
                 btn.innerHTML = '<span>Опублікувати</span><i class="fas fa-paper-plane text-xs"></i>'; 
             }
         };
 
+        // ===============================================
+        // MODALS & TAGS
+        // ===============================================
         const tagContainer = document.getElementById('fish-tags');
+        
         FISH_TAGS.forEach(tag => {
             const btn = document.createElement('button');
-            btn.className = `px-3 py-1 rounded-full text-xs font-bold border border-slate-200 transition bg-slate-50 text-slate-500 hover:bg-slate-100`;
+            btn.className = `px-3 py-1 rounded-full text-xs font-bold border transition transform active:scale-95 ${tag.id === 'Інше' ? tag.color + ' ring-2 ring-offset-1 ring-green-100 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`;
             btn.innerText = tag.id;
+            
             btn.onclick = () => {
-                Array.from(tagContainer.children).forEach(c => c.className = `px-3 py-1 rounded-full text-xs font-bold border border-slate-200 transition bg-slate-50 text-slate-500 hover:bg-slate-100`);
-                btn.className = `px-3 py-1 rounded-full text-xs font-bold border border-transparent shadow-sm transform scale-105 ${tag.color} ring-2 ring-offset-1 ring-green-100`;
+                Array.from(tagContainer.children).forEach(c => c.className = `px-3 py-1 rounded-full text-xs font-bold border transition transform active:scale-95 bg-white text-slate-500 border-slate-200 hover:bg-slate-50`);
+                btn.className = `px-3 py-1 rounded-full text-xs font-bold border shadow-sm transform scale-105 ${tag.color} ring-2 ring-offset-1 ring-green-100`;
                 document.getElementById('selected-tag').value = tag.id;
             };
-            if(tag.id === 'Інше') btn.click();
             tagContainer.appendChild(btn);
         });
 
         window.openModal = () => {
-            if(!currentUser) { openAuthModal(); return; }
+            if(!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
             document.getElementById('modal').classList.replace('hidden', 'flex');
         }
         window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
@@ -597,6 +653,7 @@
             const regTab = document.getElementById('tab-register');
             const btn = document.getElementById('auth-submit-btn');
             document.getElementById('auth-error').classList.add('hidden');
+            
             if(mode === 'register') {
                 isRegisterMode = true;
                 regTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all";
@@ -609,6 +666,22 @@
                 btn.innerText = "Увійти";
             }
         };
+
+        // Helpers
+        function getTimeAgo(seconds) {
+            if (!seconds) return 'щойно';
+            const now = Math.floor(Date.now() / 1000);
+            const diff = now - seconds;
+            if (diff < 60) return 'щойно';
+            if (diff < 3600) return `${Math.floor(diff/60)} хв.`;
+            if (diff < 86400) return `${Math.floor(diff/3600)} год.`;
+            return `${Math.floor(diff/86400)} дн.`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
