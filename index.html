@@ -1,681 +1,690 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FishNet — Соцмережа для рибалок</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FishNet Pro — Спільнота рибалок</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f0fdf4; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .glass-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .post-card { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: 0; } }
-        
-        /* Custom Scrollbar */
-        .comments-section::-webkit-scrollbar { width: 6px; }
-        .comments-section::-webkit-scrollbar-track { background: #f1f1f1; }
-        .comments-section::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #16a34a;
-            width: 20px;
-            height: 20px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
-            animation: spin 1s linear infinite;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' },
+                        water: { 50: '#f0f9ff', 500: '#0ea5e9', 900: '#0c4a6e' }
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                        'like-bounce': 'likeBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards'
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)' }, '100%': { transform: 'translateY(0)' } },
+                        likeBounce: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.3)' }, '100%': { transform: 'scale(1)' } },
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        /* Skeleton Shimmer */
+        .skeleton { position: relative; overflow: hidden; background-color: #e2e8f0; }
+        .dark .skeleton { background-color: #334155; }
+        .skeleton::after { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transform: translateX(-100%); background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0)); animation: shimmer 2s infinite; content: ''; }
+        .dark .skeleton::after { background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.05) 20%, rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0)); }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
-<body class="text-slate-800 antialiased selection:bg-green-200 pb-10">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300 pb-24 sm:pb-10">
 
-    <!-- Навігація -->
-    <nav class="glass-nav sticky top-0 z-40 border-b border-green-100 px-4 py-3 shadow-sm">
-        <div class="max-w-3xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                <div class="bg-gradient-to-tr from-green-600 to-emerald-500 p-2.5 rounded-xl text-white shadow-lg group-hover:scale-105 transition duration-300">
-                    <i class="fas fa-fish fa-lg"></i>
+    <!-- Header Desktop/Mobile -->
+    <nav class="glass sticky top-0 z-40 px-4 py-3 shadow-sm transition-all duration-300">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-brand-500 blur opacity-40 group-hover:opacity-60 transition rounded-xl"></div>
+                    <div class="relative bg-gradient-to-br from-brand-500 to-brand-700 p-2 rounded-xl text-white shadow-lg transform group-hover:scale-105 transition duration-200">
+                        <i class="fas fa-fish text-lg"></i>
+                    </div>
                 </div>
-                <h1 class="text-2xl font-black text-green-900 tracking-tight hidden sm:block">FishNet</h1>
+                <div>
+                    <h1 class="text-xl font-extrabold text-slate-800 dark:text-white tracking-tight leading-none">FishNet</h1>
+                    <p class="text-[10px] font-medium text-brand-600 dark:text-brand-400 uppercase tracking-widest">Pro</p>
+                </div>
             </div>
             
-            <div class="flex items-center gap-4">
-                <!-- User Block -->
-                <div id="user-info" class="hidden flex items-center gap-3 animate-fade-in">
-                    <div class="text-right hidden sm:block leading-tight">
-                        <p id="my-name" class="font-bold text-sm text-slate-700">...</p>
-                        <p class="text-[10px] text-green-600 font-semibold uppercase tracking-wider">Рибалка</p>
-                    </div>
-                    <img id="my-avatar" src="" class="w-9 h-9 rounded-full border-2 border-white shadow-md bg-slate-200 object-cover" alt="Me">
-                    <button onclick="window.logout()" class="text-slate-400 hover:text-red-500 transition ml-1 p-2" title="Вийти">
-                        <i class="fas fa-sign-out-alt fa-lg"></i>
-                    </button>
-                </div>
-                
-                <!-- Login Button -->
-                <button id="login-btn" onclick="openAuthModal()" class="bg-green-700 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-green-800 hover:shadow-lg transition transform hover:-translate-y-0.5 hidden">
-                    Увійти
+            <div class="flex items-center gap-3">
+                <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block text-amber-400"></i>
                 </button>
+                
+                <div id="auth-buttons">
+                    <!-- Injected via JS -->
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Основний контент -->
-    <main class="max-w-xl mx-auto mt-6 px-4 pb-24 space-y-6">
+    <main class="max-w-2xl mx-auto px-4 mt-6 space-y-6">
         
-        <!-- Створення поста -->
-        <div id="create-post-box" class="bg-white rounded-2xl p-4 shadow-sm border border-green-50 hidden hover:shadow-md transition cursor-pointer" onclick="openModal()">
-            <div class="flex gap-3 items-center">
-                <img id="post-avatar-mini" src="" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100">
-                <div class="flex-1 bg-slate-50 hover:bg-slate-100 text-left px-5 py-2.5 rounded-full text-slate-500 transition-colors border border-slate-100 text-sm sm:text-base">
-                    Хвалися уловом, друже...
+        <!-- Weather Widget (Mock) -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg shadow-blue-500/20 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl group-hover:scale-150 transition duration-700"></div>
+            <div class="flex justify-between items-center relative z-10">
+                <div>
+                    <div class="text-xs font-medium text-blue-100 mb-1 flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> Дніпро, Україна</div>
+                    <div class="text-3xl font-bold flex items-center gap-2">
+                        +18°C <i class="fas fa-cloud-sun text-yellow-300 text-2xl"></i>
+                    </div>
+                    <p class="text-xs text-blue-100 mt-1">Тиск стабільний, кльов очікується добрий!</p>
                 </div>
-                <div class="text-green-600 p-2"><i class="fas fa-camera fa-lg"></i></div>
-            </div>
-        </div>
-        
-        <div id="guest-banner" class="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 text-center shadow-sm hidden">
-            <div class="mb-3 text-blue-500"><i class="fas fa-users fa-2x"></i></div>
-            <h3 class="font-bold text-blue-900 text-lg">Долучайтесь до спільноти!</h3>
-            <p class="text-blue-700/80 text-sm mb-4">Авторизуйтесь, щоб публікувати фото трофеїв та коментувати.</p>
-            <button onclick="openAuthModal()" class="text-sm font-bold bg-white text-blue-600 px-6 py-2 rounded-full shadow-sm hover:shadow-md transition">Увійти / Реєстрація</button>
-        </div>
-
-        <!-- Стрічка постів -->
-        <div id="posts-container" class="space-y-6 min-h-[300px]">
-            <div class="text-center py-12 text-slate-400">
-                <i class="fas fa-spinner fa-spin fa-2x mb-3 text-green-500"></i>
-                <p>Закидаємо вудки...</p>
+                <div class="text-right">
+                    <div class="bg-white/20 backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-bold mb-1">
+                        <i class="fas fa-wind mr-1"></i> 3 м/с Пн
+                    </div>
+                    <div class="bg-white/20 backdrop-blur-md rounded-lg px-3 py-1.5 text-xs font-bold">
+                        <i class="fas fa-water mr-1"></i> 16°C вода
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Filters (Chips) -->
+        <div class="overflow-x-auto hide-scrollbar -mx-4 px-4 pb-2">
+            <div class="flex gap-2" id="filter-container">
+                <!-- JS Generated -->
+            </div>
+        </div>
+
+        <!-- Create Post Trigger (Input-like) -->
+        <div id="create-trigger" class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700 cursor-text hover:shadow-md transition group hidden" onclick="openModal()">
+            <div class="flex gap-3 items-center">
+                <img id="user-avatar-trigger" src="" class="w-10 h-10 rounded-full bg-slate-100 object-cover border-2 border-white dark:border-slate-700 shadow-sm">
+                <div class="flex-1 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 rounded-full px-4 py-2.5 text-slate-400 text-sm group-hover:bg-slate-100 dark:group-hover:bg-slate-900 transition flex justify-between items-center">
+                    <span>Похвалитися уловом...</span>
+                    <i class="fas fa-camera text-brand-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed -->
+        <div id="posts-container" class="space-y-6 min-h-[400px]">
+            <!-- Skeletons go here -->
+        </div>
+
+        <div class="h-10"></div> <!-- Spacer -->
     </main>
 
-    <!-- Модалка створення поста -->
-    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 animate-fade-in">
-        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h2 class="font-bold text-lg text-slate-700 flex items-center gap-2">
-                    <i class="fas fa-pen-nib text-green-600"></i> Новий трофей
-                </h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition"><i class="fas fa-times"></i></button>
+    <!-- Bottom Navigation (Mobile) -->
+    <div class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-700 pb-safe pt-2 px-6 z-30 sm:hidden flex justify-between items-center text-xs font-medium text-slate-400">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center gap-1 text-brand-600 dark:text-brand-500 w-16">
+            <i class="fas fa-home text-xl"></i>
+            <span>Стрічка</span>
+        </button>
+        
+        <button onclick="openModal()" class="relative -top-6 bg-brand-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg shadow-brand-600/40 transform active:scale-90 transition border-4 border-slate-50 dark:border-slate-900">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
+
+        <button onclick="openProfileModal()" class="flex flex-col items-center gap-1 hover:text-slate-800 dark:hover:text-slate-200 w-16 transition">
+            <i class="fas fa-user text-xl"></i>
+            <span>Профіль</span>
+        </button>
+    </div>
+
+    <!-- MODALS -->
+    
+    <!-- Create Post Modal -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex-col justify-end sm:justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden transform transition-transform duration-300 translate-y-full sm:translate-y-0 scale-100 sm:scale-95" id="modal-panel">
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800 dark:text-white">Новий звіт</h2>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
             </div>
             
-            <div class="p-6 overflow-y-auto">
-                <!-- Вибір категорії -->
+            <div class="p-5 max-h-[70vh] overflow-y-auto">
+                <!-- Category Select -->
                 <div class="mb-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Категорія</label>
-                    <div class="flex flex-wrap gap-2" id="fish-tags">
-                        <!-- Генерується JS -->
-                    </div>
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-2 block tracking-wider">Кого спіймали?</label>
+                    <div class="flex flex-wrap gap-2" id="modal-tags"></div>
                     <input type="hidden" id="selected-tag" value="Інше">
                 </div>
 
-                <textarea id="post-text" rows="4" class="w-full border-slate-200 bg-slate-50 rounded-xl p-4 text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition resize-none mb-4 text-base" placeholder="Вага, наживка, місце? Розкажи деталі..."></textarea>
-                
-                <div class="relative">
-                    <i class="fas fa-link absolute left-3 top-3.5 text-slate-400"></i>
-                    <input type="text" id="post-image-url" placeholder="URL фото (необов'язково)" class="w-full border border-slate-200 rounded-xl py-3 pl-9 pr-4 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition">
+                <div class="relative mb-4">
+                    <textarea id="post-text" rows="4" class="w-full bg-slate-50 dark:bg-slate-900 border-0 rounded-xl p-4 text-sm focus:ring-2 focus:ring-brand-500 placeholder-slate-400 dark:text-white resize-none" placeholder="Вага, снасті, наживка, емоції..."></textarea>
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 ml-2">Підтримуються прямі посилання на зображення (jpg, png)</p>
+                
+                <!-- Inputs Grid -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 border border-transparent focus-within:border-brand-500 focus-within:bg-white dark:focus-within:bg-slate-800 transition">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fas fa-map-marker-alt text-xs"></i></div>
+                        <input type="text" id="post-location" placeholder="Де ловили?" class="bg-transparent border-0 flex-1 text-sm focus:ring-0 dark:text-white">
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 border border-transparent focus-within:border-brand-500 focus-within:bg-white dark:focus-within:bg-slate-800 transition">
+                            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-image text-xs"></i></div>
+                            <input type="text" id="post-image-url" oninput="previewImage(this.value)" placeholder="Посилання на фото (URL)" class="bg-transparent border-0 flex-1 text-sm focus:ring-0 dark:text-white">
+                        </div>
+                        <!-- Image Preview Box -->
+                        <div id="image-preview-box" class="hidden rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 relative bg-slate-100 dark:bg-slate-900">
+                            <img id="image-preview" src="" class="w-full h-48 object-cover">
+                            <button onclick="clearImage()" class="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 w-6 h-6 flex items-center justify-center text-xs hover:bg-black/70"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button id="btn-publish" class="bg-green-700 hover:bg-green-800 text-white px-8 py-2.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 flex items-center gap-2 active:scale-95">
+            <div class="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-end">
+                <button id="btn-publish" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-brand-600/20 active:scale-95 hover:bg-brand-700 transition w-full sm:w-auto flex items-center justify-center gap-2">
                     <span>Опублікувати</span>
-                    <i class="fas fa-paper-plane text-xs"></i>
+                    <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Модалка АВТОРИЗАЦІЇ -->
-    <div id="auth-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-[60] p-4">
-        <div class="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-white/80 hover:text-white z-10"><i class="fas fa-times fa-lg"></i></button>
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center z-[60] p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative transform scale-95 transition-transform duration-300" id="auth-panel">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fas fa-times fa-lg"></i></button>
             
-            <div class="bg-gradient-to-br from-green-700 to-green-900 p-8 text-center relative overflow-hidden">
-                <i class="fas fa-fish text-9xl absolute -bottom-8 -right-8 text-white/10 rotate-12"></i>
-                <h2 class="text-2xl font-black text-white mb-6 relative drop-shadow-md">FishNet ID</h2>
-                <div class="flex justify-center bg-black/20 p-1 rounded-xl relative z-10 backdrop-blur-sm">
-                    <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all">Вхід</button>
-                    <button onclick="switchTab('register')" id="tab-register" class="flex-1 py-1.5 rounded-lg text-sm font-bold text-green-100 hover:text-white transition-all">Реєстрація</button>
+            <div class="p-8 pt-10 text-center">
+                <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 rotate-3 shadow-inner">
+                    <i class="fas fa-fish"></i>
                 </div>
-            </div>
-
-            <div class="p-8 space-y-5">
-                <div id="auth-error" class="hidden bg-red-50 text-red-600 text-xs p-3 rounded-xl border border-red-100 flex items-center gap-2">
-                    <i class="fas fa-exclamation-circle"></i> <span id="auth-error-text">Error</span>
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white mb-2">Ласкаво просимо</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">Зберігайте трофеї та діліться досвідом</p>
+                
+                <div class="space-y-3">
+                    <input type="email" id="auth-email" placeholder="Email" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-brand-500 dark:text-white transition">
+                    <input type="password" id="auth-password" placeholder="Пароль" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 px-4 outline-none focus:ring-2 focus:ring-brand-500 dark:text-white transition">
                 </div>
                 
-                <div class="space-y-4">
-                    <div class="relative group">
-                        <i class="fas fa-envelope absolute left-4 top-3.5 text-slate-400 group-focus-within:text-green-600 transition"></i>
-                        <input type="email" id="auth-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 transition font-medium text-slate-700">
-                    </div>
-                    <div class="relative group">
-                        <i class="fas fa-lock absolute left-4 top-3.5 text-slate-400 group-focus-within:text-green-600 transition"></i>
-                        <input type="password" id="auth-password" placeholder="Пароль" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-4 outline-none focus:ring-2 focus:ring-green-500 transition font-medium text-slate-700">
-                    </div>
+                <div class="grid grid-cols-2 gap-3 mt-6">
+                    <button onclick="handleAuth('login')" class="bg-brand-600 text-white py-3 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-600/25">Вхід</button>
+                    <button onclick="handleAuth('register')" class="bg-white dark:bg-slate-700 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-600 py-3 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-600 transition">Реєстрація</button>
                 </div>
-
-                <button id="auth-submit-btn" onclick="handleAuth()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3.5 rounded-xl font-bold transition shadow-lg shadow-green-700/20 active:scale-95 flex justify-center items-center gap-2">
-                    Увійти
-                </button>
                 
-                <div class="relative my-2">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-100"></div></div>
-                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400">або</span></div>
-                </div>
-
-                <div class="text-center pt-2">
-                    <button onclick="handleGuest()" class="text-xs font-bold text-slate-400 hover:text-green-600 transition uppercase tracking-wide border-b border-transparent hover:border-green-600">
-                        Тільки подивитись (Гість)
-                    </button>
-                </div>
+                <button onclick="handleGuest()" class="mt-6 text-xs text-slate-400 hover:text-brand-600 font-bold uppercase tracking-wide transition">Я просто подивитись</button>
             </div>
         </div>
     </div>
 
-    <!-- FIREBASE LOGIC -->
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[55] p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-xs shadow-2xl overflow-hidden relative transform scale-95 transition-transform duration-300" id="profile-panel">
+            <button onclick="closeProfileModal()" class="absolute top-3 right-3 w-8 h-8 bg-black/20 hover:bg-black/30 text-white rounded-full z-10 flex items-center justify-center backdrop-blur-sm"><i class="fas fa-times"></i></button>
+            
+            <div class="h-28 bg-[url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center relative">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            </div>
+            
+            <div class="px-6 pb-6 -mt-12 text-center relative">
+                <img id="profile-avatar" src="" class="w-24 h-24 rounded-full border-[4px] border-white dark:border-slate-800 shadow-md mx-auto bg-white dark:bg-slate-700 object-cover">
+                <h3 id="profile-name" class="font-bold text-xl text-slate-800 dark:text-white mt-2">...</h3>
+                <p id="profile-email" class="text-xs text-slate-400 mb-6 truncate">...</p>
+
+                <div class="flex justify-center gap-2 mb-6">
+                    <div class="flex-1 bg-brand-50 dark:bg-brand-900/20 p-3 rounded-2xl border border-brand-100 dark:border-brand-900/30">
+                        <div id="stat-posts" class="text-lg font-black text-brand-700 dark:text-brand-400">0</div>
+                        <div class="text-[10px] uppercase font-bold text-brand-600/60 dark:text-brand-400/60">Звітів</div>
+                    </div>
+                    <div class="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                        <div id="stat-likes" class="text-lg font-black text-blue-700 dark:text-blue-400">0</div>
+                        <div class="text-[10px] uppercase font-bold text-blue-600/60 dark:text-blue-400/60">Лайків</div>
+                    </div>
+                </div>
+
+                <button onclick="window.logout()" class="w-full py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 font-bold text-sm transition border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Вийти з акаунту
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, increment, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, updateDoc, deleteDoc, arrayUnion, arrayRemove, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ===============================================
-        // FIREBASE CONFIGURATION (AUTOMATIC)
-        // ===============================================
-        let app, auth, db;
-        let appId = 'fishnet-default';
+        // --- Config & Init ---
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-v2-pro';
 
-        try {
-            // Use system environment variables
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'fishnet-fallback';
-            
-            if (firebaseConfig) {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                console.log("Firebase initialized successfully with system config.");
-            } else {
-                throw new Error("Firebase config not found. Please run in the correct environment.");
-            }
-        } catch (e) {
-            console.error("Firebase init failed:", e);
-            document.getElementById('posts-container').innerHTML = `
-                <div class="p-6 text-center text-red-500 font-bold bg-white rounded-2xl border border-red-100 shadow-sm">
-                    <i class="fas fa-bug fa-2x mb-2"></i><br/>
-                    Помилка підключення до бази даних.<br/>
-                    <span class="text-xs font-normal text-slate-500">${e.message}</span>
-                </div>`;
-        }
-
-        // Collection References (Using standard paths for this environment)
         const getPostsCol = () => collection(db, 'artifacts', appId, 'public', 'data', 'posts');
         const getCommentsCol = () => collection(db, 'artifacts', appId, 'public', 'data', 'comments');
 
-        // State
+        // --- State ---
         let currentUser = null;
-        let isRegisterMode = false;
-        
+        let allPosts = [];
+        let activeFilter = 'all';
+
+        // --- Data Constants ---
         const FISH_TAGS = [
-            { id: 'Інше', color: 'bg-slate-100 text-slate-600 border-slate-200' },
-            { id: 'Щука', color: 'bg-green-100 text-green-700 border-green-200' },
-            { id: 'Короп', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-            { id: 'Окунь', color: 'bg-orange-100 text-orange-700 border-orange-200' },
-            { id: 'Судак', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-            { id: 'Карась', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-            { id: 'Сом', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-            { id: 'Спінінг', color: 'bg-teal-100 text-teal-700 border-teal-200' },
-            { id: 'Фідер', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+            { id: 'Щука', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' },
+            { id: 'Короп', color: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' },
+            { id: 'Судак', color: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' },
+            { id: 'Окунь', color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800' },
+            { id: 'Карась', color: 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800' },
+            { id: 'Спінінг', color: 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800' },
+            { id: 'Фідер', color: 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800' },
+            { id: 'Інше', color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' }
         ];
 
-        // ===============================================
-        // AUTH FLOW
-        // ===============================================
+        // --- Auth Logic ---
         const initAuth = async () => {
-            if (!auth) return;
-            try {
-                // Priority: Custom Token (Environment) -> Anonymous (Fallback)
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    // Check if already signed in, otherwise anon
-                    if (!auth.currentUser) {
-                         // We wait for user action for real login, but for reading we might need anon
-                         // For this app, we let them browse as guest without auto-anon logic unless they click "Guest"
-                         // or if the app requires auth to read. Let's assume public read.
-                         // But to follow strict rules: Auth Before Query.
-                         // So we try to sign in anonymously silently if no user is present to ensure data loading works.
-                         // However, better UX is to let them click login.
-                         // But for "Maximally working", let's ensure we have a session to read data.
-                         await signInAnonymously(auth);
-                    }
-                }
-            } catch (err) {
-                console.error("Auth Init Error:", err);
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else if (!auth.currentUser) {
+                await signInAnonymously(auth);
             }
         };
 
-        // Start App
-        if (auth) {
-            initAuth().then(() => {
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    updateUI(user);
-                    if (user) loadPosts(); // Only load data if we have a valid session
-                });
-            });
-        }
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            updateUI(user);
+            if (user && allPosts.length === 0) loadPosts();
+        });
 
-        // ===============================================
-        // UI UPDATES
-        // ===============================================
+        initAuth();
+
         function updateUI(user) {
-            const loginBtn = document.getElementById('login-btn');
-            const userInfo = document.getElementById('user-info');
-            const createBox = document.getElementById('create-post-box');
-            const guestBanner = document.getElementById('guest-banner');
-
-            if (user && !user.isAnonymous) {
-                // Logged in User
-                loginBtn.classList.add('hidden');
-                userInfo.classList.remove('hidden');
-                userInfo.classList.add('flex');
-                createBox.classList.remove('hidden');
-                guestBanner.classList.add('hidden');
-                
+            const isUser = user && !user.isAnonymous;
+            const authBtns = document.getElementById('auth-buttons');
+            const createTrigger = document.getElementById('create-trigger');
+            
+            if (isUser) {
                 const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Рибалка');
-                document.getElementById('my-name').innerText = name;
+                const avatar = user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
                 
-                let avatar = user.photoURL;
-                if (!avatar) {
-                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}&backgroundColor=c0aede,b6e3f4`;
-                }
+                authBtns.innerHTML = `
+                    <div class="flex items-center gap-2" onclick="openProfileModal()">
+                        <div class="text-right hidden sm:block">
+                            <p class="font-bold text-xs text-slate-700 dark:text-slate-200">${escapeHtml(name)}</p>
+                        </div>
+                        <img src="${avatar}" class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 bg-white object-cover cursor-pointer hover:opacity-80 transition">
+                    </div>`;
                 
-                document.getElementById('my-avatar').src = avatar;
-                document.getElementById('post-avatar-mini').src = avatar;
+                document.getElementById('user-avatar-trigger').src = avatar;
+                createTrigger.classList.remove('hidden');
                 closeAuthModal();
             } else {
-                // Guest or Anonymous
-                loginBtn.classList.remove('hidden');
-                userInfo.classList.add('hidden');
-                userInfo.classList.remove('flex');
-                createBox.classList.add('hidden');
-                
-                // If strictly anonymous (auto-login), show banner
-                // If not logged in at all, show banner
-                guestBanner.classList.remove('hidden');
+                authBtns.innerHTML = `
+                    <button onclick="openAuthModal()" class="bg-brand-600 text-white px-5 py-2 rounded-full text-xs font-bold hover:bg-brand-700 transition shadow-lg shadow-brand-500/30">
+                        Увійти
+                    </button>`;
+                createTrigger.classList.add('hidden');
             }
         }
 
-        window.handleAuth = async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-password').value;
-            const btn = document.getElementById('auth-submit-btn');
+        // --- Core Functions ---
+        function loadPosts() {
+            // Skeleton loader
+            const container = document.getElementById('posts-container');
+            if(container.children.length === 0) {
+                container.innerHTML = Array(2).fill(0).map(() => `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
+                        <div class="flex gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full skeleton"></div>
+                            <div class="flex-1 space-y-2 py-1"><div class="h-3 w-1/3 skeleton rounded"></div><div class="h-2 w-1/4 skeleton rounded"></div></div>
+                        </div>
+                        <div class="h-32 w-full skeleton rounded-xl mb-3"></div>
+                        <div class="h-3 w-3/4 skeleton rounded"></div>
+                    </div>`).join('');
+            }
 
-            if(!email || !pass) {
-                showError("Заповніть всі поля");
+            const q = query(getPostsCol(), orderBy('createdAt', 'desc'), limit(50));
+            onSnapshot(q, (snapshot) => {
+                allPosts = [];
+                snapshot.forEach(doc => allPosts.push({ id: doc.id, ...doc.data() }));
+                renderPosts();
+            }, (err) => console.log('Firestore Read Error (likely auth pending)'));
+        }
+
+        window.renderPosts = () => {
+            const container = document.getElementById('posts-container');
+            let filtered = activeFilter === 'all' ? allPosts : allPosts.filter(p => p.tag === activeFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 opacity-50">
+                        <i class="fas fa-fish fa-4x mb-4 text-slate-300 dark:text-slate-600"></i>
+                        <p class="text-slate-500 dark:text-slate-400 font-medium">Тут поки що пусто...<br>Станьте першим!</p>
+                    </div>`;
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerHTML = '<div class="loader"></div>';
-            document.getElementById('auth-error').classList.add('hidden');
-
-            try {
-                if (isRegisterMode) {
-                    await createUserWithEmailAndPassword(auth, email, pass);
-                } else {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                }
-                // Auth state listener will handle UI
-            } catch (e) {
-                let msg = "Помилка авторизації";
-                if(e.code && e.code.includes('email-already-in-use')) msg = "Ця пошта вже зайнята";
-                if(e.code && e.code.includes('invalid-credential')) msg = "Невірний логін або пароль";
-                if(e.code && e.code.includes('weak-password')) msg = "Пароль надто простий";
-                showError(msg);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = isRegisterMode ? "Зареєструватися" : "Увійти";
-            }
-        };
-
-        window.handleGuest = async () => {
-             // If already anonymous, just close modal
-             if (auth.currentUser && auth.currentUser.isAnonymous) {
-                 closeAuthModal();
-                 return;
-             }
-             await signInAnonymously(auth);
-        };
-
-        window.logout = async () => {
-            await signOut(auth);
-            // Re-init anon auth to keep reading data if needed
-            window.location.reload(); 
-        };
-
-        function showError(msg) {
-            const errorBox = document.getElementById('auth-error');
-            document.getElementById('auth-error-text').innerText = msg;
-            errorBox.classList.remove('hidden');
-        }
-
-        // ===============================================
-        // DATA LOGIC (POSTS)
-        // ===============================================
-        let postsUnsubscribe = null;
-
-        function loadPosts() {
-            if (postsUnsubscribe) postsUnsubscribe(); // Prevent duplicates
-
-            const q = query(getPostsCol());
-            
-            postsUnsubscribe = onSnapshot(q, (snapshot) => {
-                const container = document.getElementById('posts-container');
-                const posts = [];
-                snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+            container.innerHTML = filtered.map(post => {
+                const isOwner = currentUser && post.userId === currentUser.uid;
+                const tagData = FISH_TAGS.find(t => t.id === post.tag) || FISH_TAGS.find(t => t.id === 'Інше');
+                const likedBy = post.likedBy || [];
+                const isLiked = currentUser && likedBy.includes(currentUser.uid);
+                const displayLikes = Math.max(likedBy.length, post.likes || 0);
                 
-                // CLIENT SIDE SORTING
-                // Important: We sort here to avoid Firestore "Missing Index" errors on complex queries
-                posts.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-                if (posts.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 mx-4">
-                            <div class="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                                <i class="fas fa-camera fa-2x"></i>
-                            </div>
-                            <h3 class="font-bold text-slate-600">Стрічка порожня</h3>
-                            <p class="text-sm text-slate-400 mt-1">Станьте першим, хто похвалиться уловом!</p>
-                        </div>`;
-                    return;
-                }
-                
-                container.innerHTML = posts.map(post => renderPost(post)).join('');
-            }, (error) => {
-                console.error("Firestore Error:", error);
-                const container = document.getElementById('posts-container');
-                container.innerHTML = `
-                    <div class="p-4 bg-red-50 text-red-600 text-center rounded-xl border border-red-100">
-                        <p class="font-bold">Помилка завантаження</p>
-                        <p class="text-xs mt-1">Перевірте підключення до інтернету (${error.code})</p>
-                    </div>`;
-            });
-        }
-
-        function renderPost(post) {
-            const isOwner = currentUser && post.userId === currentUser.uid;
-            const timeAgo = getTimeAgo(post.createdAt?.seconds);
-            const tagConfig = FISH_TAGS.find(t => t.id === post.tag) || FISH_TAGS[0];
-            
-            let avatar = post.userPhoto;
-            if (!avatar) {
-                 const avatarSeed = post.userEmail || post.userId;
-                 avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}&backgroundColor=c0aede,b6e3f4`;
-            }
-
-            return `
-                <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden post-card mb-6" id="post-${post.id}">
+                return `
+                <article class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden animate-fade-in transition-colors duration-300">
                     <div class="p-4 flex justify-between items-start">
                         <div class="flex items-center gap-3">
-                            <img src="${avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-white shadow-sm object-cover">
+                            <img src="${post.userPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.userId}`}" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-100 dark:border-slate-700">
                             <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <p class="font-bold text-slate-800 text-sm">${escapeHtml(post.userName || 'Рибалка')}</p>
-                                    ${post.tag ? `<span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border ${tagConfig.color}">${post.tag}</span>` : ''}
+                                <div class="flex items-center flex-wrap gap-2">
+                                    <span class="font-bold text-slate-800 dark:text-slate-100 text-sm">${escapeHtml(post.userName)}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-md font-bold border ${tagData.color}">${post.tag}</span>
                                 </div>
-                                <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                                    <i class="far fa-clock text-[10px]"></i> ${timeAgo}
-                                </p>
+                                <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                                    <span>${timeAgo(post.createdAt)}</span>
+                                    ${post.location ? `<span class="w-1 h-1 rounded-full bg-slate-300"></span> <span class="text-brand-600 dark:text-brand-400 truncate max-w-[120px]"><i class="fas fa-map-marker-alt mr-1"></i>${escapeHtml(post.location)}</span>` : ''}
+                                </div>
                             </div>
                         </div>
-                        ${isOwner ? `
-                            <button onclick="deletePost('${post.id}')" class="text-slate-300 hover:text-red-500 transition p-2 hover:bg-red-50 rounded-full">
-                                <i class="far fa-trash-alt"></i>
-                            </button>
-                        ` : ''}
+                        ${isOwner ? `<button onclick="deletePost('${post.id}')" class="text-slate-300 hover:text-red-500 px-2 transition"><i class="far fa-trash-alt"></i></button>` : ''}
                     </div>
-                    
-                    <div class="px-4 pb-3">
-                        <p class="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm sm:text-base">${escapeHtml(post.content)}</p>
+
+                    <div class="px-4 pb-2">
+                        <p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed">${escapeHtml(post.content)}</p>
                     </div>
 
                     ${post.imageUrl ? `
-                        <div class="bg-slate-100 relative group cursor-pointer border-t border-b border-slate-50">
-                            <img src="${escapeHtml(post.imageUrl)}" class="w-full h-auto max-h-[500px] object-cover" loading="lazy" onerror="this.parentElement.style.display='none'">
-                        </div>
-                    ` : ''}
+                    <div class="mt-2 bg-slate-100 dark:bg-slate-900 max-h-[500px] overflow-hidden flex items-center justify-center cursor-pointer" onclick="window.open('${escapeHtml(post.imageUrl)}', '_blank')">
+                        <img src="${escapeHtml(post.imageUrl)}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                    </div>` : ''}
 
-                    <div class="p-3 border-t border-slate-50 grid grid-cols-2 gap-4">
-                        <button onclick="window.like('${post.id}')" class="flex justify-center items-center gap-2 text-slate-500 hover:text-green-600 transition py-1 rounded-lg hover:bg-green-50 group">
-                            <i class="${post.likes > 0 ? 'fas text-green-600' : 'far'} fa-thumbs-up text-lg group-hover:scale-110 transition"></i>
-                            <span class="font-bold text-sm">${post.likes || 0}</span>
+                    <div class="px-4 py-3 flex items-center gap-6 border-t border-slate-50 dark:border-slate-700/50 mt-2">
+                        <button onclick="toggleLike('${post.id}')" class="group flex items-center gap-2 transition ${isLiked ? 'text-red-500' : 'text-slate-500 dark:text-slate-400 hover:text-red-500'}">
+                            <div class="relative">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart text-xl ${isLiked ? 'animate-like-bounce' : 'group-active:scale-90'} transition-transform"></i>
+                            </div>
+                            <span class="text-sm font-bold">${displayLikes || ''}</span>
                         </button>
                         
-                        <button onclick="toggleComments('${post.id}')" class="flex justify-center items-center gap-2 text-slate-500 hover:text-blue-600 transition py-1 rounded-lg hover:bg-blue-50">
-                            <i class="far fa-comment-alt text-lg"></i>
-                            <span class="font-bold text-sm">Коментарі</span>
+                        <button onclick="toggleComments('${post.id}')" class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-600 transition">
+                            <i class="far fa-comment-alt text-xl"></i>
+                            <span class="text-sm font-medium">Комент.</span>
                         </button>
                     </div>
 
-                    <div id="comments-${post.id}" class="hidden bg-slate-50 border-t border-slate-100 p-4">
-                        <div id="comments-list-${post.id}" class="space-y-3 mb-4 max-h-60 overflow-y-auto comments-section">
-                            <p class="text-xs text-slate-400 text-center">Завантаження...</p>
-                        </div>
-                        <form onsubmit="postComment(event, '${post.id}')" class="relative">
-                            <input type="text" name="commentText" placeholder="Написати коментар..." class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition shadow-sm" autocomplete="off">
-                            <button type="submit" class="absolute right-1.5 top-1.5 text-blue-600 hover:bg-blue-50 p-1.5 rounded-full transition w-8 h-8 flex items-center justify-center">
-                                <i class="fas fa-paper-plane text-xs"></i>
-                            </button>
+                    <!-- Comments -->
+                    <div id="comments-${post.id}" class="hidden bg-slate-50 dark:bg-slate-900/50 p-4 border-t border-slate-100 dark:border-slate-700 animate-slide-up">
+                        <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-48 overflow-y-auto hide-scrollbar"></div>
+                        <form onsubmit="postComment(event, '${post.id}')" class="relative flex items-center">
+                            <img src="${currentUser?.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest'}" class="w-6 h-6 rounded-full absolute left-2 opacity-50">
+                            <input type="text" name="commentText" placeholder="Написати коментар..." class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-full py-2 pl-10 pr-10 text-sm focus:ring-1 focus:ring-brand-500 outline-none dark:text-white transition">
+                            <button type="submit" class="absolute right-1.5 w-7 h-7 bg-brand-500 text-white rounded-full flex items-center justify-center hover:bg-brand-600 transition shadow-md"><i class="fas fa-arrow-up text-xs"></i></button>
                         </form>
                     </div>
-                </article>
-            `;
-        }
-
-        window.deletePost = async (id) => {
-            if(!confirm("Видалити цей звіт?")) return;
-            try {
-                await deleteDoc(doc(getPostsCol(), id));
-            } catch(e) { console.error(e); alert("Помилка видалення"); }
+                </article>`;
+            }).join('');
         };
 
+        // --- UI Logic (Filters, Theme, Etc) ---
+        const filterCont = document.getElementById('filter-container');
+        const modalTagsCont = document.getElementById('modal-tags');
+
+        // All Filter
+        const allBtn = document.createElement('button');
+        allBtn.innerHTML = `Всі`;
+        allBtn.onclick = () => window.setFilter('all');
+        allBtn.id = 'filter-all';
+        allBtn.className = 'px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap bg-brand-600 text-white shadow-md shadow-brand-500/20';
+        filterCont.appendChild(allBtn);
+
+        FISH_TAGS.forEach(tag => {
+            // Main Filter
+            const btn = document.createElement('button');
+            btn.innerText = tag.id;
+            btn.onclick = () => window.setFilter(tag.id);
+            btn.dataset.tag = tag.id;
+            btn.className = 'px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700';
+            filterCont.appendChild(btn);
+
+            // Modal Selection
+            const mBtn = document.createElement('button');
+            mBtn.innerText = tag.id;
+            mBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600 transition hover:bg-white dark:hover:bg-slate-600';
+            mBtn.onclick = () => {
+                Array.from(modalTagsCont.children).forEach(b => b.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-600 transition hover:bg-white dark:hover:bg-slate-600');
+                mBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm ${tag.color} ring-1 ring-offset-0 ring-current`;
+                document.getElementById('selected-tag').value = tag.id;
+            };
+            modalTagsCont.appendChild(mBtn);
+        });
+
+        window.setFilter = (tag) => {
+            activeFilter = tag;
+            const buttons = filterCont.querySelectorAll('button');
+            buttons.forEach(b => {
+                const isActive = (tag === 'all' && b.id === 'filter-all') || b.dataset.tag === tag;
+                if(isActive) {
+                    b.className = 'px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap bg-brand-600 text-white shadow-md shadow-brand-500/20 transform scale-105';
+                } else {
+                    b.className = 'px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700';
+                }
+            });
+            renderPosts();
+        }
+
+        // --- Actions ---
+        window.toggleLike = async (postId) => {
+            if (!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
+            const postRef = doc(getPostsCol(), postId);
+            const post = allPosts.find(p => p.id === postId);
+            if(!post) return;
+
+            const likedBy = post.likedBy || [];
+            const isLiked = likedBy.includes(currentUser.uid);
+
+            try {
+                await updateDoc(postRef, { likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
+            } catch(e) { console.error(e); }
+        };
+
+        // Comments System
+        let unsubComments = {};
         window.toggleComments = (postId) => {
-            const section = document.getElementById(`comments-${postId}`);
-            const isHidden = section.classList.contains('hidden');
-            if (isHidden) {
-                section.classList.remove('hidden');
-                loadComments(postId);
+            const el = document.getElementById(`comments-${postId}`);
+            const list = document.getElementById(`comments-list-${postId}`);
+            
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                if(unsubComments[postId]) unsubComments[postId]();
+                
+                const q = query(getCommentsCol(), orderBy('createdAt', 'asc'));
+                unsubComments[postId] = onSnapshot(q, (snap) => {
+                    const comments = [];
+                    snap.forEach(d => { if(d.data().postId === postId) comments.push(d.data()) });
+                    
+                    if(comments.length === 0) { list.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-2">Будьте першим, хто прокоментує!</p>'; return; }
+
+                    list.innerHTML = comments.map(c => `
+                        <div class="flex gap-2 text-sm items-start animate-fade-in">
+                            <img src="${c.userPhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userName}`}" class="w-6 h-6 rounded-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 mt-1">
+                            <div class="bg-white dark:bg-slate-800 px-3 py-2 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-700 shadow-sm max-w-[85%]">
+                                <span class="font-bold text-xs text-brand-700 dark:text-brand-400 block mb-0.5">${escapeHtml(c.userName)}</span>
+                                <span class="text-slate-700 dark:text-slate-300 text-xs leading-relaxed">${escapeHtml(c.text)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    list.scrollTop = list.scrollHeight;
+                });
             } else {
-                section.classList.add('hidden');
+                el.classList.add('hidden');
+                if(unsubComments[postId]) unsubComments[postId]();
             }
         };
-
-        let commentUnsubscribes = {};
-
-        function loadComments(postId) {
-            const list = document.getElementById(`comments-list-${postId}`);
-            if (commentUnsubscribes[postId]) commentUnsubscribes[postId]();
-
-            // Simple query, strict equality
-            const q = query(getCommentsCol(), where("postId", "==", postId));
-            
-            commentUnsubscribes[postId] = onSnapshot(q, (snapshot) => {
-                const comments = [];
-                snapshot.forEach(doc => comments.push({ id: doc.id, ...doc.data() }));
-                // Sort inside JS to allow basic indexing
-                comments.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
-
-                if (comments.length === 0) {
-                    list.innerHTML = `<p class="text-xs text-slate-400 text-center italic py-2">Поки немає коментарів.</p>`;
-                    return;
-                }
-
-                list.innerHTML = comments.map(c => {
-                    let cAvatar = c.userPhoto;
-                    if(!cAvatar) {
-                         cAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userSeed || 'guest'}&backgroundColor=c0aede,b6e3f4`;
-                    }
-                    return `
-                    <div class="flex gap-2 text-sm animate-fade-in group">
-                        <img src="${cAvatar}" class="w-6 h-6 rounded-full bg-white border border-slate-200 flex-shrink-0 object-cover mt-1">
-                        <div class="bg-white px-3 py-2 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm max-w-[90%]">
-                            <p class="font-bold text-xs text-slate-600 mb-0.5 flex justify-between gap-4">
-                                <span>${escapeHtml(c.userName)}</span>
-                                <span class="text-[10px] font-normal text-slate-300">${getTimeAgo(c.createdAt?.seconds)}</span>
-                            </p>
-                            <p class="text-slate-800 leading-snug break-words">${escapeHtml(c.text)}</p>
-                        </div>
-                    </div>
-                `}).join('');
-                list.scrollTop = list.scrollHeight;
-            });
-        }
 
         window.postComment = async (e, postId) => {
             e.preventDefault();
-            const input = e.target.commentText;
-            const text = input.value.trim();
-            if (!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
-            if (!text) return;
-
+            const val = e.target.commentText.value.trim();
+            if(!val) return;
+            if(!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
+            
+            e.target.commentText.value = '';
             const name = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка');
-            const photo = currentUser.photoURL || null;
 
-            try {
-                input.value = '';
-                await addDoc(getCommentsCol(), {
-                    postId: postId,
-                    userId: currentUser.uid,
-                    userName: name,
-                    userPhoto: photo,
-                    userSeed: currentUser.email || currentUser.uid,
-                    text: text,
-                    createdAt: serverTimestamp()
-                });
-            } catch (err) {
-                console.error("Comment failed", err);
-                input.value = text;
-                alert("Не вдалося додати коментар");
+            await addDoc(getCommentsCol(), {
+                postId, userId: currentUser.uid, userName: name,
+                userPhoto: currentUser.photoURL, text: val, createdAt: serverTimestamp()
+            });
+        };
+
+        window.deletePost = async (id) => {
+            if(confirm('Видалити цей пост назавжди?')) await deleteDoc(doc(getPostsCol(), id));
+        };
+
+        // --- Creation ---
+        window.previewImage = (url) => {
+            const box = document.getElementById('image-preview-box');
+            const img = document.getElementById('image-preview');
+            if(url.match(/\.(jpeg|jpg|gif|png|webp)$/) != null || url.length > 10) {
+                img.src = url;
+                img.onload = () => box.classList.remove('hidden');
+                img.onerror = () => box.classList.add('hidden');
+            } else {
+                box.classList.add('hidden');
             }
         };
 
-        window.like = async (id) => {
-            if (!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
-            const ref = doc(getPostsCol(), id);
-            await updateDoc(ref, { likes: increment(1) });
+        window.clearImage = () => {
+            document.getElementById('post-image-url').value = '';
+            document.getElementById('image-preview-box').classList.add('hidden');
         };
 
-        // ===============================================
-        // PUBLISH POST
-        // ===============================================
-        document.getElementById('btn-publish').onclick = async () => {
+        document.getElementById('btn-publish').onclick = async function() {
+            const btn = this;
             const text = document.getElementById('post-text').value;
-            const img = document.getElementById('post-image-url').value;
             const tag = document.getElementById('selected-tag').value;
-            
-            if (!text || !currentUser) return;
+            const loc = document.getElementById('post-location').value;
+            const img = document.getElementById('post-image-url').value;
 
-            const btn = document.getElementById('btn-publish');
+            if(!text) return alert("Напишіть хоча б щось!");
+
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
 
             try {
-                const name = currentUser.displayName || (currentUser.isAnonymous ? `Гість` : (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка'));
+                const name = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка');
                 await addDoc(getPostsCol(), {
-                    userId: currentUser.uid,
-                    userName: name,
-                    userEmail: currentUser.email || 'guest',
-                    userPhoto: currentUser.photoURL || null,
-                    content: text,
-                    imageUrl: img,
-                    tag: tag,
-                    likes: 0,
-                    createdAt: serverTimestamp()
+                    userId: currentUser.uid, userName: name, userEmail: currentUser.email || 'anon',
+                    userPhoto: currentUser.photoURL, content: text, tag: tag, location: loc,
+                    imageUrl: img, likedBy: [], createdAt: serverTimestamp()
                 });
-                
+                closeModal();
                 // Reset form
                 document.getElementById('post-text').value = '';
-                document.getElementById('post-image-url').value = '';
-                closeModal();
-                
-                // Show success feedback
-                const container = document.getElementById('posts-container');
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full shadow-xl z-50 text-sm font-bold flex items-center gap-2 animate-bounce';
-                toast.innerHTML = '<i class="fas fa-check"></i> Опубліковано!';
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 2000);
-
-            } catch (e) { 
-                alert("Помилка: " + e.message); 
-            } finally { 
-                btn.disabled = false; 
-                btn.innerHTML = '<span>Опублікувати</span><i class="fas fa-paper-plane text-xs"></i>'; 
+                document.getElementById('post-location').value = '';
+                clearImage();
+            } catch(e) { alert(e.message); } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Опублікувати</span><i class="fas fa-paper-plane"></i>`;
             }
         };
 
-        // ===============================================
-        // MODALS & TAGS
-        // ===============================================
-        const tagContainer = document.getElementById('fish-tags');
-        
-        FISH_TAGS.forEach(tag => {
-            const btn = document.createElement('button');
-            btn.className = `px-3 py-1 rounded-full text-xs font-bold border transition transform active:scale-95 ${tag.id === 'Інше' ? tag.color + ' ring-2 ring-offset-1 ring-green-100 shadow-sm' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`;
-            btn.innerText = tag.id;
-            
-            btn.onclick = () => {
-                Array.from(tagContainer.children).forEach(c => c.className = `px-3 py-1 rounded-full text-xs font-bold border transition transform active:scale-95 bg-white text-slate-500 border-slate-200 hover:bg-slate-50`);
-                btn.className = `px-3 py-1 rounded-full text-xs font-bold border shadow-sm transform scale-105 ${tag.color} ring-2 ring-offset-1 ring-green-100`;
-                document.getElementById('selected-tag').value = tag.id;
-            };
-            tagContainer.appendChild(btn);
-        });
-
-        window.openModal = () => {
-            if(!currentUser || currentUser.isAnonymous) { openAuthModal(); return; }
-            document.getElementById('modal').classList.replace('hidden', 'flex');
+        // --- Modal Control with Animation ---
+        function showModal(id, panelId) {
+            const el = document.getElementById(id);
+            const panel = document.getElementById(panelId);
+            el.classList.remove('hidden');
+            el.classList.add('flex');
+            // Trigger animation frame
+            setTimeout(() => {
+                el.classList.remove('opacity-0');
+                if(panel) {
+                    panel.classList.remove('translate-y-full', 'scale-95');
+                    panel.classList.add('translate-y-0', 'scale-100');
+                }
+            }, 10);
         }
-        window.closeModal = () => document.getElementById('modal').classList.replace('flex', 'hidden');
-        window.openAuthModal = () => document.getElementById('auth-modal').classList.replace('hidden', 'flex');
-        window.closeAuthModal = () => document.getElementById('auth-modal').classList.replace('flex', 'hidden');
 
-        window.switchTab = (mode) => {
-            const loginTab = document.getElementById('tab-login');
-            const regTab = document.getElementById('tab-register');
-            const btn = document.getElementById('auth-submit-btn');
-            document.getElementById('auth-error').classList.add('hidden');
-            
-            if(mode === 'register') {
-                isRegisterMode = true;
-                regTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all";
-                loginTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold text-green-100 hover:text-white transition-all";
-                btn.innerText = "Зареєструватися";
-            } else {
-                isRegisterMode = false;
-                loginTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-green-900 shadow-sm transition-all";
-                regTab.className = "flex-1 py-1.5 rounded-lg text-sm font-bold text-green-100 hover:text-white transition-all";
-                btn.innerText = "Увійти";
+        function hideModal(id, panelId) {
+            const el = document.getElementById(id);
+            const panel = document.getElementById(panelId);
+            el.classList.add('opacity-0');
+            if(panel) {
+                panel.classList.add('translate-y-full', 'scale-95');
+                panel.classList.remove('translate-y-0', 'scale-100');
             }
-        };
+            setTimeout(() => {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }, 300);
+        }
 
-        // Helpers
-        function getTimeAgo(seconds) {
-            if (!seconds) return 'щойно';
-            const now = Math.floor(Date.now() / 1000);
-            const diff = now - seconds;
-            if (diff < 60) return 'щойно';
-            if (diff < 3600) return `${Math.floor(diff/60)} хв.`;
-            if (diff < 86400) return `${Math.floor(diff/3600)} год.`;
-            return `${Math.floor(diff/86400)} дн.`;
+        window.openModal = () => (currentUser && !currentUser.isAnonymous) ? showModal('modal', 'modal-panel') : showModal('auth-modal', 'auth-panel');
+        window.closeModal = () => hideModal('modal', 'modal-panel');
+        window.openAuthModal = () => showModal('auth-modal', 'auth-panel');
+        window.closeAuthModal = () => hideModal('auth-modal', 'auth-panel');
+        
+        window.openProfileModal = () => {
+            if(!currentUser) return;
+            // Stats
+            const myPosts = allPosts.filter(p => p.userId === currentUser.uid).length;
+            const myLikes = allPosts.filter(p => p.userId === currentUser.uid).reduce((acc, curr) => acc + (curr.likedBy ? curr.likedBy.length : 0), 0);
+            
+            document.getElementById('profile-name').innerText = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Рибалка');
+            document.getElementById('profile-email').innerText = currentUser.email || '';
+            document.getElementById('profile-avatar').src = currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`;
+            document.getElementById('stat-posts').innerText = myPosts;
+            document.getElementById('stat-likes').innerText = myLikes;
+            
+            showModal('profile-modal', 'profile-panel');
+        };
+        window.closeProfileModal = () => hideModal('profile-modal', 'profile-panel');
+
+        // --- Auth Handlers ---
+        window.handleAuth = async (type) => {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            if(!email || !pass) return alert("Заповніть поля!");
+            try {
+                if(type === 'register') await createUserWithEmailAndPassword(auth, email, pass);
+                else await signInWithEmailAndPassword(auth, email, pass);
+            } catch(e) { alert(e.message); }
+        };
+        window.handleGuest = async () => { await signInAnonymously(auth); closeAuthModal(); };
+        window.logout = async () => { await signOut(auth); window.location.reload(); };
+
+        // --- Helpers ---
+        window.toggleTheme = () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        };
+        // Load Theme
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function timeAgo(dateParam) {
+            if (!dateParam) return '...';
+            const date = dateParam.seconds ? new Date(dateParam.seconds * 1000) : new Date(dateParam);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " р. тому";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " міс. тому";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " д. тому";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " год. тому";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " хв. тому";
+            return "Щойно";
         }
 
         function escapeHtml(text) {
