@@ -7,7 +7,7 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
         
-        /* Шапка з профілем */
+        /* Шапка */
         header { 
             background: #4267b2; color: #fff; padding: 15px; 
             border-radius: 8px 8px 0 0; 
@@ -15,40 +15,44 @@
         }
         .logo { font-weight: bold; font-size: 24px; }
         
-        /* Кнопки входу/виходу */
-        #loginBtn { background: white; color: #4267b2; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; border-radius: 4px; cursor: pointer; display: none; }
+        button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        #loginBtn { background: white; color: #4267b2; padding: 8px 15px; }
+        #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; display: none; }
         
-        /* Форма публікації (прихована до входу) */
+        /* Форма публікації */
         #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
-        textarea { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical; }
-        
-        #sendBtn { background: #42b72a; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; font-size: 16px; }
+        textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px;}
+        #sendBtn { background: #42b72a; color: white; padding: 12px; width: 100%; font-size: 16px; }
         #sendBtn:hover { background: #36a420; }
         
-        /* Повідомлення для гостей */
         #guest-msg { text-align: center; padding: 20px; background: white; margin-top: 10px; border-radius: 8px; }
 
-        /* Стиль постів */
+        /* Пости */
         #feed { margin-top: 20px; }
-        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: fadeIn 0.5s; position: relative; }
+        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
         
-        /* Шапка поста з аватаркою */
         .post-header { display: flex; align-items: center; margin-bottom: 10px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
         .author-name { color: #4267b2; font-weight: bold; font-size: 16px; }
         .post-date { color: #90949c; font-size: 12px; }
-        
-        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; }
+        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; }
 
-        /* Кнопка видалення (з'являється тільки для автора) */
-        .delete-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px;
-        }
+        /* Панель дій (Лайки) */
+        .actions { border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px; }
+        .like-btn { background: none; color: #606770; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; transition: 0.2s; }
+        .like-btn:hover { background-color: #f0f2f5; border-radius: 4px; }
+        .like-active { color: #e0245e; } /* Червоний колір для лайка */
+
+        /* Коментарі */
+        .comments-section { margin-top: 10px; background: #f0f2f5; padding: 10px; border-radius: 8px; }
+        .comment { margin-bottom: 8px; font-size: 13px; }
+        .comment strong { color: #365899; }
+        .comment-input-area { display: flex; gap: 5px; margin-top: 10px; }
+        .comment-input { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; }
+        .comment-btn { background: #4267b2; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; }
+
+        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; color: #ccc; font-size: 16px; }
         .delete-btn:hover { color: #ff4d4d; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -67,9 +71,7 @@
         <button id="sendBtn">Опублікувати</button>
     </div>
 
-    <div id="guest-msg">
-        Щоб писати пости, будь ласка, увійдіть.
-    </div>
+    <div id="guest-msg">Щоб писати та лайкати, увійдіть через Google.</div>
 
     <div id="feed">
         <p style="text-align:center; color:#777;">Завантаження...</p>
@@ -77,8 +79,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // Додаємо бібліотеку Аутентифікації
+        // Додали updateDoc, arrayUnion, arrayRemove для оновлення лайків і коментарів
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -92,10 +94,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app); // Запускаємо авторизацію
-        const provider = new GoogleAuthProvider(); // Вибираємо Google як провайдера
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-        // Елементи інтерфейсу
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const postForm = document.getElementById('post-form');
@@ -104,66 +105,58 @@
         const feed = document.getElementById('feed');
         const sendBtn = document.getElementById('sendBtn');
 
-        let currentUser = null; // Тут ми будемо зберігати інформацію про того, хто зайшов
+        let currentUser = null;
 
-        // 1. Логіка входу
+        // Вхід/Вихід
         loginBtn.onclick = () => signInWithPopup(auth, provider);
         logoutBtn.onclick = () => signOut(auth);
 
-        // 2. Слідкуємо, чи зайшов користувач
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user) {
-                // Якщо увійшов
                 loginBtn.style.display = 'none';
                 logoutBtn.style.display = 'inline-block';
                 postForm.style.display = 'block';
                 guestMsg.style.display = 'none';
-                userDisplay.textContent = `Привіт, ${user.displayName.split(' ')[0]}!`; // Тільки ім'я
+                userDisplay.textContent = user.displayName.split(' ')[0];
             } else {
-                // Якщо вийшов
                 loginBtn.style.display = 'inline-block';
                 logoutBtn.style.display = 'none';
                 postForm.style.display = 'none';
                 guestMsg.style.display = 'block';
                 userDisplay.textContent = '';
             }
-            renderFeed(); // Перемальовуємо стрічку, щоб оновити кнопки видалення
+            renderFeed(); // Оновлюємо, щоб показати актуальні лайки
         });
 
-        // 3. Публікація поста
+        // Публікація нового поста
         sendBtn.onclick = async () => {
             const msg = document.getElementById('message').value;
-            
             if(msg.trim() && currentUser) {
                 sendBtn.disabled = true;
                 try {
                     await addDoc(collection(db, "posts"), {
                         text: msg,
                         timestamp: serverTimestamp(),
-                        // Зберігаємо дані про автора з Google
-                        uid: currentUser.uid,         // Унікальний ID (секретний паспорт)
+                        uid: currentUser.uid,
                         author: currentUser.displayName,
-                        photo: currentUser.photoURL
+                        photo: currentUser.photoURL,
+                        likes: [],    // Порожній список лайків
+                        comments: []  // Порожній список коментарів
                     });
                     document.getElementById('message').value = '';
-                } catch (e) {
-                    alert("Помилка: " + e.message);
-                }
+                } catch (e) { alert("Помилка: " + e.message); }
                 sendBtn.disabled = false;
             }
         };
 
-        // 4. Завантаження стрічки
+        // Завантаження стрічки
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
-        
-        let postsData = []; // Зберігаємо пости тут
+        let postsData = [];
 
         onSnapshot(q, (snapshot) => {
             postsData = [];
-            snapshot.forEach(doc => {
-                postsData.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach(doc => postsData.push({ id: doc.id, ...doc.data() }));
             renderFeed();
         });
 
@@ -175,51 +168,106 @@
             }
 
             postsData.forEach(post => {
+                // Час
                 let timeString = "...";
                 if(post.timestamp) {
                     const date = post.timestamp.toDate();
                     timeString = date.toLocaleTimeString().slice(0,5) + ' ' + date.toLocaleDateString();
                 }
-
-                // Використовуємо стандартну картинку, якщо немає аватарки
                 const avatarUrl = post.photo || 'https://ui-avatars.com/api/?name=' + post.author;
 
+                // ЛОГІКА ЛАЙКІВ
+                const likes = post.likes || [];
+                const isLiked = currentUser && likes.includes(currentUser.uid);
+                const likeCount = likes.length;
+                const likeClass = isLiked ? 'like-active' : '';
+                const likeIcon = isLiked ? '❤️' : '🤍';
+
+                // Створення HTML
                 const postEl = document.createElement('div');
                 postEl.className = 'post';
                 
-                // HTML для поста
-                let htmlContent = `
+                let html = `
                     <div class="post-header">
-                        <img src="${avatarUrl}" class="avatar" alt="Ava">
+                        <img src="${avatarUrl}" class="avatar">
                         <div>
-                            <div class="author-name">${post.author || 'Анонім'}</div>
+                            <div class="author-name">${post.author}</div>
                             <div class="post-date">${timeString}</div>
                         </div>
                     </div>
                     <div class="post-text">${post.text}</div>
+                    
+                    <div class="actions">
+                        <button class="like-btn ${likeClass}" onclick="toggleLike('${post.id}', ${isLiked})">
+                            ${likeIcon} <span>${likeCount || 'Лайк'}</span>
+                        </button>
+                    </div>
+
+                    <div class="comments-section">
+                        <div id="comments-${post.id}"></div> 
+                        ${currentUser ? `
+                        <div class="comment-input-area">
+                            <input type="text" id="input-${post.id}" class="comment-input" placeholder="Написати коментар...">
+                            <button onclick="addComment('${post.id}')" class="comment-btn">➤</button>
+                        </div>
+                        ` : ''}
+                    </div>
                 `;
 
-                // МАГІЯ: Показуємо кнопку видалення ТІЛЬКИ якщо це пост поточного користувача
-                // Перевіряємо, чи співпадає ID автора поста з ID того, хто зараз на сайті
                 if (currentUser && post.uid === currentUser.uid) {
-                    htmlContent += `<button class="delete-btn" title="Видалити">🗑️</button>`;
+                    html += `<button class="delete-btn" onclick="deletePost('${post.id}')">🗑️</button>`;
                 }
 
-                postEl.innerHTML = htmlContent;
+                postEl.innerHTML = html;
 
-                // Додаємо функцію видалення на кнопку (якщо вона є)
-                const delBtn = postEl.querySelector('.delete-btn');
-                if (delBtn) {
-                    delBtn.onclick = () => {
-                        if(confirm("Видалити цей пост?")) {
-                            deleteDoc(doc(db, "posts", post.id));
-                        }
-                    };
-                }
+                // Відображення коментарів
+                const commentsContainer = postEl.querySelector(`#comments-${post.id}`);
+                const comments = post.comments || [];
+                comments.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'comment';
+                    div.innerHTML = `<strong>${c.author}:</strong> ${c.text}`;
+                    commentsContainer.appendChild(div);
+                });
 
                 feed.appendChild(postEl);
             });
         }
+
+        // --- Глобальні функції (щоб працювали в onclick) ---
+        
+        window.deletePost = (id) => {
+            if(confirm("Видалити?")) deleteDoc(doc(db, "posts", id));
+        };
+
+        window.toggleLike = async (id, isLiked) => {
+            if (!currentUser) { alert("Увійдіть, щоб лайкати!"); return; }
+            const postRef = doc(db, "posts", id);
+            
+            if (isLiked) {
+                // Забираємо лайк (видаляємо свій ID зі списку)
+                await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
+            } else {
+                // Ставимо лайк (додаємо свій ID у список)
+                await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
+            }
+        };
+
+        window.addComment = async (id) => {
+            const input = document.getElementById(`input-${id}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const postRef = doc(db, "posts", id);
+            await updateDoc(postRef, {
+                comments: arrayUnion({
+                    author: currentUser.displayName.split(' ')[0], // Тільки ім'я
+                    text: text,
+                    uid: currentUser.uid,
+                    time: Date.now()
+                })
+            });
+        };
     </script>
 </body>
 </html>
