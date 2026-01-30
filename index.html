@@ -2,15 +2,21 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FishNet - Соцмережа</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4267b2">
+    <link rel="apple-touch-icon" href="icon.png"> 
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; padding-bottom: 80px; }
         
         header { 
             background: #4267b2; color: #fff; padding: 15px; 
             border-radius: 8px 8px 0 0; 
             display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .logo { font-weight: bold; font-size: 24px; }
         
@@ -18,13 +24,12 @@
         #loginBtn { background: white; color: #4267b2; padding: 8px 15px; }
         #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; display: none; }
         
-        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
+        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; margin-bottom: 20px;}
         textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px; min-height: 60px;}
         
         .form-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
         .file-label { cursor: pointer; color: #4267b2; font-size: 24px; padding: 5px; display: flex; align-items: center; gap: 5px; }
-        .file-label:hover { background: #f0f2f5; border-radius: 4px; }
         .file-label span { font-size: 14px; font-weight: normal; }
         #imageInput { display: none; } 
 
@@ -33,11 +38,9 @@
         #remove-img { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 22px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
         #sendBtn { background: #42b72a; color: white; padding: 10px 20px; font-size: 16px; }
-        #sendBtn:hover { background: #36a420; }
         
         #guest-msg { text-align: center; padding: 20px; background: white; margin-top: 10px; border-radius: 8px; }
 
-        #feed { margin-top: 20px; }
         .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
         
         .post-header { display: flex; align-items: center; margin-bottom: 10px; }
@@ -45,12 +48,10 @@
         .author-name { color: #4267b2; font-weight: bold; font-size: 16px; }
         .post-date { color: #90949c; font-size: 12px; }
         .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
-        
         .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; cursor: pointer;}
 
         .actions { border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px; }
-        .like-btn { background: none; color: #606770; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; transition: 0.2s; }
-        .like-btn:hover { background-color: #f0f2f5; border-radius: 4px; }
+        .like-btn { background: none; color: #606770; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
         .like-active { color: #e0245e; }
 
         .comments-section { margin-top: 10px; background: #f0f2f5; padding: 10px; border-radius: 8px; }
@@ -61,6 +62,12 @@
 
         .delete-btn { position: absolute; top: 15px; right: 15px; background: none; color: #ccc; font-size: 16px; }
         .delete-btn:hover { color: #ff4d4d; }
+
+        /* Кнопка встановлення (PWA) */
+        #installBtn { 
+            display: none; width: 100%; background: #333; color: white; padding: 15px; 
+            text-align: center; position: fixed; bottom: 0; left: 0; z-index: 1000; font-weight: bold; cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -74,20 +81,20 @@
         </div>
     </header>
 
+    <div id="installBtn">📲 Встановити додаток FishNet</div>
+
     <div id="post-form">
         <textarea id="message" rows="3" placeholder="Що нового?"></textarea>
-        
         <div id="preview-container">
             <img id="preview-img" src="">
             <div id="remove-img" onclick="clearImage()">×</div>
         </div>
-
         <div class="form-tools">
             <label class="file-label">
-                📎 <span>Додати фото</span>
+                📎 <span>Фото</span>
                 <input type="file" id="imageInput" accept="image/*">
             </label>
-            <button id="sendBtn">Опублікувати</button>
+            <button id="sendBtn">Публікація</button>
         </div>
     </div>
 
@@ -101,13 +108,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // Прибрали Storage, він нам більше не треба :)
 
         const firebaseConfig = {
             apiKey: "AIzaSyCN7xN8AZXXCxwf9GmuILYi5AcKAUYJVB4",
             authDomain: "fishnet-cb1ad.firebaseapp.com",
             projectId: "fishnet-cb1ad",
-            storageBucket: "fishnet-cb1ad.firebasestorage.app",
             messagingSenderId: "672721719482",
             appId: "1:672721719482:web:9b0ce0e3e41893fcccb283"
         };
@@ -127,6 +132,32 @@
         const imageInput = document.getElementById('imageInput');
         const previewContainer = document.getElementById('preview-container');
         const previewImg = document.getElementById('preview-img');
+
+        // --- PWA ЛОГІКА ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+        // ------------------
 
         let currentUser = null;
         let selectedFile = null;
@@ -170,7 +201,6 @@
             previewContainer.style.display = 'none';
         };
 
-        // Функція "Магія": Стискає фото і перетворює на текст
         const compressImage = (file) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -180,7 +210,7 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 800; // Зменшуємо до 800px, щоб влізло
+                        const MAX_WIDTH = 800; 
                         const scale = MAX_WIDTH / img.width;
                         if (scale < 1) {
                             canvas.width = MAX_WIDTH;
@@ -189,10 +219,8 @@
                             canvas.width = img.width;
                             canvas.height = img.height;
                         }
-                        
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        // Конвертуємо в JPEG середньої якості (0.7)
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
                     }
                 }
@@ -201,19 +229,14 @@
 
         sendBtn.onclick = async () => {
             const msg = document.getElementById('message').value;
-            
             if((msg.trim() || selectedFile) && currentUser) {
                 sendBtn.disabled = true;
                 sendBtn.innerText = "Завантаження...";
-                
                 try {
                     let imageUrl = null;
-
-                    // Якщо є фото, перетворюємо його на текст
                     if (selectedFile) {
                         imageUrl = await compressImage(selectedFile);
                     }
-
                     await addDoc(collection(db, "posts"), {
                         text: msg,
                         imageUrl: imageUrl, 
@@ -224,14 +247,11 @@
                         likes: [],
                         comments: []
                     });
-
                     document.getElementById('message').value = '';
                     clearImage();
-
                 } catch (e) { alert("Помилка: " + e.message); }
-                
                 sendBtn.disabled = false;
-                sendBtn.innerText = "Опублікувати";
+                sendBtn.innerText = "Публікація";
             }
         };
 
