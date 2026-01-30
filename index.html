@@ -13,12 +13,12 @@
         :root {
             --bg-body: #e9ebee; --bg-card: #ffffff; --text-main: #1c1e21; --text-sec: #65676b;
             --input-bg: #f0f2f5; --border: #ddd; --header-bg: #4267b2; --accent: #4267b2;
-            --fab-bg: #4267b2; --fab-color: white;
+            --fab-bg: #4267b2; --fab-color: white; --shadow: rgba(0,0,0,0.1);
         }
         body.dark-mode {
             --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sec: #b0b3b8;
             --input-bg: #3a3b3c; --border: #3e4042; --header-bg: #242526; --accent: #4599ff;
-            --fab-bg: #4599ff; --fab-color: #18191a;
+            --fab-bg: #4599ff; --fab-color: #18191a; --shadow: rgba(0,0,0,0.5);
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: var(--bg-body); color: var(--text-main); padding-bottom: 80px; transition: 0.3s; }
         
@@ -26,13 +26,27 @@
         header { 
             background: var(--header-bg); color: #fff; padding: 12px 16px; 
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
         #themeBtn { background: none; border: none; font-size: 20px; cursor: pointer; }
         #loginBtn { background: white; color: var(--header-bg); border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
         
-        /* FAB (Floating Button) */
+        /* SEARCH BAR (НОВЕ) */
+        .search-box {
+            position: sticky; top: 58px; z-index: 90;
+            background: var(--bg-body); padding: 10px 10px 5px 10px;
+            transition: 0.3s;
+        }
+        .search-input {
+            width: 100%; padding: 12px 20px; border-radius: 25px;
+            border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text-main); font-size: 16px; outline: none;
+            box-shadow: 0 2px 5px var(--shadow); box-sizing: border-box;
+        }
+        .search-input:focus { border-color: var(--accent); }
+
+        /* FAB */
         .fab {
             position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px;
             background: var(--fab-bg); color: var(--fab-color); border-radius: 50%;
@@ -43,11 +57,11 @@
         .fab:active { transform: scale(0.9); }
         .fab.hidden { display: none; }
 
-        /* MODAL (Post Form) */
+        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 2000; display: none;
-            align-items: flex-end; /* Знизу для мобілок */
+            align-items: flex-end;
         }
         .modal-overlay.open { display: flex; }
         #post-form { 
@@ -63,7 +77,6 @@
             box-sizing: border-box; min-height: 100px; margin-bottom: 10px;
         }
         
-        /* TOOLS & BUTTONS */
         .form-tools { display: flex; justify-content: space-between; align-items: center; }
         .file-label { cursor: pointer; font-size: 24px; color: var(--accent); }
         #imageInput { display: none; }
@@ -74,7 +87,6 @@
         }
         #sendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* PREVIEW */
         #preview-container { position: relative; display: none; margin-bottom: 10px; }
         #preview-img { max-height: 120px; border-radius: 8px; }
         #remove-img { 
@@ -83,7 +95,7 @@
             text-align: center; line-height: 22px; cursor: pointer; 
         }
 
-        /* SKELETON LOADING */
+        /* SKELETON */
         .skeleton { background: var(--bg-card); padding: 15px; margin: 15px; border-radius: 12px; }
         .sk-header { display: flex; align-items: center; margin-bottom: 10px; }
         .sk-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--input-bg); margin-right: 10px; }
@@ -102,13 +114,12 @@
         .author-name { font-weight: 700; color: var(--text-main); font-size: 15px; }
         .post-date { color: var(--text-sec); font-size: 12px; }
         .post-text { line-height: 1.5; white-space: pre-wrap; margin-bottom: 12px; font-size: 15px; }
-        .post-image { width: 100%; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border); loading: lazy; }
+        .post-image { width: 100%; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border); }
 
         .actions { border-top: 1px solid var(--border); padding-top: 12px; display: flex; gap: 20px; }
         .action-btn { background: none; border: none; color: var(--text-sec); font-size: 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .like-active { color: #e0245e; }
 
-        /* COMMENTS */
         .comments-section { margin-top: 12px; padding-top: 12px; background: var(--input-bg); border-radius: 8px; padding: 8px; display: none; }
         .comments-section.visible { display: block; }
         .comment { font-size: 13px; margin-bottom: 6px; }
@@ -128,6 +139,10 @@
             <button id="loginBtn">Увійти</button>
         </div>
     </header>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Пошук (щука, карась...)">
+    </div>
 
     <div id="skeleton-loader">
         <div class="skeleton"><div class="sk-header"><div class="sk-avatar shimmer"></div><div><div class="sk-line shimmer"></div><div class="sk-line short shimmer"></div></div></div><div class="sk-rect shimmer"></div></div>
@@ -183,7 +198,6 @@
         let currentUser = null;
         let selectedFile = null;
 
-        // UI References
         const els = {
             loginBtn: document.getElementById('loginBtn'),
             feed: document.getElementById('feed'),
@@ -194,17 +208,28 @@
             imageInput: document.getElementById('imageInput'),
             preview: document.getElementById('preview-container'),
             skeleton: document.getElementById('skeleton-loader'),
-            themeBtn: document.getElementById('themeBtn')
+            themeBtn: document.getElementById('themeBtn'),
+            searchInput: document.getElementById('searchInput')
         };
 
-        // --- 1. THEME LOGIC ---
+        // --- SEARCH LOGIC ---
+        els.searchInput.oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = postsData.filter(post => {
+                const textMatch = (post.text || "").toLowerCase().includes(term);
+                const authorMatch = (post.author || "").toLowerCase().includes(term);
+                return textMatch || authorMatch;
+            });
+            renderFeed(filtered);
+        };
+
+        // Theme
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
         els.themeBtn.onclick = () => {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         };
 
-        // --- 2. TIME AGO LOGIC ---
         function timeAgo(timestamp) {
             if (!timestamp) return '...';
             const date = timestamp.toDate();
@@ -215,7 +240,6 @@
             return Math.floor(diff/86400)+" дн тому";
         }
 
-        // --- 3. AUTH LOGIC ---
         els.loginBtn.onclick = () => currentUser ? signOut(auth) : signInWithPopup(auth, provider);
 
         onAuthStateChanged(auth, (user) => {
@@ -228,10 +252,9 @@
                 els.fab.classList.add('hidden');
                 window.toggleModal(false);
             }
-            renderFeed(); // Re-render to update delete buttons/likes
+            renderFeed(); 
         });
 
-        // --- 4. MODAL & FORM LOGIC ---
         window.toggleModal = (show) => {
             if(show) els.modal.classList.add('open');
             else els.modal.classList.remove('open');
@@ -306,20 +329,32 @@
             els.sendBtn.disabled = true;
         };
 
-        // --- 5. FEED LOGIC ---
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         let postsData = [];
 
         onSnapshot(q, (snapshot) => {
-            els.skeleton.style.display = 'none'; // Hide skeleton when data arrives
+            els.skeleton.style.display = 'none';
             postsData = [];
             snapshot.forEach(doc => postsData.push({ id: doc.id, ...doc.data() }));
-            renderFeed();
+            // Якщо в пошуку щось є, фільтруємо по ньому, інакше показуємо все
+            const searchTerm = els.searchInput.value.toLowerCase();
+            if (searchTerm) {
+               els.searchInput.dispatchEvent(new Event('input')); // Trigger search logic
+            } else {
+               renderFeed();
+            }
         });
 
-        function renderFeed() {
+        // Модифікована функція renderFeed (приймає дані)
+        function renderFeed(data = postsData) {
             els.feed.innerHTML = '';
-            postsData.forEach(post => {
+            
+            if (data.length === 0) {
+                 els.feed.innerHTML = '<div style="text-align:center; color:var(--text-sec); padding:20px;">Нічого не знайдено 🎣</div>';
+                 return;
+            }
+
+            data.forEach(post => {
                 const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
                 const isAuthor = currentUser && post.uid === currentUser.uid;
                 
@@ -361,7 +396,6 @@
             });
         }
 
-        // Global Actions
         window.deletePost = (id) => confirm("Видалити?") && deleteDoc(doc(db, "posts", id));
         
         window.toggleLike = (id, isLiked) => {
@@ -383,10 +417,9 @@
             await updateDoc(doc(db, "posts", id), {
                 comments: arrayUnion({ author: currentUser.displayName.split(' ')[0], text: text, uid: currentUser.uid, time: Date.now() })
             });
-            input.value = ''; // Clean input, no reload needed
+            input.value = ''; 
         };
 
-        // PWA Install
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
