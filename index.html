@@ -9,13 +9,31 @@
         header { background: #4267b2; color: #fff; padding: 15px; text-align: center; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 24px; }
         #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
-        button { background: #42b72a; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; font-size: 16px; }
-        button:hover { background: #36a420; }
+        
+        /* Стиль для головної кнопки */
+        #sendBtn { background: #42b72a; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; font-size: 16px; }
+        #sendBtn:hover { background: #36a420; }
+        
         #feed { margin-top: 20px; }
-        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: fadeIn 0.5s; }
+        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: fadeIn 0.5s; position: relative; }
         .post h3 { margin: 0 0 8px; color: #4267b2; font-size: 18px; }
         .post p { margin: 0; color: #1c1e21; line-height: 1.4; word-wrap: break-word; }
         .post small { color: #90949c; font-size: 12px; display: block; margin-top: 8px; }
+
+        /* Стиль для кнопки видалення */
+        .delete-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            float: right; /* Притискаємо вправо */
+            margin-top: -35px; /* Піднімаємо трохи вгору */
+        }
+        .delete-btn:hover { background-color: #cc0000; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -37,9 +55,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Додали deleteDoc та doc для видалення
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // ВАШІ КЛЮЧІ (Я взяв їх з вашого скріншоту)
         const firebaseConfig = {
             apiKey: "AIzaSyCN7xN8AZXXCxwf9GmuILYi5AcKAUYJVB4",
             authDomain: "fishnet-cb1ad.firebaseapp.com",
@@ -49,14 +67,13 @@
             appId: "1:672721719482:web:9b0ce0e3e41893fcccb283"
         };
 
-        // Запускаємо Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const btn = document.getElementById('sendBtn');
         const feed = document.getElementById('feed');
 
-        // Функція відправки повідомлення
+        // Публікація
         btn.addEventListener('click', async () => {
             const name = document.getElementById('username').value;
             const msg = document.getElementById('message').value;
@@ -71,21 +88,19 @@
                         text: msg,
                         timestamp: serverTimestamp()
                     });
-                    
                     document.getElementById('message').value = ''; 
                 } catch (e) {
-                    console.error("Помилка:", e);
-                    alert("Помилка запису: " + e.message);
+                    alert("Помилка: " + e.message);
                 }
                 
                 btn.disabled = false;
                 btn.innerText = "Опублікувати";
             } else {
-                alert("Заповніть ім'я та повідомлення!");
+                alert("Заповніть всі поля!");
             }
         });
 
-        // Слухаємо зміни
+        // Стрічка новин + Кнопка видалення
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         
         onSnapshot(q, (snapshot) => {
@@ -95,22 +110,45 @@
                 feed.innerHTML = '<p style="text-align:center; color:#777;">Поки немає дописів.</p>';
             }
 
-            snapshot.forEach((doc) => {
-                const post = doc.data();
-                
+            snapshot.forEach((docSnapshot) => {
+                const post = docSnapshot.data();
+                const postId = docSnapshot.id; // Отримуємо ID документа
+
                 let timeString = "...";
                 if(post.timestamp) {
                     const date = post.timestamp.toDate();
                     timeString = date.toLocaleTimeString() + ' ' + date.toLocaleDateString();
                 }
 
+                // Створюємо блок поста
                 const postEl = document.createElement('div');
                 postEl.className = 'post';
+                
+                // Створюємо кнопку видалення
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerText = '❌ Видалити';
+                
+                // Додаємо дію на кнопку
+                deleteBtn.onclick = async () => {
+                    const isConfirmed = confirm("Ви точно хочете видалити цей допис?");
+                    if (isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, "posts", postId));
+                        } catch (e) {
+                            alert("Помилка видалення: " + e.message);
+                        }
+                    }
+                };
+
+                // Збираємо все разом
                 postEl.innerHTML = `
                     <h3>${post.author}</h3>
                     <p>${post.text}</p>
                     <small>${timeString}</small>
                 `;
+                
+                postEl.prepend(deleteBtn); // Додаємо кнопку на початок поста
                 feed.appendChild(postEl);
             });
         });
