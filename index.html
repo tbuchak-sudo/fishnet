@@ -5,34 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FishNet - Соцмережа</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
-        header { background: #4267b2; color: #fff; padding: 15px; text-align: center; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 24px; }
-        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
         
-        /* Стиль для головної кнопки */
+        /* Шапка з профілем */
+        header { 
+            background: #4267b2; color: #fff; padding: 15px; 
+            border-radius: 8px 8px 0 0; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .logo { font-weight: bold; font-size: 24px; }
+        
+        /* Кнопки входу/виходу */
+        #loginBtn { background: white; color: #4267b2; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; border-radius: 4px; cursor: pointer; display: none; }
+        
+        /* Форма публікації (прихована до входу) */
+        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
+        textarea { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical; }
+        
         #sendBtn { background: #42b72a; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; font-size: 16px; }
         #sendBtn:hover { background: #36a420; }
         
+        /* Повідомлення для гостей */
+        #guest-msg { text-align: center; padding: 20px; background: white; margin-top: 10px; border-radius: 8px; }
+
+        /* Стиль постів */
         #feed { margin-top: 20px; }
         .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: fadeIn 0.5s; position: relative; }
-        .post h3 { margin: 0 0 8px; color: #4267b2; font-size: 18px; }
-        .post p { margin: 0; color: #1c1e21; line-height: 1.4; word-wrap: break-word; }
-        .post small { color: #90949c; font-size: 12px; display: block; margin-top: 8px; }
+        
+        /* Шапка поста з аватаркою */
+        .post-header { display: flex; align-items: center; margin-bottom: 10px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
+        .author-name { color: #4267b2; font-weight: bold; font-size: 16px; }
+        .post-date { color: #90949c; font-size: 12px; }
+        
+        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; }
 
-        /* Стиль для кнопки видалення */
+        /* Кнопка видалення (з'являється тільки для автора) */
         .delete-btn {
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 12px;
-            cursor: pointer;
-            float: right; /* Притискаємо вправо */
-            margin-top: -35px; /* Піднімаємо трохи вгору */
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px;
         }
-        .delete-btn:hover { background-color: #cc0000; }
+        .delete-btn:hover { color: #ff4d4d; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -40,23 +54,32 @@
 <body>
 
     <header>
-        FishNet 🐟
+        <div class="logo">FishNet 🐟</div>
+        <div>
+            <span id="user-display" style="font-size: 14px; margin-right: 10px;"></span>
+            <button id="loginBtn">Увійти через Google</button>
+            <button id="logoutBtn">Вийти</button>
+        </div>
     </header>
 
     <div id="post-form">
-        <input type="text" id="username" placeholder="Ваше ім'я">
         <textarea id="message" rows="3" placeholder="Що нового?"></textarea>
         <button id="sendBtn">Опублікувати</button>
     </div>
 
+    <div id="guest-msg">
+        Щоб писати пости, будь ласка, увійдіть.
+    </div>
+
     <div id="feed">
-        <p style="text-align:center; color:#777;">Завантаження стрічки...</p>
+        <p style="text-align:center; color:#777;">Завантаження...</p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Додали deleteDoc та doc для видалення
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Додаємо бібліотеку Аутентифікації
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCN7xN8AZXXCxwf9GmuILYi5AcKAUYJVB4",
@@ -69,90 +92,134 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app); // Запускаємо авторизацію
+        const provider = new GoogleAuthProvider(); // Вибираємо Google як провайдера
 
-        const btn = document.getElementById('sendBtn');
+        // Елементи інтерфейсу
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const postForm = document.getElementById('post-form');
+        const guestMsg = document.getElementById('guest-msg');
+        const userDisplay = document.getElementById('user-display');
         const feed = document.getElementById('feed');
+        const sendBtn = document.getElementById('sendBtn');
 
-        // Публікація
-        btn.addEventListener('click', async () => {
-            const name = document.getElementById('username').value;
+        let currentUser = null; // Тут ми будемо зберігати інформацію про того, хто зайшов
+
+        // 1. Логіка входу
+        loginBtn.onclick = () => signInWithPopup(auth, provider);
+        logoutBtn.onclick = () => signOut(auth);
+
+        // 2. Слідкуємо, чи зайшов користувач
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                // Якщо увійшов
+                loginBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+                postForm.style.display = 'block';
+                guestMsg.style.display = 'none';
+                userDisplay.textContent = `Привіт, ${user.displayName.split(' ')[0]}!`; // Тільки ім'я
+            } else {
+                // Якщо вийшов
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+                postForm.style.display = 'none';
+                guestMsg.style.display = 'block';
+                userDisplay.textContent = '';
+            }
+            renderFeed(); // Перемальовуємо стрічку, щоб оновити кнопки видалення
+        });
+
+        // 3. Публікація поста
+        sendBtn.onclick = async () => {
             const msg = document.getElementById('message').value;
-
-            if(name && msg) {
-                btn.disabled = true;
-                btn.innerText = "Відправка...";
-                
+            
+            if(msg.trim() && currentUser) {
+                sendBtn.disabled = true;
                 try {
                     await addDoc(collection(db, "posts"), {
-                        author: name,
                         text: msg,
-                        timestamp: serverTimestamp()
+                        timestamp: serverTimestamp(),
+                        // Зберігаємо дані про автора з Google
+                        uid: currentUser.uid,         // Унікальний ID (секретний паспорт)
+                        author: currentUser.displayName,
+                        photo: currentUser.photoURL
                     });
-                    document.getElementById('message').value = ''; 
+                    document.getElementById('message').value = '';
                 } catch (e) {
                     alert("Помилка: " + e.message);
                 }
-                
-                btn.disabled = false;
-                btn.innerText = "Опублікувати";
-            } else {
-                alert("Заповніть всі поля!");
+                sendBtn.disabled = false;
             }
-        });
+        };
 
-        // Стрічка новин + Кнопка видалення
+        // 4. Завантаження стрічки
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         
+        let postsData = []; // Зберігаємо пости тут
+
         onSnapshot(q, (snapshot) => {
-            feed.innerHTML = ''; 
-            
-            if (snapshot.empty) {
-                feed.innerHTML = '<p style="text-align:center; color:#777;">Поки немає дописів.</p>';
+            postsData = [];
+            snapshot.forEach(doc => {
+                postsData.push({ id: doc.id, ...doc.data() });
+            });
+            renderFeed();
+        });
+
+        function renderFeed() {
+            feed.innerHTML = '';
+            if (postsData.length === 0) {
+                feed.innerHTML = '<p style="text-align:center; color:#777;">Пусто...</p>';
+                return;
             }
 
-            snapshot.forEach((docSnapshot) => {
-                const post = docSnapshot.data();
-                const postId = docSnapshot.id; // Отримуємо ID документа
-
+            postsData.forEach(post => {
                 let timeString = "...";
                 if(post.timestamp) {
                     const date = post.timestamp.toDate();
-                    timeString = date.toLocaleTimeString() + ' ' + date.toLocaleDateString();
+                    timeString = date.toLocaleTimeString().slice(0,5) + ' ' + date.toLocaleDateString();
                 }
 
-                // Створюємо блок поста
+                // Використовуємо стандартну картинку, якщо немає аватарки
+                const avatarUrl = post.photo || 'https://ui-avatars.com/api/?name=' + post.author;
+
                 const postEl = document.createElement('div');
                 postEl.className = 'post';
                 
-                // Створюємо кнопку видалення
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.innerText = '❌ Видалити';
-                
-                // Додаємо дію на кнопку
-                deleteBtn.onclick = async () => {
-                    const isConfirmed = confirm("Ви точно хочете видалити цей допис?");
-                    if (isConfirmed) {
-                        try {
-                            await deleteDoc(doc(db, "posts", postId));
-                        } catch (e) {
-                            alert("Помилка видалення: " + e.message);
-                        }
-                    }
-                };
-
-                // Збираємо все разом
-                postEl.innerHTML = `
-                    <h3>${post.author}</h3>
-                    <p>${post.text}</p>
-                    <small>${timeString}</small>
+                // HTML для поста
+                let htmlContent = `
+                    <div class="post-header">
+                        <img src="${avatarUrl}" class="avatar" alt="Ava">
+                        <div>
+                            <div class="author-name">${post.author || 'Анонім'}</div>
+                            <div class="post-date">${timeString}</div>
+                        </div>
+                    </div>
+                    <div class="post-text">${post.text}</div>
                 `;
-                
-                postEl.prepend(deleteBtn); // Додаємо кнопку на початок поста
+
+                // МАГІЯ: Показуємо кнопку видалення ТІЛЬКИ якщо це пост поточного користувача
+                // Перевіряємо, чи співпадає ID автора поста з ID того, хто зараз на сайті
+                if (currentUser && post.uid === currentUser.uid) {
+                    htmlContent += `<button class="delete-btn" title="Видалити">🗑️</button>`;
+                }
+
+                postEl.innerHTML = htmlContent;
+
+                // Додаємо функцію видалення на кнопку (якщо вона є)
+                const delBtn = postEl.querySelector('.delete-btn');
+                if (delBtn) {
+                    delBtn.onclick = () => {
+                        if(confirm("Видалити цей пост?")) {
+                            deleteDoc(doc(db, "posts", post.id));
+                        }
+                    };
+                }
+
                 feed.appendChild(postEl);
             });
-        });
+        }
     </script>
-
 </body>
 </html>
