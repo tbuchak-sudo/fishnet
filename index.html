@@ -6,108 +6,172 @@
     <title>FishNet</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4267b2">
+    <meta name="theme-color" content="#00c6ff">
     <link rel="apple-touch-icon" href="icon.png"> 
 
     <style>
+        /* --- НОВІ ЗМІННІ З ГРАДІЄНТАМИ --- */
         :root {
-            --bg-body: #e9ebee; --bg-card: #ffffff; --text-main: #1c1e21; --text-sec: #65676b;
-            --input-bg: #f0f2f5; --border: #ddd; --header-bg: #4267b2; --accent: #4267b2;
-            --fab-bg: #4267b2; --fab-color: white; --shadow: rgba(0,0,0,0.1);
+            --bg-body: #f0f2f5; 
+            --bg-card: rgba(255, 255, 255, 0.95); /* Напівпрозорі картки */
+            --text-main: #1c1e21; --text-sec: #65676b;
+            --input-bg: #f0f2f5; --border: #e4e6eb;
+            
+            /* Градієнт "Свіжий ранок" для шапки */
+            --gradient-header: linear-gradient(135deg, #00c6ff, #0072ff); 
+            /* Градієнт "Яскравий воблер" для кнопок */
+            --gradient-btn: linear-gradient(45deg, #00c6ff, #0072ff);
+            /* Градієнт обкладинки */
+            --gradient-cover: linear-gradient(to right bottom, #00c6ff, #0072ff, #3a7bd5);
+
+            --accent: #0072ff; --fab-color: white; --shadow: rgba(0,0,0,0.1);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.3);
         }
         body.dark-mode {
-            --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --text-sec: #b0b3b8;
-            --input-bg: #3a3b3c; --border: #3e4042; --header-bg: #242526; --accent: #4599ff;
-            --fab-bg: #4599ff; --fab-color: #18191a; --shadow: rgba(0,0,0,0.5);
+            --bg-body: #121212; 
+            --bg-card: rgba(30, 30, 30, 0.95);
+            --text-main: #e4e6eb; --text-sec: #b0b3b8;
+            --input-bg: #2a2a2a; --border: #3e4042;
+            
+            /* Градієнт "Глибоке море" для темної теми */
+            --gradient-header: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            /* Градієнт для кнопок в темній темі */
+            --gradient-btn: linear-gradient(45deg, #1CB5E0, #000851);
+             /* Градієнт обкладинки темний */
+            --gradient-cover: linear-gradient(to right bottom, #0f2027, #203a43, #2c5364);
+
+            --accent: #4599ff; --fab-color: #ffffff; --shadow: rgba(0,0,0,0.5);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: var(--bg-body); color: var(--text-main); padding-bottom: 80px; transition: 0.3s; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            max-width: 600px; margin: 0 auto; 
+            background: var(--bg-body); /* Можна замінити на слабкий градієнт фону */
+            color: var(--text-main); padding-bottom: 80px; transition: 0.3s; 
+            min-height: 100vh;
+        }
         
-        /* HEADER */
+        /* ОНОВЛЕНА ШАПКА (GLASSMORPHISM) */
         header { 
-            background: var(--header-bg); color: #fff; padding: 12px 16px; 
+            background: var(--gradient-header); color: #fff; padding: 15px 20px; 
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: sticky; top: 0; z-index: 100; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Більша тінь */
+            /* Ефект матового скла */
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-bottom: var(--glass-border);
         }
-        .logo { font-weight: 800; font-size: 22px; letter-spacing: -0.5px; cursor: pointer; }
-        .nav-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px;}
+        .logo { font-weight: 900; font-size: 24px; letter-spacing: -0.5px; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .nav-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-left: 15px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));}
 
         /* VIEWS */
         .view { display: none; }
         .view.active { display: block; }
 
-        /* PROFILE STYLES */
+        /* ОНОВЛЕНИЙ ПРОФІЛЬ */
         .profile-header {
-            background: var(--bg-card); padding: 0 0 20px 0; border-radius: 0 0 12px 12px;
-            text-align: center; margin-bottom: 20px; box-shadow: 0 1px 3px var(--shadow);
+            background: var(--bg-card); padding: 0 0 20px 0; border-radius: 0 0 16px 16px;
+            text-align: center; margin-bottom: 20px; box-shadow: 0 2px 10px var(--shadow);
+            border: var(--glass-border); border-top: none;
         }
         .cover-photo {
-            height: 140px; background: linear-gradient(135deg, var(--accent), #00c6ff);
-            border-radius: 0 0 0 0; position: relative;
+            height: 160px; background: var(--gradient-cover) !important; /* Використовуємо новий градієнт */
+            border-radius: 0 0 30% 30% / 20%; /* Хвилястий низ */
+            position: relative; overflow: hidden;
         }
+        /* Додамо бліки на обкладинку */
+        .cover-photo::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0.5; pointer-events: none;
+        }
+
         .profile-avatar {
-            width: 110px; height: 110px; border-radius: 50%; object-fit: cover;
-            border: 4px solid var(--bg-card); margin-top: -55px; background: white; position: relative; z-index: 10;
+            width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--bg-card); margin-top: -60px; background: white; position: relative; z-index: 10;
+            box-shadow: 0 4px 10px var(--shadow);
         }
-        .profile-name { font-size: 22px; font-weight: 800; margin-top: 10px; }
+        .profile-name { font-size: 24px; font-weight: 800; margin-top: 10px; background: var(--gradient-header); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;}
         .profile-bio { color: var(--text-sec); font-size: 15px; margin: 5px 20px 15px 20px; font-style: italic; }
         
-        /* INFO TABLE (АНКЕТА) */
         .profile-info {
-            text-align: left; padding: 0 20px; margin-top: 20px; 
-            border-top: 1px solid var(--border); padding-top: 15px;
+            text-align: left; padding: 0 25px; margin-top: 25px; 
+            border-top: 1px solid var(--border); padding-top: 20px;
         }
-        .info-row { display: flex; margin-bottom: 10px; font-size: 14px; }
-        .info-label { width: 120px; color: var(--text-sec); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .info-row { display: flex; margin-bottom: 12px; font-size: 14px; }
+        .info-label { width: 130px; color: var(--text-sec); font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .info-val { color: var(--text-main); font-weight: 500; flex: 1; }
 
-        .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 15px 0; font-size: 14px; color: var(--text-sec); }
-        .stat-val { font-weight: 800; color: var(--text-main); display: block; font-size: 18px; }
+        .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 20px 0; font-size: 14px; color: var(--text-sec); }
+        .stat-val { font-weight: 800; color: var(--accent); display: block; font-size: 20px; }
 
-        .btn-primary { background: var(--accent); color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 80%; transition: 0.2s;}
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: var(--input-bg); color: var(--text-main); border: none; padding: 8px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; }
+        /* ОНОВЛЕНІ КНОПКИ */
+        .btn-primary { 
+            background: var(--gradient-btn); color: white; border: none; padding: 12px 30px; 
+            border-radius: 25px; font-weight: 700; cursor: pointer; width: 80%; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3); /* Світіння кнопки */
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4); }
+        
+        .btn-secondary { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border); padding: 8px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s;}
+        .btn-secondary:hover { background: var(--border); }
 
-        /* EDIT FORM STYLES */
+        /* EDIT FORM */
         .edit-group { margin-bottom: 15px; }
         .edit-label { display: block; font-size: 12px; color: var(--text-sec); margin-bottom: 5px; font-weight: bold; }
         .edit-input, .edit-select, .edit-textarea { 
-            width: 100%; padding: 10px; border: 1px solid var(--border); 
-            background: var(--input-bg); color: var(--text-main); border-radius: 8px; box-sizing: border-box; 
-            font-family: inherit;
+            width: 100%; padding: 12px; border: 1px solid var(--border); 
+            background: var(--input-bg); color: var(--text-main); border-radius: 10px; box-sizing: border-box; 
+            font-family: inherit; transition: 0.3s;
         }
-        .edit-textarea { resize: vertical; min-height: 60px; }
+        .edit-input:focus, .edit-select:focus, .edit-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.1); outline: none;}
+        .edit-textarea { resize: vertical; min-height: 80px; }
 
-        /* STANDARD STYLES */
-        .search-box { position: sticky; top: 58px; z-index: 90; background: var(--bg-body); padding: 10px 10px 0 10px; }
-        .search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; box-sizing: border-box; }
+        /* STANDARD STYLES (Оновлені картки) */
+        .search-box { position: sticky; top: 58px; z-index: 90; background: var(--bg-body); padding: 10px 10px 0 10px; backdrop-filter: blur(10px); background: transparent;}
+        .search-input { width: 100%; padding: 12px 20px; border-radius: 25px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); outline: none; box-sizing: border-box; box-shadow: 0 2px 10px var(--shadow); backdrop-filter: blur(5px);}
         
-        .post { background: var(--bg-card); padding: 16px; margin-bottom: 16px; border-radius: 12px; box-shadow: 0 1px 2px var(--border); margin-top: 10px;}
+        .post { 
+            background: var(--bg-card); padding: 16px; margin-bottom: 16px; border-radius: 16px; 
+            box-shadow: 0 2px 10px var(--shadow); margin-top: 10px; border: var(--glass-border);
+        }
         .post-header { display: flex; align-items: center; margin-bottom: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; cursor: pointer; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; cursor: pointer; box-shadow: 0 2px 5px var(--shadow);}
         .author-name { font-weight: 700; color: var(--text-main); font-size: 15px; cursor: pointer; }
-        .post-image { width: 100%; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .post-image { width: 100%; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
         .actions { border-top: 1px solid var(--border); padding-top: 12px; display: flex; gap: 20px; }
-        .action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; display: flex; align-items: center; gap: 5px;}
+        .action-btn { background: none; border: none; color: var(--text-sec); cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: 500;}
         .like-active { color: #e0245e; }
 
-        .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--fab-bg); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* ОНОВЛЕНИЙ FAB */
+        .fab { 
+            position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; 
+            background: var(--gradient-btn); color: white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; font-size: 32px; 
+            cursor: pointer; z-index: 1000; 
+            box-shadow: 0 4px 20px rgba(0, 114, 255, 0.4); /* Сильне світіння */
+            transition: 0.3s;
+        }
+        .fab:hover { transform: scale(1.05); }
+        .fab:active { transform: scale(0.95); }
         .fab.hidden { display: none; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: flex-end; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: flex-end; backdrop-filter: blur(3px);}
         .modal-overlay.open { display: flex; }
-        #post-form { width: 100%; background: var(--bg-card); padding: 20px; border-radius: 16px 16px 0 0; max-width: 600px; margin: 0 auto; }
+        #post-form { width: 100%; background: var(--bg-card); padding: 25px; border-radius: 20px 20px 0 0; max-width: 600px; margin: 0 auto; border: var(--glass-border);}
         
-        /* Edit modal needs to be scrollable if content is long */
         #edit-modal-content { 
-            width: 100%; background: var(--bg-card); padding: 20px; border-radius: 16px 16px 0 0; 
-            max-width: 600px; margin: 0 auto; max-height: 90vh; overflow-y: auto; 
+            width: 100%; background: var(--bg-card); padding: 25px; border-radius: 20px 20px 0 0; 
+            max-width: 600px; margin: 0 auto; max-height: 90vh; overflow-y: auto; border: var(--glass-border);
         }
 
         .delete-btn { margin-left: auto; color: var(--text-sec); cursor: pointer; }
-        #loginBtn { background: white; color: var(--header-bg); border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        
-        .tab-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-sec); padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 13px; }
-        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        #loginBtn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; backdrop-filter: blur(5px); transition: 0.3s;}
+        #loginBtn:hover { background: rgba(255,255,255,0.3); }
+
+        .tab-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-sec); padding: 8px 20px; border-radius: 25px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.3s; }
+        .tab-btn.active { background: var(--gradient-btn); color: white; border-color: transparent; box-shadow: 0 2px 10px rgba(0, 114, 255, 0.3);}
     </style>
 </head>
 <body>
@@ -115,9 +179,9 @@
     <header>
         <div class="logo" onclick="goHome()">FishNet 🐟</div>
         <div style="display:flex; align-items:center;">
-            <button id="themeBtn" style="background:none; border:none; font-size:20px; cursor:pointer;">🌙</button>
+            <button id="themeBtn" style="background:none; border:none; font-size:22px; cursor:pointer; margin-right:10px;">🌙</button>
             <button class="nav-btn" onclick="goToMyProfile()">👤</button>
-            <button id="loginBtn" style="margin-left:10px;">Вхід</button>
+            <button id="loginBtn" style="margin-left:15px;">Вхід</button>
         </div>
     </header>
 
@@ -125,11 +189,11 @@
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Пошук...">
         </div>
-        <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
             <button class="tab-btn active" onclick="filterFeed('all')">🌐 Всі</button>
             <button class="tab-btn" onclick="filterFeed('friends')">👥 Друзі</button>
         </div>
-        <div id="feed" style="padding:10px;"></div>
+        <div id="feed" style="padding:15px 10px;"></div>
         <div id="fab" class="fab hidden" onclick="toggleModal('post-modal', true)">+</div>
     </div>
 
@@ -167,18 +231,18 @@
             </div>
         </div>
         
-        <h3 style="padding:0 20px; margin:0; border-bottom: 1px solid var(--border); padding-bottom:10px;">Стіна</h3>
-        <div id="profile-feed" style="padding:10px;"></div>
+        <h3 style="padding:0 20px; margin:20px 0 10px 0; opacity:0.7;">Стіна користувача</h3>
+        <div id="profile-feed" style="padding:0 10px 20px 10px;"></div>
     </div>
 
     <div id="post-modal" class="modal-overlay" onclick="toggleModal('post-modal', false)">
         <div id="post-form" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
                 <h3 style="margin:0">Новий пост</h3>
-                <span onclick="toggleModal('post-modal', false)" style="cursor:pointer; font-size:20px;">×</span>
+                <span onclick="toggleModal('post-modal', false)" style="cursor:pointer; font-size:24px; opacity:0.6;">×</span>
             </div>
-            <textarea id="message" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;" placeholder="Що нового?"></textarea>
-            <label style="cursor:pointer; display:block; margin:10px 0; color:var(--accent);">📷 Фото <input type="file" id="imageInput" hidden></label>
+            <textarea id="message" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:10px; box-sizing:border-box; background:var(--input-bg); color:var(--text-main);" placeholder="Що нового?"></textarea>
+            <label style="cursor:pointer; display:block; margin:15px 0; color:var(--accent); font-weight:600;">📷 Додати фото <input type="file" id="imageInput" hidden></label>
             <button onclick="publishPost()" class="btn-primary" style="width:100%">Опублікувати</button>
         </div>
     </div>
@@ -187,24 +251,21 @@
         <div id="edit-modal-content" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <h3 style="margin:0">Редагування профілю</h3>
-                <span onclick="toggleModal('edit-modal', false)" style="cursor:pointer; font-size:20px;">×</span>
+                <span onclick="toggleModal('edit-modal', false)" style="cursor:pointer; font-size:24px; opacity:0.6;">×</span>
             </div>
 
             <div class="edit-group">
                 <label class="edit-label">Ім'я (Нікнейм)</label>
                 <input id="edit-name" class="edit-input" placeholder="Як вас звати?">
             </div>
-
             <div class="edit-group">
                 <label class="edit-label">Статус (Bio)</label>
                 <input id="edit-bio" class="edit-input" placeholder="Коротка фраза про вас">
             </div>
-
             <div class="edit-group">
                 <label class="edit-label">📍 Місто / Область</label>
                 <input id="edit-location" class="edit-input" placeholder="Звідки ви?">
             </div>
-
             <div class="edit-group">
                 <label class="edit-label">🎣 Улюблений вид ловлі</label>
                 <select id="edit-style" class="edit-select">
@@ -219,22 +280,18 @@
                     <option value="Все підряд">Все підряд</option>
                 </select>
             </div>
-
             <div class="edit-group">
                 <label class="edit-label">🛶 Снасті / Човен / Мотор</label>
                 <textarea id="edit-gear" class="edit-textarea" placeholder="Чим ловите? (Shimano, човен Kolibri...)"></textarea>
             </div>
-
             <div class="edit-group">
-                <label class="edit-label">🗺️ Улюблені місця (Річки, Озера)</label>
+                <label class="edit-label">🗺️ Улюблені місця</label>
                 <textarea id="edit-spots" class="edit-textarea" placeholder="Де любите бувати?"></textarea>
             </div>
-
             <div class="edit-group">
                 <label class="edit-label">Посилання на фото (URL)</label>
                 <input id="edit-photo" class="edit-input" placeholder="https://...">
             </div>
-
             <button onclick="saveProfile()" class="btn-primary" style="width:100%">Зберегти</button>
         </div>
     </div>
@@ -261,7 +318,6 @@
         let allPosts = [];
         let viewingUid = null;
 
-        // --- NAVIGATION ---
         window.goHome = () => {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById('view-home').classList.add('active');
@@ -280,7 +336,6 @@
             else alert("Увійдіть спочатку!");
         };
 
-        // --- AUTH ---
         document.getElementById('loginBtn').onclick = () => currentUser ? signOut(auth) : signInWithPopup(auth, new GoogleAuthProvider());
 
         onAuthStateChanged(auth, async (user) => {
@@ -288,7 +343,6 @@
             if (user) {
                 document.getElementById('loginBtn').innerText = "Вийти";
                 document.getElementById('fab').classList.remove('hidden');
-                
                 const userRef = doc(db, "users", user.uid);
                 const snap = await getDoc(userRef);
                 if (!snap.exists()) {
@@ -306,48 +360,34 @@
             renderFeed(allPosts);
         });
 
-        // --- LOAD PROFILE ---
         async function loadProfileData(uid) {
             const userSnap = await getDoc(doc(db, "users", uid));
             const data = userSnap.exists() ? userSnap.data() : {};
-
-            // Basic Info
             document.getElementById('p-name').textContent = data.name || "Анонім";
             document.getElementById('p-bio').textContent = data.bio || "Без статусу";
             document.getElementById('p-avatar').src = data.photo || "https://ui-avatars.com/api/?name=" + (data.name || "A");
-            
-            // Stats
             document.getElementById('p-following').textContent = (data.following || []).length;
-            
-            // Extended Info (Анкета)
             document.getElementById('p-location').textContent = data.location || "Не вказано";
             document.getElementById('p-style').textContent = data.style || "Не вказано";
             document.getElementById('p-gear').textContent = data.gear || "Не вказано";
             document.getElementById('p-spots').textContent = data.spots || "Не вказано";
 
-            // Action Button
             const btn = document.getElementById('p-action-btn');
             if (currentUser && currentUser.uid === uid) {
-                btn.textContent = "⚙️ Редагувати";
-                btn.className = "btn-secondary";
-                btn.onclick = () => openEditModal(data);
+                btn.textContent = "⚙️ Редагувати"; btn.className = "btn-secondary"; btn.onclick = () => openEditModal(data);
             } else if (currentUser) {
                 const isFollowing = myFollowing.includes(uid);
                 btn.textContent = isFollowing ? "Відписатися" : "Підписатися";
                 btn.className = isFollowing ? "btn-secondary" : "btn-primary";
                 btn.onclick = () => toggleFollow(uid);
-            } else {
-                btn.style.display = 'none';
-            }
+            } else { btn.style.display = 'none'; }
 
-            // Wall Posts
             const wallPosts = allPosts.filter(p => p.uid === uid);
             const wallContainer = document.getElementById('profile-feed');
             wallContainer.innerHTML = '';
             wallPosts.forEach(post => wallContainer.appendChild(createPostElement(post)));
         }
 
-        // --- EDIT PROFILE LOGIC ---
         function openEditModal(data) {
             document.getElementById('edit-name').value = data.name || "";
             document.getElementById('edit-bio').value = data.bio || "";
@@ -369,25 +409,18 @@
                 spots: document.getElementById('edit-spots').value,
                 photo: document.getElementById('edit-photo').value
             };
-            
             await updateDoc(doc(db, "users", currentUser.uid), updates);
             window.toggleModal('edit-modal', false);
             loadProfileData(currentUser.uid);
         };
 
-        // --- DATA STREAM ---
         onSnapshot(query(collection(db, "posts"), orderBy("timestamp", "desc")), (snapshot) => {
             allPosts = [];
             snapshot.forEach(doc => allPosts.push({ id: doc.id, ...doc.data() }));
-            
-            if(document.getElementById('view-home').classList.contains('active')) {
-                renderFeed(allPosts);
-            } else if (viewingUid) {
-                loadProfileData(viewingUid);
-            }
+            if(document.getElementById('view-home').classList.contains('active')) { renderFeed(allPosts); } 
+            else if (viewingUid) { loadProfileData(viewingUid); }
         });
 
-        // --- HELPERS ---
         function createPostElement(post) {
             const isLiked = currentUser && (post.likes || []).includes(currentUser.uid);
             const div = document.createElement('div');
@@ -424,7 +457,6 @@
             const text = document.getElementById('message').value;
             const file = document.getElementById('imageInput').files[0];
             if(!text && !file) return;
-            
             let imageUrl = null;
             if(file) {
                  const reader = new FileReader();
@@ -432,7 +464,6 @@
                  await new Promise(r => reader.onload = r);
                  imageUrl = reader.result; 
             }
-
             await addDoc(collection(db, "posts"), {
                 text: text, imageUrl: imageUrl, timestamp: serverTimestamp(),
                 uid: currentUser.uid, author: currentUser.displayName, photo: currentUser.photoURL, likes: []
