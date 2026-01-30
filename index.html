@@ -17,9 +17,9 @@
             --bg-body: #f4f7f6; --bg-card: #ffffff;
             --text-main: #333333; --text-sec: #777777; --border: #e0e0e0;
             --primary: #ff9800; --primary-dark: #f57c00; --header-bg: #2d3436;
-            --success: #27ae60; --danger: #e74c3c; --done: #95a5a6;
+            --success: #27ae60; --danger: #e74c3c; --done: #95a5a6; --progress: #3498db;
             --role-customer: #9c27b0; --role-worker: #2980b9;
-            --viber: #7360f2; /* Колір Viber */
+            --viber: #7360f2;
             --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 16px;
         }
 
@@ -54,12 +54,15 @@
         .role-title { font-weight: 800; font-size: 18px; margin-bottom: 5px; }
         .role-desc { font-size: 13px; color: var(--text-sec); }
 
-        /* TAGS */
-        .role-badge { 
-            padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: white; margin-left: 5px;
-        }
+        /* TAGS & STATUSES */
+        .role-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: white; margin-left: 5px; }
         .badge-customer { background: var(--role-customer); }
         .badge-worker { background: var(--role-worker); }
+
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+        .status-open { background: #e8f5e9; color: var(--success); }
+        .status-progress { background: #e3f2fd; color: var(--progress); border: 1px solid var(--progress); }
+        .status-done { background: #eee; color: var(--done); }
 
         /* TASK CARD */
         .task-card { 
@@ -67,11 +70,13 @@
             border-radius: var(--radius); box-shadow: var(--shadow); 
             border: 1px solid var(--border); position: relative; transition: 0.3s;
         }
+        .task-card.in-progress { border: 2px solid var(--progress); }
         .task-card.done { opacity: 0.6; filter: grayscale(0.8); border: 1px dashed var(--border); }
+        
         .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
         .task-title { font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.3; }
         .price-badge { 
-            background: #e8f5e9; color: var(--success); padding: 6px 12px; 
+            background: #fff3e0; color: var(--primary-dark); padding: 6px 12px; 
             border-radius: 10px; font-weight: 800; font-size: 16px; white-space: nowrap; 
             margin-left: 10px;
         }
@@ -84,11 +89,17 @@
         
         .btn { padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 13px; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;}
         .btn-primary { background: var(--primary); color: white; }
+        .btn-take { background: var(--progress); color: white; }
         .btn-done { background: var(--success); color: white; }
+        .btn-fail { background: var(--danger); color: white; }
         .btn-delete { background: var(--bg-body); color: var(--danger); }
         .btn-viber { background: var(--viber); color: white; }
-        .btn-viber:hover { background: #5e4bd6; }
         .btn-comments { background: var(--bg-body); color: var(--text-sec); border: 1px solid var(--border); }
+        
+        /* RATING STARS */
+        .rating-stars { display: flex; justify-content: center; gap: 10px; font-size: 30px; cursor: pointer; margin: 20px 0; }
+        .star { color: #ddd; transition: 0.2s; }
+        .star.active { color: #ffc107; transform: scale(1.2); }
         
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 100px; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 110px; }
@@ -115,18 +126,15 @@
         .location-btn { background: rgba(33, 150, 243, 0.1); color: #2196f3; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 700; border: 1px dashed #2196f3; margin-top: 5px; }
         .location-btn.active { background: #2196f3; color: white; border-style: solid; }
 
-        /* COMMENTS STYLES */
+        /* COMMENTS */
         .comments-section { display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
         .comments-section.visible { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         .comment-item { font-size: 13px; margin-bottom: 8px; background: var(--bg-body); padding: 10px; border-radius: 10px; }
         .comment-author { font-weight: bold; color: var(--text-main); margin-right: 5px; }
-        .comment-text { color: var(--text-main); }
+        .share-row { display: flex; gap: 10px; margin-top: 15px; }
         .comment-input-box { display: flex; gap: 8px; margin-top: 10px; }
         .comment-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
-        
-        /* SHARE BUTTONS ROW */
-        .share-row { display: flex; gap: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -209,6 +217,22 @@
         </div>
     </div>
 
+    <!-- MODAL: RATING -->
+    <div id="rating-modal" class="modal-overlay" style="z-index: 2500;">
+        <div class="modal-card" style="text-align:center;">
+            <h2>⭐ Оцініть роботу</h2>
+            <p>Як виконав роботу <span id="rating-worker-name" style="font-weight:bold;"></span>?</p>
+            <div class="rating-stars">
+                <span class="star" onclick="setStar(1)">★</span>
+                <span class="star" onclick="setStar(2)">★</span>
+                <span class="star" onclick="setStar(3)">★</span>
+                <span class="star" onclick="setStar(4)">★</span>
+                <span class="star" onclick="setStar(5)">★</span>
+            </div>
+            <button onclick="submitRating()" class="btn btn-primary" style="width:100%">Підтвердити</button>
+        </div>
+    </div>
+
     <!-- MODAL: EDIT PROFILE -->
     <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this) toggleModal('edit-modal', false)">
         <div class="modal-card">
@@ -223,7 +247,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, getDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, getDoc, setDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -244,6 +268,9 @@
         let currentFilter = 'all';
         let map = null;
         let taskLocation = null;
+        let selectedRating = 0;
+        let ratingTaskId = null;
+        let ratingWorkerId = null;
 
         // --- AUTH & ROLE CHECK ---
         onAuthStateChanged(auth, async (user) => {
@@ -251,16 +278,12 @@
             if (user) {
                 const ref = doc(db, "users", user.uid);
                 const snap = await getDoc(ref);
-                
                 if (snap.exists()) {
                     userData = snap.data();
-                    if (!userData.role) {
-                        toggleModal('role-modal', true);
-                    } else {
-                        document.getElementById('fab').classList.remove('hidden');
-                    }
+                    if (!userData.role) toggleModal('role-modal', true);
+                    else document.getElementById('fab').classList.remove('hidden');
                 } else {
-                    userData = { name: user.displayName, phone: "", skills: "" };
+                    userData = { name: user.displayName, phone: "", skills: "", rating: 0, reviewsCount: 0 };
                     toggleModal('role-modal', true);
                 }
             } else {
@@ -268,20 +291,12 @@
             }
         });
 
-        // --- ROLE SELECTION ---
         window.selectRole = async (role) => {
             if(!currentUser) return;
-            await setDoc(doc(db, "users", currentUser.uid), { 
-                ...userData, 
-                role: role,
-                email: currentUser.email,
-                photo: currentUser.photoURL
-            }, { merge: true });
-            
+            await setDoc(doc(db, "users", currentUser.uid), { ...userData, role: role, email: currentUser.email, photo: currentUser.photoURL }, { merge: true });
             userData.role = role;
             toggleModal('role-modal', false);
             document.getElementById('fab').classList.remove('hidden');
-            showToast(role === 'worker' ? "Вітаємо, Майстре! 🛠️" : "Вітаємо, Замовнику! 🙋‍♂️");
             openProfile();
         };
 
@@ -310,42 +325,59 @@
             filtered.forEach(task => {
                 const isMyTask = currentUser && task.uid === currentUser.uid;
                 const isDone = task.status === 'done';
-                if (isDone && !isMyTask) return;
+                const isInProgress = task.status === 'in_progress';
+                const isMyWork = task.workerId === currentUser?.uid;
 
-                let roleBadge = '';
-                if(task.authorRole === 'worker') roleBadge = '<span class="role-badge badge-worker">Майстер</span>';
-                if(task.authorRole === 'customer') roleBadge = '<span class="role-badge badge-customer">Замовник</span>';
+                if (isDone && !isMyTask && !isMyWork) return;
+
+                let statusLabel = '';
+                if(isInProgress) statusLabel = `<div class="status-badge status-progress">🔧 В роботі: ${task.workerName}</div>`;
+                if(isDone) statusLabel = `<div class="status-badge status-done">🏁 Завершено</div>`;
 
                 let buttons = '';
+                // ЛОГІКА КНОПОК
                 if (isMyTask) {
-                    if (!isDone) buttons = `<button onclick="markDone('${task.id}')" class="btn btn-done">✅ Виконано</button> <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>`;
-                    else buttons = `<span style="color:gray; font-weight:bold;">Архів</span> <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>`;
+                    // Я ЗАМОВНИК
+                    if (isInProgress) {
+                        buttons = `
+                            <button onclick="openRatingModal('${task.id}', '${task.workerId}', '${task.workerName}')" class="btn btn-done">✅ Роботу прийнято</button>
+                            <button onclick="failTask('${task.id}', '${task.workerId}')" class="btn btn-fail">⚠️ Не виконав</button>
+                        `;
+                    } else if (isDone) {
+                        buttons = `<span style="color:gray; font-size:12px;">Архів (Оцінка: ${task.rating || '-'})</span>`;
+                    } else {
+                        // Відкрите завдання
+                        buttons = `<button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️ Видалити</button>`;
+                    }
                 } else {
-                    if (!isDone) {
+                    // Я ВИКОНАВЕЦЬ
+                    if (!isDone && !isInProgress && userData.role === 'worker') {
+                        // Можна взяти
+                        buttons = `<button onclick="takeTask('${task.id}')" class="btn btn-take">🛠️ Взяти в роботу</button>`;
+                    } else if (isMyWork && isInProgress) {
+                        // Я виконую
                         const link = task.phone ? `tel:${task.phone}` : '#';
-                        const action = task.phone ? `` : `alert('Номер не вказано')`;
-                        buttons = `<a href="${link}" onclick="${action}" class="btn btn-primary">📞 Взяти</a>`;
+                        buttons = `<span style="color:var(--progress); font-weight:bold; margin-right:10px;">Виконуєте ви</span> <a href="${link}" class="btn btn-primary">📞 Дзвонити</a>`;
+                    } else if (isInProgress) {
+                        // Хтось інший виконує
+                        buttons = `<span style="color:gray; font-size:12px;">Зайнято</span>`;
                     }
                 }
 
-                // VIBER SHARE LOGIC
+                // Share & Comments
                 let shareSection = '';
                 if (task.location) {
                     const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${task.location.lat},${task.location.lng}`;
-                    const viberText = encodeURIComponent(`Дивись завдання: ${task.title} - ${googleMapsLink}`);
-                    shareSection = `<a href="viber://forward?text=${viberText}" class="btn btn-viber">💜 Viber Локація</a>`;
+                    const viberText = encodeURIComponent(`Завдання: ${task.title} - ${googleMapsLink}`);
+                    shareSection = `<a href="viber://forward?text=${viberText}" class="btn btn-viber">💜 Viber</a>`;
                 }
-
-                // COMMENTS RENDER
+                
                 let commentsHTML = '';
-                const comments = task.comments || [];
-                comments.forEach(c => {
-                    commentsHTML += `<div class="comment-item"><span class="comment-author">${c.author}:</span><span class="comment-text">${c.text}</span></div>`;
-                });
-                const commentsCount = comments.length;
+                (task.comments || []).forEach(c => commentsHTML += `<div class="comment-item"><span class="comment-author">${c.author}:</span><span class="comment-text">${c.text}</span></div>`);
 
                 const html = `
-                    <div class="task-card ${isDone ? 'done' : ''}">
+                    <div class="task-card ${isDone ? 'done' : ''} ${isInProgress ? 'in-progress' : ''}">
+                        ${statusLabel}
                         <div class="task-header">
                             <div class="task-title">${task.title}</div>
                             <div class="price-badge">${task.price} ₴</div>
@@ -356,30 +388,24 @@
                             ${task.location ? '<span>📍 Map</span>' : ''}
                         </div>
                         <div class="task-desc">${task.description}</div>
-                        
                         <div class="task-footer">
                             <div class="author-box">
                                 <img src="${task.authorPhoto || 'icon.png'}" class="author-avatar">
-                                <div>
-                                    <span class="author-name">${task.author} ${roleBadge}</span>
+                                <div style="display:flex; flex-direction:column;">
+                                    <span class="author-name">${task.author}</span>
+                                    ${task.authorRole === 'worker' ? '<span style="font-size:10px; color:var(--role-worker);">Майстер</span>' : ''}
                                 </div>
                             </div>
-                            <div style="display:flex; gap:5px;">
-                                <button onclick="toggleComments('${task.id}')" class="btn btn-comments">💬 ${commentsCount}</button>
+                            <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
+                                <button onclick="toggleComments('${task.id}')" class="btn btn-comments">💬 ${(task.comments||[]).length}</button>
                                 ${buttons}
                             </div>
                         </div>
-
-                        <!-- Share & Comments Hidden Section -->
                         <div id="comments-${task.id}" class="comments-section">
-                            <div class="share-row">
-                                ${shareSection}
-                            </div>
-                            <div style="margin-top:10px; max-height:200px; overflow-y:auto;">
-                                ${commentsHTML.length ? commentsHTML : '<div style="font-size:12px; color:gray;">Поки немає коментарів</div>'}
-                            </div>
+                            <div class="share-row">${shareSection}</div>
+                            <div style="margin-top:10px; max-height:200px; overflow-y:auto;">${commentsHTML.length ? commentsHTML : '<div style="font-size:12px; color:gray;">Поки немає коментарів</div>'}</div>
                             <div class="comment-input-box">
-                                <input id="comment-input-${task.id}" class="comment-input" placeholder="Написати коментар...">
+                                <input id="comment-input-${task.id}" class="comment-input" placeholder="Написати...">
                                 <button onclick="addComment('${task.id}')" class="btn btn-primary" style="padding:8px;">➤</button>
                             </div>
                         </div>
@@ -389,7 +415,7 @@
             });
         }
 
-        // --- ACTIONS ---
+        // --- TASK ACTIONS ---
         window.createTask = async () => {
             const title = document.getElementById('task-title').value;
             const price = document.getElementById('task-price').value;
@@ -401,100 +427,121 @@
                 uid: currentUser.uid, author: userData.name || currentUser.displayName, 
                 authorPhoto: currentUser.photoURL, phone: userData.phone || "",
                 authorRole: userData.role || 'customer', 
-                status: 'open', timestamp: serverTimestamp(),
-                comments: [] // Init comments array
+                status: 'open', timestamp: serverTimestamp(), comments: []
             });
-
-            toggleModal('task-modal', false);
-            document.getElementById('task-title').value = '';
+            toggleModal('task-modal', false); document.getElementById('task-title').value = '';
             showToast("Завдання створено!");
         };
 
-        window.addComment = async (id) => {
-            const input = document.getElementById(`comment-input-${id}`);
-            const text = input.value.trim();
-            if(!text) return;
-            
+        // Взяти завдання (Бронювання)
+        window.takeTask = async (id) => {
+            if(!confirm("Ви впевнені, що хочете взяти це замовлення?")) return;
             await updateDoc(doc(db, "tasks_v2", id), {
-                comments: arrayUnion({
-                    author: userData.name || currentUser.displayName,
-                    text: text,
-                    uid: currentUser.uid,
-                    timestamp: Date.now()
-                })
+                status: 'in_progress',
+                workerId: currentUser.uid,
+                workerName: userData.name || currentUser.displayName
             });
-            input.value = '';
+            showToast("Ви взяли завдання! Зв'яжіться з замовником.");
         };
 
-        window.toggleComments = (id) => {
-            const el = document.getElementById(`comments-${id}`);
-            el.classList.toggle('visible');
+        // Логіка рейтингу
+        window.openRatingModal = (taskId, workerId, workerName) => {
+            ratingTaskId = taskId;
+            ratingWorkerId = workerId;
+            selectedRating = 0;
+            document.getElementById('rating-worker-name').innerText = workerName;
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+            toggleModal('rating-modal', true);
         };
 
-        window.markDone = async (id) => { if(confirm("Виконано?")) await updateDoc(doc(db, "tasks_v2", id), { status: 'done' }); };
+        window.setStar = (n) => {
+            selectedRating = n;
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((s, idx) => {
+                if(idx < n) s.classList.add('active'); else s.classList.remove('active');
+            });
+        };
+
+        window.submitRating = async () => {
+            if(selectedRating === 0) { showToast("Оберіть оцінку!"); return; }
+            
+            // 1. Оновити завдання
+            await updateDoc(doc(db, "tasks_v2", ratingTaskId), { status: 'done', rating: selectedRating });
+
+            // 2. Оновити рейтинг виконавця (середнє арифметичне)
+            const workerRef = doc(db, "users", ratingWorkerId);
+            const workerSnap = await getDoc(workerRef);
+            if(workerSnap.exists()) {
+                const wData = workerSnap.data();
+                const currentRating = wData.rating || 0;
+                const count = wData.reviewsCount || 0;
+                const newRating = ((currentRating * count) + selectedRating) / (count + 1);
+                
+                await updateDoc(workerRef, {
+                    rating: parseFloat(newRating.toFixed(1)),
+                    reviewsCount: increment(1)
+                });
+            }
+
+            toggleModal('rating-modal', false);
+            showToast("Дякуємо за оцінку! ✅");
+        };
+
+        // Штраф за невиконання
+        window.failTask = async (taskId, workerId) => {
+            if(!confirm("Виконавець не виконав роботу? Рейтинг виконавця буде знижено!")) return;
+            
+            // Знижуємо рейтинг на 5 балів (штраф)
+             const workerRef = doc(db, "users", workerId);
+             // Це грубий штраф, можна зробити м'якше
+             // Для простоти просто зменшуємо поточний рейтинг
+             const workerSnap = await getDoc(workerRef);
+             if(workerSnap.exists()) {
+                 let r = workerSnap.data().rating || 5;
+                 r = Math.max(1, r - 0.5); // Мінус 0.5 зірки за провал
+                 await updateDoc(workerRef, { rating: r });
+             }
+
+             // Повертаємо завдання в пошук
+             await updateDoc(doc(db, "tasks_v2", taskId), {
+                 status: 'open',
+                 workerId: null,
+                 workerName: null
+             });
+             showToast("Завдання знову відкрито ⚠️");
+        };
+
         window.deleteTask = (id) => { if(confirm("Видалити?")) deleteDoc(doc(db, "tasks_v2", id)); };
-        
-        window.getLocation = () => {
-            document.getElementById('location-btn').innerText = "⏳...";
-            navigator.geolocation.getCurrentPosition(pos => {
-                taskLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                document.getElementById('location-btn').innerText = "✅ OK";
-                document.getElementById('location-btn').classList.add('active');
-            }, () => showToast("GPS помилка"));
-        };
+        window.addComment = async (id) => { const i=document.getElementById(`comment-input-${id}`); if(i.value) await updateDoc(doc(db,"tasks_v2",id),{comments:arrayUnion({author:userData.name,text:i.value,uid:currentUser.uid})}); i.value='';};
+        window.toggleComments = (id) => document.getElementById(`comments-${id}`).classList.toggle('visible');
+        window.getLocation = () => { document.getElementById('location-btn').innerText="⏳"; navigator.geolocation.getCurrentPosition(p=>{taskLocation={lat:p.coords.latitude,lng:p.coords.longitude};document.getElementById('location-btn').innerText="✅ OK"},()=>showToast("Err"));};
 
-        // --- PROFILE ---
         window.openProfile = () => {
             if(!currentUser) return;
-            const roleLabel = userData.role === 'worker' ? '🛠️ ВИКОНАВЕЦЬ' : '🙋‍♂️ ЗАМОВНИК';
-            const roleColor = userData.role === 'worker' ? 'var(--role-worker)' : 'var(--role-customer)';
-            
+            const rLabel = userData.role==='worker'?'🛠️ МАЙСТЕР':'🙋‍♂️ ЗАМОВНИК';
+            const stars = userData.rating ? `⭐ ${userData.rating} (${userData.reviewsCount || 0} відгуків)` : '⭐ Новачок';
             document.getElementById('profile-content').innerHTML = `
                 <div class="profile-hero">
                     <img src="${currentUser.photoURL}" class="profile-img-lg">
                     <h2>${userData.name}</h2>
-                    <div style="background:${roleColor}; color:white; padding:5px 15px; border-radius:20px; display:inline-block; font-weight:bold; margin-bottom:10px;">${roleLabel}</div>
-                    <div style="color:var(--text-sec);">${userData.phone || "Телефон не вказано"}</div>
+                    <div style="margin-bottom:10px;">${rLabel}</div>
+                    <div style="font-size:18px; font-weight:bold; color:#f39c12; margin-bottom:10px;">${stars}</div>
+                    <div style="color:var(--text-sec);">${userData.phone||"Без телефону"}</div>
                 </div>
-                <div style="padding:20px;">
-                    <h3>Навички:</h3>
-                    <p>${userData.skills || "..."}</p>
-                    <button onclick="openEditModal()" class="btn btn-primary" style="width:100%">Редагувати</button>
-                </div>
-            `;
+                <div style="padding:20px;"><h3>Навички:</h3><p>${userData.skills||"..."}</p><button onclick="openEditModal()" class="btn btn-primary" style="width:100%">Редагувати</button></div>`;
             switchView('profile');
         };
 
-        window.openEditModal = () => {
-            document.getElementById('edit-name').value = userData.name || "";
-            document.getElementById('edit-phone').value = userData.phone || "";
-            document.getElementById('edit-skills').value = userData.skills || "";
-            toggleModal('edit-modal', true);
-        };
-
-        window.saveProfile = async () => {
-            const updates = {
-                name: document.getElementById('edit-name').value,
-                phone: document.getElementById('edit-phone').value,
-                skills: document.getElementById('edit-skills').value
-            };
-            userData = { ...userData, ...updates };
-            await updateDoc(doc(db, "users", currentUser.uid), updates);
-            toggleModal('edit-modal', false);
-            openProfile();
-        };
-
+        window.openEditModal = () => { ['name','phone','skills'].forEach(f=>document.getElementById('edit-'+f).value=userData[f]||""); toggleModal('edit-modal',true); };
+        window.saveProfile = async () => { const u={name:document.getElementById('edit-name').value,phone:document.getElementById('edit-phone').value,skills:document.getElementById('edit-skills').value}; userData={...userData,...u}; await updateDoc(doc(db,"users",currentUser.uid),u); toggleModal('edit-modal',false); openProfile(); };
         window.signOutAndReload = async () => { await signOut(auth); location.reload(); };
-        window.toggleModal = (id, show) => document.getElementById(id).classList.toggle('open', show);
-        window.switchView = (v) => { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if(v==='map') initMap(); };
-        window.filterCat = (cat, btn) => { currentFilter = cat; document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active')); btn.classList.add('active'); renderTasks(); };
-        document.getElementById('searchInput').oninput = renderTasks;
-        window.showToast = (msg) => { const x=document.getElementById("toast"); x.innerText=msg; x.className="show"; setTimeout(()=>x.className=x.className.replace("show",""),3000); };
-        
-        function initMap() {
-            setTimeout(() => { if(!map) { map = L.map('map').setView([49.0, 31.0], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); } map.invalidateSize(); map.eachLayer(l => { if(l instanceof L.Marker) map.removeLayer(l); }); allTasks.forEach(t => { if(t.location && t.status!=='done') L.marker([t.location.lat, t.location.lng]).addTo(map).bindPopup(`<b>${t.title}</b><br>${t.price} грн`); }); }, 100);
-        }
-        function timeAgo(ts) { if(!ts)return'...'; const d=(Date.now()-ts.toDate())/1000; if(d<3600)return Math.floor(d/60)+" хв"; if(d<86400)return Math.floor(d/3600)+" год"; return Math.floor(d/86400)+" дн"; }
+        window.toggleModal = (id,s) => document.getElementById(id).classList.toggle('open',s);
+        window.switchView = (v) => { document.querySelectorAll('.view').forEach(e=>e.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if(v==='map') initMap(); };
+        window.filterCat = (c,b) => { currentFilter=c; document.querySelectorAll('.cat-chip').forEach(el=>el.classList.remove('active')); b.classList.add('active'); renderTasks(); };
+        document.getElementById('searchInput').oninput=renderTasks;
+        window.showToast = (m) => { const t=document.getElementById("toast"); t.innerText=m; t.className="show"; setTimeout(()=>t.className="",3000); };
+        function initMap() { setTimeout(()=>{ if(!map){map=L.map('map').setView([49.0,31.0],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);} map.invalidateSize(); map.eachLayer(l=>{if(l instanceof L.Marker)map.removeLayer(l)}); allTasks.forEach(t=>{if(t.location && t.status!=='done')L.marker([t.location.lat,t.location.lng]).addTo(map).bindPopup(`<b>${t.title}</b><br>${t.price} ₴`);});},100); }
+        function timeAgo(t){if(!t)return'...';const d=(Date.now()-t.toDate())/1000;if(d<3600)return Math.floor(d/60)+" хв";if(d<86400)return Math.floor(d/3600)+" год";return Math.floor(d/86400)+" дн";}
     </script>
 </body>
 </html>
