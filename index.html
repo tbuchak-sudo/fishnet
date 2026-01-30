@@ -7,7 +7,6 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
         
-        /* Шапка */
         header { 
             background: #4267b2; color: #fff; padding: 15px; 
             border-radius: 8px 8px 0 0; 
@@ -19,15 +18,25 @@
         #loginBtn { background: white; color: #4267b2; padding: 8px 15px; }
         #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; display: none; }
         
-        /* Форма публікації */
         #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
-        textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px;}
-        #sendBtn { background: #42b72a; color: white; padding: 12px; width: 100%; font-size: 16px; }
+        textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px; min-height: 60px;}
+        
+        .form-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        
+        .file-label { cursor: pointer; color: #4267b2; font-size: 24px; padding: 5px; display: flex; align-items: center; gap: 5px; }
+        .file-label:hover { background: #f0f2f5; border-radius: 4px; }
+        .file-label span { font-size: 14px; font-weight: normal; }
+        #imageInput { display: none; } 
+
+        #preview-container { display: none; margin-bottom: 10px; position: relative; width: fit-content; }
+        #preview-img { max-height: 150px; border-radius: 8px; border: 1px solid #ddd; }
+        #remove-img { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 22px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        #sendBtn { background: #42b72a; color: white; padding: 10px 20px; font-size: 16px; }
         #sendBtn:hover { background: #36a420; }
         
         #guest-msg { text-align: center; padding: 20px; background: white; margin-top: 10px; border-radius: 8px; }
 
-        /* Пости */
         #feed { margin-top: 20px; }
         .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
         
@@ -35,18 +44,17 @@
         .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
         .author-name { color: #4267b2; font-weight: bold; font-size: 16px; }
         .post-date { color: #90949c; font-size: 12px; }
-        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; }
+        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
+        
+        .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; cursor: pointer;}
 
-        /* Панель дій (Лайки) */
         .actions { border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px; }
         .like-btn { background: none; color: #606770; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; transition: 0.2s; }
         .like-btn:hover { background-color: #f0f2f5; border-radius: 4px; }
-        .like-active { color: #e0245e; } /* Червоний колір для лайка */
+        .like-active { color: #e0245e; }
 
-        /* Коментарі */
         .comments-section { margin-top: 10px; background: #f0f2f5; padding: 10px; border-radius: 8px; }
         .comment { margin-bottom: 8px; font-size: 13px; }
-        .comment strong { color: #365899; }
         .comment-input-area { display: flex; gap: 5px; margin-top: 10px; }
         .comment-input { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; }
         .comment-btn { background: #4267b2; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; }
@@ -61,17 +69,29 @@
         <div class="logo">FishNet 🐟</div>
         <div>
             <span id="user-display" style="font-size: 14px; margin-right: 10px;"></span>
-            <button id="loginBtn">Увійти через Google</button>
+            <button id="loginBtn">Увійти</button>
             <button id="logoutBtn">Вийти</button>
         </div>
     </header>
 
     <div id="post-form">
         <textarea id="message" rows="3" placeholder="Що нового?"></textarea>
-        <button id="sendBtn">Опублікувати</button>
+        
+        <div id="preview-container">
+            <img id="preview-img" src="">
+            <div id="remove-img" onclick="clearImage()">×</div>
+        </div>
+
+        <div class="form-tools">
+            <label class="file-label">
+                📎 <span>Додати фото</span>
+                <input type="file" id="imageInput" accept="image/*">
+            </label>
+            <button id="sendBtn">Опублікувати</button>
+        </div>
     </div>
 
-    <div id="guest-msg">Щоб писати та лайкати, увійдіть через Google.</div>
+    <div id="guest-msg">Щоб ділитися фото, увійдіть через Google.</div>
 
     <div id="feed">
         <p style="text-align:center; color:#777;">Завантаження...</p>
@@ -79,9 +99,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Додали updateDoc, arrayUnion, arrayRemove для оновлення лайків і коментарів
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        // Прибрали Storage, він нам більше не треба :)
 
         const firebaseConfig = {
             apiKey: "AIzaSyCN7xN8AZXXCxwf9GmuILYi5AcKAUYJVB4",
@@ -104,10 +124,13 @@
         const userDisplay = document.getElementById('user-display');
         const feed = document.getElementById('feed');
         const sendBtn = document.getElementById('sendBtn');
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImg = document.getElementById('preview-img');
 
         let currentUser = null;
+        let selectedFile = null;
 
-        // Вхід/Вихід
         loginBtn.onclick = () => signInWithPopup(auth, provider);
         logoutBtn.onclick = () => signOut(auth);
 
@@ -126,31 +149,92 @@
                 guestMsg.style.display = 'block';
                 userDisplay.textContent = '';
             }
-            renderFeed(); // Оновлюємо, щоб показати актуальні лайки
+            renderFeed();
         });
 
-        // Публікація нового поста
+        imageInput.onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+        };
+
+        window.clearImage = () => {
+            selectedFile = null;
+            imageInput.value = '';
+            previewContainer.style.display = 'none';
+        };
+
+        // Функція "Магія": Стискає фото і перетворює на текст
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800; // Зменшуємо до 800px, щоб влізло
+                        const scale = MAX_WIDTH / img.width;
+                        if (scale < 1) {
+                            canvas.width = MAX_WIDTH;
+                            canvas.height = img.height * scale;
+                        } else {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                        }
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        // Конвертуємо в JPEG середньої якості (0.7)
+                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    }
+                }
+            });
+        }
+
         sendBtn.onclick = async () => {
             const msg = document.getElementById('message').value;
-            if(msg.trim() && currentUser) {
+            
+            if((msg.trim() || selectedFile) && currentUser) {
                 sendBtn.disabled = true;
+                sendBtn.innerText = "Завантаження...";
+                
                 try {
+                    let imageUrl = null;
+
+                    // Якщо є фото, перетворюємо його на текст
+                    if (selectedFile) {
+                        imageUrl = await compressImage(selectedFile);
+                    }
+
                     await addDoc(collection(db, "posts"), {
                         text: msg,
+                        imageUrl: imageUrl, 
                         timestamp: serverTimestamp(),
                         uid: currentUser.uid,
                         author: currentUser.displayName,
                         photo: currentUser.photoURL,
-                        likes: [],    // Порожній список лайків
-                        comments: []  // Порожній список коментарів
+                        likes: [],
+                        comments: []
                     });
+
                     document.getElementById('message').value = '';
+                    clearImage();
+
                 } catch (e) { alert("Помилка: " + e.message); }
+                
                 sendBtn.disabled = false;
+                sendBtn.innerText = "Опублікувати";
             }
         };
 
-        // Завантаження стрічки
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         let postsData = [];
 
@@ -168,22 +252,15 @@
             }
 
             postsData.forEach(post => {
-                // Час
                 let timeString = "...";
                 if(post.timestamp) {
                     const date = post.timestamp.toDate();
                     timeString = date.toLocaleTimeString().slice(0,5) + ' ' + date.toLocaleDateString();
                 }
                 const avatarUrl = post.photo || 'https://ui-avatars.com/api/?name=' + post.author;
-
-                // ЛОГІКА ЛАЙКІВ
                 const likes = post.likes || [];
                 const isLiked = currentUser && likes.includes(currentUser.uid);
-                const likeCount = likes.length;
-                const likeClass = isLiked ? 'like-active' : '';
-                const likeIcon = isLiked ? '❤️' : '🤍';
-
-                // Створення HTML
+                
                 const postEl = document.createElement('div');
                 postEl.className = 'post';
                 
@@ -196,10 +273,11 @@
                         </div>
                     </div>
                     <div class="post-text">${post.text}</div>
+                    ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image">` : ''}
                     
                     <div class="actions">
-                        <button class="like-btn ${likeClass}" onclick="toggleLike('${post.id}', ${isLiked})">
-                            ${likeIcon} <span>${likeCount || 'Лайк'}</span>
+                        <button class="like-btn ${isLiked ? 'like-active' : ''}" onclick="toggleLike('${post.id}', ${isLiked})">
+                            ${isLiked ? '❤️' : '🤍'} <span>${likes.length || 'Лайк'}</span>
                         </button>
                     </div>
 
@@ -207,7 +285,7 @@
                         <div id="comments-${post.id}"></div> 
                         ${currentUser ? `
                         <div class="comment-input-area">
-                            <input type="text" id="input-${post.id}" class="comment-input" placeholder="Написати коментар...">
+                            <input type="text" id="input-${post.id}" class="comment-input" placeholder="Коментар...">
                             <button onclick="addComment('${post.id}')" class="comment-btn">➤</button>
                         </div>
                         ` : ''}
@@ -217,55 +295,32 @@
                 if (currentUser && post.uid === currentUser.uid) {
                     html += `<button class="delete-btn" onclick="deletePost('${post.id}')">🗑️</button>`;
                 }
-
                 postEl.innerHTML = html;
 
-                // Відображення коментарів
                 const commentsContainer = postEl.querySelector(`#comments-${post.id}`);
-                const comments = post.comments || [];
-                comments.forEach(c => {
+                (post.comments || []).forEach(c => {
                     const div = document.createElement('div');
                     div.className = 'comment';
                     div.innerHTML = `<strong>${c.author}:</strong> ${c.text}`;
                     commentsContainer.appendChild(div);
                 });
-
                 feed.appendChild(postEl);
             });
         }
 
-        // --- Глобальні функції (щоб працювали в onclick) ---
-        
-        window.deletePost = (id) => {
-            if(confirm("Видалити?")) deleteDoc(doc(db, "posts", id));
-        };
-
+        window.deletePost = (id) => { if(confirm("Видалити?")) deleteDoc(doc(db, "posts", id)); };
         window.toggleLike = async (id, isLiked) => {
-            if (!currentUser) { alert("Увійдіть, щоб лайкати!"); return; }
+            if (!currentUser) return;
             const postRef = doc(db, "posts", id);
-            
-            if (isLiked) {
-                // Забираємо лайк (видаляємо свій ID зі списку)
-                await updateDoc(postRef, { likes: arrayRemove(currentUser.uid) });
-            } else {
-                // Ставимо лайк (додаємо свій ID у список)
-                await updateDoc(postRef, { likes: arrayUnion(currentUser.uid) });
-            }
+            await updateDoc(postRef, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
         };
-
         window.addComment = async (id) => {
             const input = document.getElementById(`input-${id}`);
             const text = input.value.trim();
             if (!text) return;
-
             const postRef = doc(db, "posts", id);
             await updateDoc(postRef, {
-                comments: arrayUnion({
-                    author: currentUser.displayName.split(' ')[0], // Тільки ім'я
-                    text: text,
-                    uid: currentUser.uid,
-                    time: Date.now()
-                })
+                comments: arrayUnion({ author: currentUser.displayName.split(' ')[0], text: text, uid: currentUser.uid, time: Date.now() })
             });
         };
     </script>
