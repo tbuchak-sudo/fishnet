@@ -19,6 +19,7 @@
             --primary: #ff9800; --primary-dark: #f57c00; --header-bg: #2d3436;
             --success: #27ae60; --danger: #e74c3c; --done: #95a5a6;
             --role-customer: #9c27b0; --role-worker: #2980b9;
+            --viber: #7360f2; /* Колір Viber */
             --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 16px;
         }
 
@@ -81,10 +82,13 @@
         .author-box { display: flex; align-items: center; gap: 10px; }
         .author-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); }
         
-        .btn { padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;}
+        .btn { padding: 8px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 13px; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;}
         .btn-primary { background: var(--primary); color: white; }
         .btn-done { background: var(--success); color: white; }
         .btn-delete { background: var(--bg-body); color: var(--danger); }
+        .btn-viber { background: var(--viber); color: white; }
+        .btn-viber:hover { background: #5e4bd6; }
+        .btn-comments { background: var(--bg-body); color: var(--text-sec); border: 1px solid var(--border); }
         
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 100px; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 110px; }
@@ -110,6 +114,19 @@
         .input-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-sec); text-transform: uppercase; }
         .location-btn { background: rgba(33, 150, 243, 0.1); color: #2196f3; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 700; border: 1px dashed #2196f3; margin-top: 5px; }
         .location-btn.active { background: #2196f3; color: white; border-style: solid; }
+
+        /* COMMENTS STYLES */
+        .comments-section { display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
+        .comments-section.visible { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .comment-item { font-size: 13px; margin-bottom: 8px; background: var(--bg-body); padding: 10px; border-radius: 10px; }
+        .comment-author { font-weight: bold; color: var(--text-main); margin-right: 5px; }
+        .comment-text { color: var(--text-main); }
+        .comment-input-box { display: flex; gap: 8px; margin-top: 10px; }
+        .comment-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+        
+        /* SHARE BUTTONS ROW */
+        .share-row { display: flex; gap: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -154,7 +171,7 @@
         <div id="profile-content"></div>
     </div>
 
-    <!-- MODAL: ROLE SELECTION (Нове!) -->
+    <!-- MODAL: ROLE SELECTION -->
     <div id="role-modal" class="modal-overlay" style="z-index: 3000;">
         <div class="modal-card">
             <h2 style="text-align:center; margin-bottom:20px;">Оберіть вашу роль</h2>
@@ -206,7 +223,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, deleteDoc, doc, updateDoc, getDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -237,14 +254,12 @@
                 
                 if (snap.exists()) {
                     userData = snap.data();
-                    // Якщо роль не обрана (старий юзер), змушуємо обрати
                     if (!userData.role) {
                         toggleModal('role-modal', true);
                     } else {
                         document.getElementById('fab').classList.remove('hidden');
                     }
                 } else {
-                    // Новий юзер - спочатку пустий, роль обере через модалку
                     userData = { name: user.displayName, phone: "", skills: "" };
                     toggleModal('role-modal', true);
                 }
@@ -267,7 +282,7 @@
             toggleModal('role-modal', false);
             document.getElementById('fab').classList.remove('hidden');
             showToast(role === 'worker' ? "Вітаємо, Майстре! 🛠️" : "Вітаємо, Замовнику! 🙋‍♂️");
-            openProfile(); // Показати профіль, щоб побачили статус
+            openProfile();
         };
 
         // --- CORE LOGIC ---
@@ -313,6 +328,22 @@
                     }
                 }
 
+                // VIBER SHARE LOGIC
+                let shareSection = '';
+                if (task.location) {
+                    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${task.location.lat},${task.location.lng}`;
+                    const viberText = encodeURIComponent(`Дивись завдання: ${task.title} - ${googleMapsLink}`);
+                    shareSection = `<a href="viber://forward?text=${viberText}" class="btn btn-viber">💜 Viber Локація</a>`;
+                }
+
+                // COMMENTS RENDER
+                let commentsHTML = '';
+                const comments = task.comments || [];
+                comments.forEach(c => {
+                    commentsHTML += `<div class="comment-item"><span class="comment-author">${c.author}:</span><span class="comment-text">${c.text}</span></div>`;
+                });
+                const commentsCount = comments.length;
+
                 const html = `
                     <div class="task-card ${isDone ? 'done' : ''}">
                         <div class="task-header">
@@ -325,6 +356,7 @@
                             ${task.location ? '<span>📍 Map</span>' : ''}
                         </div>
                         <div class="task-desc">${task.description}</div>
+                        
                         <div class="task-footer">
                             <div class="author-box">
                                 <img src="${task.authorPhoto || 'icon.png'}" class="author-avatar">
@@ -332,7 +364,24 @@
                                     <span class="author-name">${task.author} ${roleBadge}</span>
                                 </div>
                             </div>
-                            <div style="display:flex; gap:5px;">${buttons}</div>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="toggleComments('${task.id}')" class="btn btn-comments">💬 ${commentsCount}</button>
+                                ${buttons}
+                            </div>
+                        </div>
+
+                        <!-- Share & Comments Hidden Section -->
+                        <div id="comments-${task.id}" class="comments-section">
+                            <div class="share-row">
+                                ${shareSection}
+                            </div>
+                            <div style="margin-top:10px; max-height:200px; overflow-y:auto;">
+                                ${commentsHTML.length ? commentsHTML : '<div style="font-size:12px; color:gray;">Поки немає коментарів</div>'}
+                            </div>
+                            <div class="comment-input-box">
+                                <input id="comment-input-${task.id}" class="comment-input" placeholder="Написати коментар...">
+                                <button onclick="addComment('${task.id}')" class="btn btn-primary" style="padding:8px;">➤</button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -351,13 +400,35 @@
                 description: document.getElementById('task-desc').value, location: taskLocation,
                 uid: currentUser.uid, author: userData.name || currentUser.displayName, 
                 authorPhoto: currentUser.photoURL, phone: userData.phone || "",
-                authorRole: userData.role || 'customer', // Зберігаємо роль автора
-                status: 'open', timestamp: serverTimestamp()
+                authorRole: userData.role || 'customer', 
+                status: 'open', timestamp: serverTimestamp(),
+                comments: [] // Init comments array
             });
 
             toggleModal('task-modal', false);
             document.getElementById('task-title').value = '';
             showToast("Завдання створено!");
+        };
+
+        window.addComment = async (id) => {
+            const input = document.getElementById(`comment-input-${id}`);
+            const text = input.value.trim();
+            if(!text) return;
+            
+            await updateDoc(doc(db, "tasks_v2", id), {
+                comments: arrayUnion({
+                    author: userData.name || currentUser.displayName,
+                    text: text,
+                    uid: currentUser.uid,
+                    timestamp: Date.now()
+                })
+            });
+            input.value = '';
+        };
+
+        window.toggleComments = (id) => {
+            const el = document.getElementById(`comments-${id}`);
+            el.classList.toggle('visible');
         };
 
         window.markDone = async (id) => { if(confirm("Виконано?")) await updateDoc(doc(db, "tasks_v2", id), { status: 'done' }); };
