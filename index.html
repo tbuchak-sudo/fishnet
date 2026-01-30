@@ -3,55 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моя Соцмережа</title>
+    <title>FishNet - Соцмережа</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
-        header { background: #333; color: #fff; padding: 10px; text-align: center; border-radius: 8px; }
-        #post-form { background: #fff; padding: 20px; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input, textarea { width: 100%; margin-bottom: 10px; padding: 10px; box-sizing: border-box; }
-        button { background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; width: 100%; }
-        button:hover { background: #218838; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; }
+        header { background: #4267b2; color: #fff; padding: 15px; text-align: center; border-radius: 8px 8px 0 0; font-weight: bold; font-size: 24px; }
+        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
+        button { background: #42b72a; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; font-size: 16px; }
+        button:hover { background: #36a420; }
         #feed { margin-top: 20px; }
-        .post { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #007bff; }
-        .post h3 { margin: 0 0 5px; color: #333; }
-        .post p { margin: 0; color: #555; }
+        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); animation: fadeIn 0.5s; }
+        .post h3 { margin: 0 0 8px; color: #4267b2; font-size: 18px; }
+        .post p { margin: 0; color: #1c1e21; line-height: 1.4; word-wrap: break-word; }
+        .post small { color: #90949c; font-size: 12px; display: block; margin-top: 8px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Стрічка новин</h1>
+        FishNet 🐟
     </header>
 
     <div id="post-form">
-        <input type="text" id="username" placeholder="Твоє ім'я">
-        <textarea id="message" rows="3" placeholder="Про що думаєш?"></textarea>
-        <button onclick="addPost()">Опублікувати</button>
+        <input type="text" id="username" placeholder="Ваше ім'я">
+        <textarea id="message" rows="3" placeholder="Що нового?"></textarea>
+        <button id="sendBtn">Опублікувати</button>
     </div>
 
     <div id="feed">
-        </div>
+        <p style="text-align:center; color:#777;">Завантаження стрічки...</p>
+    </div>
 
-    <script>
-        function addPost() {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ВАШІ КЛЮЧІ (Я взяв їх з вашого скріншоту)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCN7xN8AZXXCxwf9GmuILYi5AcKAUYJVB4",
+            authDomain: "fishnet-cb1ad.firebaseapp.com",
+            projectId: "fishnet-cb1ad",
+            storageBucket: "fishnet-cb1ad.firebasestorage.app",
+            messagingSenderId: "672721719482",
+            appId: "1:672721719482:web:9b0ce0e3e41893fcccb283"
+        };
+
+        // Запускаємо Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const btn = document.getElementById('sendBtn');
+        const feed = document.getElementById('feed');
+
+        // Функція відправки повідомлення
+        btn.addEventListener('click', async () => {
             const name = document.getElementById('username').value;
             const msg = document.getElementById('message').value;
 
             if(name && msg) {
-                const feed = document.getElementById('feed');
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `<h3>${name}</h3><p>${msg}</p>`;
+                btn.disabled = true;
+                btn.innerText = "Відправка...";
                 
-                // Додаємо новий пост на початок стрічки
-                feed.prepend(post);
-
-                // Очищаємо поле вводу повідомлення
-                document.getElementById('message').value = '';
+                try {
+                    await addDoc(collection(db, "posts"), {
+                        author: name,
+                        text: msg,
+                        timestamp: serverTimestamp()
+                    });
+                    
+                    document.getElementById('message').value = ''; 
+                } catch (e) {
+                    console.error("Помилка:", e);
+                    alert("Помилка запису: " + e.message);
+                }
+                
+                btn.disabled = false;
+                btn.innerText = "Опублікувати";
             } else {
-                alert("Заповни всі поля!");
+                alert("Заповніть ім'я та повідомлення!");
             }
-        }
+        });
+
+        // Слухаємо зміни
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            feed.innerHTML = ''; 
+            
+            if (snapshot.empty) {
+                feed.innerHTML = '<p style="text-align:center; color:#777;">Поки немає дописів.</p>';
+            }
+
+            snapshot.forEach((doc) => {
+                const post = doc.data();
+                
+                let timeString = "...";
+                if(post.timestamp) {
+                    const date = post.timestamp.toDate();
+                    timeString = date.toLocaleTimeString() + ' ' + date.toLocaleDateString();
+                }
+
+                const postEl = document.createElement('div');
+                postEl.className = 'post';
+                postEl.innerHTML = `
+                    <h3>${post.author}</h3>
+                    <p>${post.text}</p>
+                    <small>${timeString}</small>
+                `;
+                feed.appendChild(postEl);
+            });
+        });
     </script>
 
 </body>
