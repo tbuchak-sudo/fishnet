@@ -18,6 +18,7 @@
             --text-main: #333333; --text-sec: #777777; --border: #e0e0e0;
             --primary: #ff9800; --primary-dark: #f57c00; --header-bg: #2d3436;
             --success: #27ae60; --danger: #e74c3c; --done: #95a5a6;
+            --role-customer: #9c27b0; --role-worker: #2980b9;
             --shadow: 0 4px 12px rgba(0,0,0,0.08); --radius: 16px;
         }
 
@@ -33,7 +34,6 @@
             color: var(--text-main); padding-bottom: 90px; transition: 0.3s;
         }
         
-        /* HEADER */
         header { 
             background: var(--header-bg); color: #fff; padding: 15px 20px; 
             display: flex; justify-content: space-between; align-items: center;
@@ -41,35 +41,24 @@
         }
         .logo { font-weight: 900; font-size: 22px; cursor: pointer; color: var(--primary); letter-spacing: 0.5px; }
         .nav-icons { display: flex; gap: 20px; }
-        .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; filter: grayscale(1); transition: 0.2s; position: relative;}
-        .nav-btn:hover { transform: scale(1.1); filter: grayscale(0); }
+        .nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; filter: grayscale(1); transition: 0.2s; }
 
-        /* SEARCH & FILTER */
-        .search-container {
-            padding: 15px 15px 5px 15px; position: sticky; top: 60px; 
-            background: var(--bg-body); z-index: 90;
+        /* ROLE SELECTION CARDS */
+        .role-card {
+            border: 2px solid var(--border); padding: 20px; border-radius: 15px;
+            text-align: center; cursor: pointer; transition: 0.2s; margin-bottom: 15px;
         }
-        .search-input {
-            width: 100%; padding: 12px 45px 12px 15px; border: 1px solid var(--border); 
-            border-radius: 12px; background: var(--bg-card); color: var(--text-main); 
-            box-sizing: border-box; font-size: 16px; outline: none; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s;
-        }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2); }
-        .search-icon { position: absolute; right: 30px; top: 27px; color: var(--text-sec); }
+        .role-card:hover { border-color: var(--primary); background: #fff8e1; transform: scale(1.02); }
+        .role-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+        .role-title { font-weight: 800; font-size: 18px; margin-bottom: 5px; }
+        .role-desc { font-size: 13px; color: var(--text-sec); }
 
-        .categories-scroll {
-            display: flex; overflow-x: auto; gap: 8px; padding: 10px 15px; 
-            background: var(--bg-body); position: sticky; top: 120px; z-index: 90;
-            scrollbar-width: none;
+        /* TAGS */
+        .role-badge { 
+            padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: white; margin-left: 5px;
         }
-        .cat-chip {
-            background: var(--bg-card); border: 1px solid var(--border);
-            padding: 8px 14px; border-radius: 20px; white-space: nowrap;
-            font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-sec);
-            transition: 0.2s;
-        }
-        .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .badge-customer { background: var(--role-customer); }
+        .badge-worker { background: var(--role-worker); }
 
         /* TASK CARD */
         .task-card { 
@@ -77,88 +66,49 @@
             border-radius: var(--radius); box-shadow: var(--shadow); 
             border: 1px solid var(--border); position: relative; transition: 0.3s;
         }
-        /* Стиль для виконаних завдань */
         .task-card.done { opacity: 0.6; filter: grayscale(0.8); border: 1px dashed var(--border); }
-        .task-card.done::after {
-            content: "🏁 ВИКОНАНО"; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-10deg);
-            font-size: 24px; font-weight: 900; color: var(--done); 
-            border: 4px solid var(--done); padding: 5px 15px; border-radius: 10px; opacity: 0.8;
-        }
-
         .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
         .task-title { font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.3; }
-        
         .price-badge { 
             background: #e8f5e9; color: var(--success); padding: 6px 12px; 
             border-radius: 10px; font-weight: 800; font-size: 16px; white-space: nowrap; 
-            margin-left: 10px; box-shadow: 0 2px 5px rgba(39, 174, 96, 0.2);
+            margin-left: 10px;
         }
 
         .task-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-sec); margin-bottom: 15px; font-weight: 500; }
         .task-desc { font-size: 15px; line-height: 1.6; color: var(--text-main); margin-bottom: 20px; }
-
-        .task-footer { 
-            border-top: 1px solid var(--border); padding-top: 15px; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
-        
+        .task-footer { border-top: 1px solid var(--border); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
         .author-box { display: flex; align-items: center; gap: 10px; }
         .author-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); }
-        .author-name { font-weight: 700; font-size: 14px; display: block; }
-        .author-rating { font-size: 11px; color: var(--primary); font-weight: 600; }
-
-        /* BUTTONS */
+        
         .btn { padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;}
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        
         .btn-done { background: var(--success); color: white; }
         .btn-delete { background: var(--bg-body); color: var(--danger); }
         
-        /* TOAST NOTIFICATION */
-        #toast {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 50px; padding: 16px; position: fixed;
-            z-index: 3000; left: 50%; bottom: 100px; transform: translateX(-50%);
-            font-size: 14px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            opacity: 0; transition: opacity 0.3s, bottom 0.3s;
-        }
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 3000; left: 50%; bottom: 100px; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 110px; }
 
-        /* MODAL & FAB */
-        .fab { 
-            position: fixed; bottom: 30px; right: 25px; width: 64px; height: 64px; 
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
-            color: white; border-radius: 50%; display: flex; align-items: center; 
-            justify-content: center; font-size: 36px; cursor: pointer; z-index: 1000; 
-            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4); transition: 0.3s;
-        }
-        .fab:hover { transform: scale(1.1) rotate(90deg); }
+        .fab { position: fixed; bottom: 30px; right: 25px; width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; cursor: pointer; z-index: 1000; box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4); }
+        .fab.hidden { display: none; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);}
         .modal-overlay.open { display: flex; }
         .modal-card { width: 90%; max-width: 500px; background: var(--bg-card); padding: 30px; border-radius: 20px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-        .input-group { margin-bottom: 15px; }
-        .input-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; }
-        .app-input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-body); color: var(--text-main); box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        .app-input:focus { border-color: var(--primary); outline: none; }
-
-        /* Views & Map */
-        .view { display: none; } .view.active { display: block; }
-        #map-container { height: calc(100vh - 70px); width: 100%; }
-        #map { height: 100%; width: 100%; }
+        .categories-scroll { display: flex; overflow-x: auto; gap: 8px; padding: 10px 15px; background: var(--bg-body); position: sticky; top: 120px; z-index: 90; scrollbar-width: none;}
+        .cat-chip { background: var(--bg-card); border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; white-space: nowrap; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-sec); }
+        .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .search-container { padding: 15px 15px 5px 15px; position: sticky; top: 60px; background: var(--bg-body); z-index: 90; }
+        .search-input { width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); color: var(--text-main); box-sizing: border-box; font-size: 16px; outline: none; }
         
-        /* Profile */
+        .view { display: none; } .view.active { display: block; }
+        #map-container { height: calc(100vh - 70px); width: 100%; } #map { height: 100%; width: 100%; }
         .profile-hero { text-align: center; padding: 20px; background: var(--bg-card); border-radius: var(--radius); margin: 15px; }
         .profile-img-lg { width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--bg-body); object-fit: cover; }
-        
-        .location-btn { 
-            background: rgba(33, 150, 243, 0.1); color: #2196f3; padding: 12px; 
-            border-radius: 10px; text-align: center; cursor: pointer; font-weight: 700; 
-            border: 1px dashed #2196f3; margin-top: 5px; transition: 0.3s;
-        }
+        .app-input { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-body); color: var(--text-main); box-sizing: border-box; font-size: 16px; margin-bottom: 15px; }
+        .input-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-sec); text-transform: uppercase; }
+        .location-btn { background: rgba(33, 150, 243, 0.1); color: #2196f3; padding: 12px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 700; border: 1px dashed #2196f3; margin-top: 5px; }
         .location-btn.active { background: #2196f3; color: white; border-style: solid; }
     </style>
 </head>
@@ -172,17 +122,14 @@
         </div>
     </header>
 
-    <!-- TOAST NOTIFICATION -->
     <div id="toast">Повідомлення...</div>
 
     <!-- === 1. HOME VIEW === -->
     <div id="view-home" class="view active">
-        <!-- Пошук -->
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Що шукаєте? (напр. кран, дрова)">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Що шукаєте?">
         </div>
 
-        <!-- Категорії -->
         <div class="categories-scroll">
             <div class="cat-chip active" onclick="filterCat('all', this)">Всі</div>
             <div class="cat-chip" onclick="filterCat('Сантехніка', this)">🛁 Сантехніка</div>
@@ -190,7 +137,6 @@
             <div class="cat-chip" onclick="filterCat('Доставка', this)">📦 Доставка</div>
             <div class="cat-chip" onclick="filterCat('Ремонт', this)">🔨 Ремонт</div>
             <div class="cat-chip" onclick="filterCat('Прибирання', this)">🧹 Прибирання</div>
-            <div class="cat-chip" onclick="filterCat('Город', this)">🥕 Город</div>
             <div class="cat-chip" onclick="filterCat('Інше', this)">📌 Інше</div>
         </div>
 
@@ -208,38 +154,40 @@
         <div id="profile-content"></div>
     </div>
 
+    <!-- MODAL: ROLE SELECTION (Нове!) -->
+    <div id="role-modal" class="modal-overlay" style="z-index: 3000;">
+        <div class="modal-card">
+            <h2 style="text-align:center; margin-bottom:20px;">Оберіть вашу роль</h2>
+            <div class="role-card" onclick="selectRole('customer')">
+                <span class="role-icon">🙋‍♂️</span>
+                <div class="role-title">Замовник</div>
+                <div class="role-desc">Мені потрібна допомога, хочу створити завдання.</div>
+            </div>
+            <div class="role-card" onclick="selectRole('worker')">
+                <span class="role-icon">🛠️</span>
+                <div class="role-title">Виконавець</div>
+                <div class="role-desc">Я майстер, шукаю роботу та замовлення.</div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: CREATE TASK -->
     <div id="task-modal" class="modal-overlay" onclick="if(event.target===this) toggleModal('task-modal', false)">
         <div class="modal-card">
-            <h2 style="margin-top:0">🛠️ Створити завдання</h2>
-            
-            <div class="input-group">
-                <label class="input-label">Що треба зробити?</label>
-                <input id="task-title" class="app-input" placeholder="Коротко і ясно">
-            </div>
-
-            <div class="input-group">
-                <label class="input-label">Категорія</label>
-                <select id="task-cat" class="app-input">
-                    <option>Сантехніка</option><option>Електрика</option><option>Доставка</option>
-                    <option>Ремонт</option><option>Прибирання</option><option>Город</option><option>Інше</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label class="input-label">Бюджет (грн)</label>
-                <input id="task-price" type="number" class="app-input" placeholder="0 = Договірна">
-            </div>
-
-            <div class="input-group">
-                <label class="input-label">Опис</label>
-                <textarea id="task-desc" class="app-input" rows="3" placeholder="Деталі замовлення..."></textarea>
-            </div>
-
-            <div class="input-group">
-                <div id="location-btn" class="location-btn" onclick="getLocation()">📍 Прикріпити локацію</div>
-            </div>
-
+            <h2>🛠️ Нове завдання</h2>
+            <label class="input-label">Що робити?</label>
+            <input id="task-title" class="app-input" placeholder="Коротко">
+            <label class="input-label">Категорія</label>
+            <select id="task-cat" class="app-input">
+                <option>Сантехніка</option><option>Електрика</option><option>Доставка</option>
+                <option>Ремонт</option><option>Прибирання</option><option>Город</option><option>Інше</option>
+            </select>
+            <label class="input-label">Бюджет (грн)</label>
+            <input id="task-price" type="number" class="app-input" placeholder="0">
+            <label class="input-label">Опис</label>
+            <textarea id="task-desc" class="app-input" rows="3"></textarea>
+            <div id="location-btn" class="location-btn" onclick="getLocation()">📍 Додати локацію</div>
+            <br>
             <button onclick="createTask()" class="btn btn-primary" style="width:100%">Опублікувати</button>
         </div>
     </div>
@@ -247,12 +195,12 @@
     <!-- MODAL: EDIT PROFILE -->
     <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this) toggleModal('edit-modal', false)">
         <div class="modal-card">
-            <h2>✏️ Мій профіль</h2>
-            <div class="input-group"><label class="input-label">Ім'я</label><input id="edit-name" class="app-input"></div>
-            <div class="input-group"><label class="input-label">Телефон</label><input id="edit-phone" class="app-input" placeholder="+380..."></div>
-            <div class="input-group"><label class="input-label">Мої навички</label><input id="edit-skills" class="app-input" placeholder="Перелічіть через кому"></div>
+            <h2>✏️ Профіль</h2>
+            <label class="input-label">Ім'я</label><input id="edit-name" class="app-input">
+            <label class="input-label">Телефон</label><input id="edit-phone" class="app-input" placeholder="+380...">
+            <label class="input-label">Навички</label><input id="edit-skills" class="app-input">
             <button onclick="saveProfile()" class="btn btn-primary" style="width:100%">Зберегти</button>
-            <button onclick="signOutAndReload()" class="btn" style="width:100%; margin-top:10px; color:var(--danger)">Вийти з акаунту</button>
+            <button onclick="signOutAndReload()" class="btn" style="width:100%; margin-top:10px; color:var(--danger)">Вийти</button>
         </div>
     </div>
 
@@ -280,26 +228,49 @@
         let map = null;
         let taskLocation = null;
 
-        // --- AUTH ---
+        // --- AUTH & ROLE CHECK ---
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                document.getElementById('fab').classList.remove('hidden');
                 const ref = doc(db, "users", user.uid);
                 const snap = await getDoc(ref);
+                
                 if (snap.exists()) {
                     userData = snap.data();
+                    // Якщо роль не обрана (старий юзер), змушуємо обрати
+                    if (!userData.role) {
+                        toggleModal('role-modal', true);
+                    } else {
+                        document.getElementById('fab').classList.remove('hidden');
+                    }
                 } else {
-                    userData = { name: user.displayName, phone: "", skills: "", rating: 0 };
-                    await setDoc(ref, userData);
+                    // Новий юзер - спочатку пустий, роль обере через модалку
+                    userData = { name: user.displayName, phone: "", skills: "" };
+                    toggleModal('role-modal', true);
                 }
             } else {
                 signInWithPopup(auth, new GoogleAuthProvider());
             }
         });
 
+        // --- ROLE SELECTION ---
+        window.selectRole = async (role) => {
+            if(!currentUser) return;
+            await setDoc(doc(db, "users", currentUser.uid), { 
+                ...userData, 
+                role: role,
+                email: currentUser.email,
+                photo: currentUser.photoURL
+            }, { merge: true });
+            
+            userData.role = role;
+            toggleModal('role-modal', false);
+            document.getElementById('fab').classList.remove('hidden');
+            showToast(role === 'worker' ? "Вітаємо, Майстре! 🛠️" : "Вітаємо, Замовнику! 🙋‍♂️");
+            openProfile(); // Показати профіль, щоб побачили статус
+        };
+
         // --- CORE LOGIC ---
-        // Використовуємо 'tasks_v2' щоб не плутати зі старими постами
         onSnapshot(query(collection(db, "tasks_v2"), orderBy("timestamp", "desc")), (snapshot) => {
             allTasks = [];
             snapshot.forEach(doc => allTasks.push({ id: doc.id, ...doc.data() }));
@@ -311,11 +282,9 @@
             container.innerHTML = '';
             
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
             let filtered = allTasks.filter(t => {
-                const matchesCat = currentFilter === 'all' || t.category === currentFilter;
-                const matchesSearch = (t.title + t.description).toLowerCase().includes(searchTerm);
-                return matchesCat && matchesSearch;
+                return (currentFilter === 'all' || t.category === currentFilter) &&
+                       (t.title + t.description).toLowerCase().includes(searchTerm);
             });
 
             if(filtered.length === 0) {
@@ -326,27 +295,21 @@
             filtered.forEach(task => {
                 const isMyTask = currentUser && task.uid === currentUser.uid;
                 const isDone = task.status === 'done';
-                
-                // Якщо завдання виконане і це не моє завдання - ховаємо його з стрічки, щоб не смітити
-                // Але автор має бачити його
                 if (isDone && !isMyTask) return;
 
+                let roleBadge = '';
+                if(task.authorRole === 'worker') roleBadge = '<span class="role-badge badge-worker">Майстер</span>';
+                if(task.authorRole === 'customer') roleBadge = '<span class="role-badge badge-customer">Замовник</span>';
+
                 let buttons = '';
-                
                 if (isMyTask) {
-                    if (!isDone) {
-                        buttons = `
-                            <button onclick="markDone('${task.id}')" class="btn btn-done">✅ Виконано</button>
-                            <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>
-                        `;
-                    } else {
-                        buttons = `<span style="color:gray; font-weight:bold;">Архівне</span> <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>`;
-                    }
+                    if (!isDone) buttons = `<button onclick="markDone('${task.id}')" class="btn btn-done">✅ Виконано</button> <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>`;
+                    else buttons = `<span style="color:gray; font-weight:bold;">Архів</span> <button onclick="deleteTask('${task.id}')" class="btn btn-delete">🗑️</button>`;
                 } else {
                     if (!isDone) {
                         const link = task.phone ? `tel:${task.phone}` : '#';
-                        const action = task.phone ? `if('${link}'==='#') showToast('Телефон приховано')` : `alert('Номер не вказано. Автор чекає в чаті (скоро)')`;
-                        buttons = `<a href="${link}" onclick="${action}" class="btn btn-primary">📞 Взяти замовлення</a>`;
+                        const action = task.phone ? `` : `alert('Номер не вказано')`;
+                        buttons = `<a href="${link}" onclick="${action}" class="btn btn-primary">📞 Взяти</a>`;
                     }
                 }
 
@@ -359,16 +322,14 @@
                         <div class="task-meta">
                             <span>📂 ${task.category}</span>
                             <span>⏱️ ${timeAgo(task.timestamp)}</span>
-                            ${task.location ? '<span>📍 На мапі</span>' : ''}
+                            ${task.location ? '<span>📍 Map</span>' : ''}
                         </div>
                         <div class="task-desc">${task.description}</div>
-                        
                         <div class="task-footer">
                             <div class="author-box">
                                 <img src="${task.authorPhoto || 'icon.png'}" class="author-avatar">
                                 <div>
-                                    <span class="author-name">${task.author}</span>
-                                    <span class="author-rating">Рейтинг: 5.0 ⭐</span>
+                                    <span class="author-name">${task.author} ${roleBadge}</span>
                                 </div>
                             </div>
                             <div style="display:flex; gap:5px;">${buttons}</div>
@@ -382,87 +343,52 @@
         // --- ACTIONS ---
         window.createTask = async () => {
             const title = document.getElementById('task-title').value;
-            const cat = document.getElementById('task-cat').value;
             const price = document.getElementById('task-price').value;
-            const desc = document.getElementById('task-desc').value;
-
-            if(!title || !price) { showToast("Заповніть заголовок і ціну!"); return; }
+            if(!title || !price) { showToast("Заповніть поля!"); return; }
 
             await addDoc(collection(db, "tasks_v2"), {
-                title, category: cat, price, description: desc,
-                location: taskLocation,
-                uid: currentUser.uid, 
-                author: userData.name || currentUser.displayName, 
-                authorPhoto: currentUser.photoURL,
-                phone: userData.phone || "",
-                status: 'open', // Нове поле статусу
-                timestamp: serverTimestamp()
+                title, category: document.getElementById('task-cat').value, price, 
+                description: document.getElementById('task-desc').value, location: taskLocation,
+                uid: currentUser.uid, author: userData.name || currentUser.displayName, 
+                authorPhoto: currentUser.photoURL, phone: userData.phone || "",
+                authorRole: userData.role || 'customer', // Зберігаємо роль автора
+                status: 'open', timestamp: serverTimestamp()
             });
 
             toggleModal('task-modal', false);
             document.getElementById('task-title').value = '';
-            document.getElementById('task-desc').value = '';
-            showToast("Завдання опубліковано! 🎉");
+            showToast("Завдання створено!");
         };
 
-        window.markDone = async (id) => {
-            if(confirm("Роботу виконано? Завдання переміститься в архів.")) {
-                await updateDoc(doc(db, "tasks_v2", id), { status: 'done' });
-                showToast("Завдання закрито! ✅");
-            }
-        };
-
-        window.deleteTask = (id) => {
-            if(confirm("Видалити назавжди?")) deleteDoc(doc(db, "tasks_v2", id));
-        };
-
+        window.markDone = async (id) => { if(confirm("Виконано?")) await updateDoc(doc(db, "tasks_v2", id), { status: 'done' }); };
+        window.deleteTask = (id) => { if(confirm("Видалити?")) deleteDoc(doc(db, "tasks_v2", id)); };
+        
         window.getLocation = () => {
-            document.getElementById('location-btn').innerText = "⏳ Шукаємо...";
+            document.getElementById('location-btn').innerText = "⏳...";
             navigator.geolocation.getCurrentPosition(pos => {
                 taskLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                document.getElementById('location-btn').innerText = "✅ Є контакт!";
+                document.getElementById('location-btn').innerText = "✅ OK";
                 document.getElementById('location-btn').classList.add('active');
-            }, err => showToast("GPS недоступний"));
+            }, () => showToast("GPS помилка"));
         };
 
-        // --- UI UTILS ---
-        window.switchView = (viewName) => {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${viewName}`).classList.add('active');
-            if (viewName === 'map') initMap();
-        };
-
-        window.filterCat = (cat, btn) => {
-            currentFilter = cat;
-            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            renderTasks();
-        };
-        
-        document.getElementById('searchInput').oninput = renderTasks;
-
-        window.showToast = (msg) => {
-            const x = document.getElementById("toast");
-            x.innerText = msg;
-            x.className = "show";
-            setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
-        };
-
+        // --- PROFILE ---
         window.openProfile = () => {
             if(!currentUser) return;
+            const roleLabel = userData.role === 'worker' ? '🛠️ ВИКОНАВЕЦЬ' : '🙋‍♂️ ЗАМОВНИК';
+            const roleColor = userData.role === 'worker' ? 'var(--role-worker)' : 'var(--role-customer)';
+            
             document.getElementById('profile-content').innerHTML = `
                 <div class="profile-hero">
                     <img src="${currentUser.photoURL}" class="profile-img-lg">
                     <h2>${userData.name}</h2>
-                    <div style="color:var(--text-sec); margin-bottom:15px;">${userData.phone || "Телефон не вказано 📵"}</div>
-                    <div style="background:#fff3e0; color:#e65100; padding:10px; border-radius:8px; display:inline-block; font-weight:bold;">
-                        Рейтинг: 5.0 ⭐ (Новачок)
-                    </div>
+                    <div style="background:${roleColor}; color:white; padding:5px 15px; border-radius:20px; display:inline-block; font-weight:bold; margin-bottom:10px;">${roleLabel}</div>
+                    <div style="color:var(--text-sec);">${userData.phone || "Телефон не вказано"}</div>
                 </div>
                 <div style="padding:20px;">
-                    <h3>🔨 Мої навички</h3>
-                    <p>${userData.skills || "Поки що пусто..."}</p>
-                    <button onclick="openEditModal()" class="btn btn-primary" style="width:100%; margin-top:20px;">Редагувати профіль</button>
+                    <h3>Навички:</h3>
+                    <p>${userData.skills || "..."}</p>
+                    <button onclick="openEditModal()" class="btn btn-primary" style="width:100%">Редагувати</button>
                 </div>
             `;
             switchView('profile');
@@ -484,34 +410,20 @@
             userData = { ...userData, ...updates };
             await updateDoc(doc(db, "users", currentUser.uid), updates);
             toggleModal('edit-modal', false);
-            showToast("Профіль оновлено!");
             openProfile();
         };
-        
+
         window.signOutAndReload = async () => { await signOut(auth); location.reload(); };
         window.toggleModal = (id, show) => document.getElementById(id).classList.toggle('open', show);
+        window.switchView = (v) => { document.querySelectorAll('.view').forEach(e => e.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if(v==='map') initMap(); };
+        window.filterCat = (cat, btn) => { currentFilter = cat; document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active')); btn.classList.add('active'); renderTasks(); };
+        document.getElementById('searchInput').oninput = renderTasks;
+        window.showToast = (msg) => { const x=document.getElementById("toast"); x.innerText=msg; x.className="show"; setTimeout(()=>x.className=x.className.replace("show",""),3000); };
         
         function initMap() {
-            setTimeout(() => {
-                if(!map) { map = L.map('map').setView([49.0, 31.0], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
-                map.invalidateSize();
-                map.eachLayer(l => { if(l instanceof L.Marker) map.removeLayer(l); });
-                allTasks.forEach(t => {
-                    if(t.location && t.status !== 'done') {
-                        L.marker([t.location.lat, t.location.lng]).addTo(map)
-                            .bindPopup(`<b>${t.title}</b><br>${t.price} грн<br><a href="${t.phone ? 'tel:'+t.phone : '#'}">📞 Дзвонити</a>`);
-                    }
-                });
-            }, 100);
+            setTimeout(() => { if(!map) { map = L.map('map').setView([49.0, 31.0], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); } map.invalidateSize(); map.eachLayer(l => { if(l instanceof L.Marker) map.removeLayer(l); }); allTasks.forEach(t => { if(t.location && t.status!=='done') L.marker([t.location.lat, t.location.lng]).addTo(map).bindPopup(`<b>${t.title}</b><br>${t.price} грн`); }); }, 100);
         }
-
-        function timeAgo(ts) {
-            if(!ts) return '...';
-            const diff = (Date.now() - ts.toDate()) / 1000;
-            if(diff < 3600) return Math.floor(diff/60) + " хв тому";
-            if(diff < 86400) return Math.floor(diff/3600) + " год тому";
-            return Math.floor(diff/86400) + " дн тому";
-        }
+        function timeAgo(ts) { if(!ts)return'...'; const d=(Date.now()-ts.toDate())/1000; if(d<3600)return Math.floor(d/60)+" хв"; if(d<86400)return Math.floor(d/3600)+" год"; return Math.floor(d/86400)+" дн"; }
     </script>
 </body>
 </html>
