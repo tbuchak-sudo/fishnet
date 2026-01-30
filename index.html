@@ -10,63 +10,115 @@
     <link rel="apple-touch-icon" href="icon.png"> 
 
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #e9ebee; padding-bottom: 80px; }
+        /* --- ЗМІННІ КОЛЬОРІВ (ДЕНЬ/НІЧ) --- */
+        :root {
+            --bg-body: #e9ebee;
+            --bg-card: #ffffff;
+            --text-main: #1c1e21;
+            --text-sec: #65676b;
+            --input-bg: #f0f2f5;
+            --input-border: #ddd;
+            --shadow: rgba(0,0,0,0.1);
+            --header-bg: #4267b2;
+            --btn-hover: #f0f2f5;
+        }
+
+        body.dark-mode {
+            --bg-body: #18191a;
+            --bg-card: #242526;
+            --text-main: #e4e6eb;
+            --text-sec: #b0b3b8;
+            --input-bg: #3a3b3c;
+            --input-border: #3a3b3c;
+            --shadow: rgba(0,0,0,0.5);
+            --header-bg: #242526; /* Темна шапка */
+            --btn-hover: #3a3b3c;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            max-width: 600px; margin: 0 auto; padding: 20px; 
+            background-color: var(--bg-body); color: var(--text-main);
+            padding-bottom: 80px; 
+            transition: background-color 0.3s, color 0.3s;
+        }
         
         header { 
-            background: #4267b2; color: #fff; padding: 15px; 
+            background: var(--header-bg); color: #fff; padding: 15px; 
             border-radius: 8px 8px 0 0; 
             display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky; top: 0; z-index: 100; 
+            box-shadow: 0 2px 5px var(--shadow);
+            transition: background 0.3s;
         }
         .logo { font-weight: bold; font-size: 24px; }
         
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+
+        /* Кнопка теми */
+        #themeBtn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; }
+        #themeBtn:hover { background: rgba(255,255,255,0.1); }
+
         button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
         #loginBtn { background: white; color: #4267b2; padding: 8px 15px; }
-        #logoutBtn { background: #3b5998; color: white; border: 1px solid white; padding: 5px 10px; display: none; }
+        #logoutBtn { background: #3a3b3c; color: white; border: 1px solid #555; padding: 5px 10px; display: none; }
         
-        #post-form { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; margin-bottom: 20px;}
-        textarea { width: 100%; padding: 12px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; resize: vertical; margin-bottom: 10px; min-height: 60px;}
+        #post-form { background: var(--bg-card); padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 5px var(--shadow); display: none; margin-bottom: 20px;}
+        
+        textarea { 
+            width: 100%; padding: 12px; box-sizing: border-box; 
+            border: 1px solid var(--input-border); border-radius: 4px; 
+            resize: vertical; margin-bottom: 10px; min-height: 60px;
+            background: var(--input-bg); color: var(--text-main);
+            font-family: inherit;
+        }
         
         .form-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
         .file-label { cursor: pointer; color: #4267b2; font-size: 24px; padding: 5px; display: flex; align-items: center; gap: 5px; }
-        .file-label span { font-size: 14px; font-weight: normal; }
+        .file-label:hover { background: var(--btn-hover); border-radius: 4px; }
+        .file-label span { font-size: 14px; font-weight: normal; color: var(--text-main); }
         #imageInput { display: none; } 
 
         #preview-container { display: none; margin-bottom: 10px; position: relative; width: fit-content; }
-        #preview-img { max-height: 150px; border-radius: 8px; border: 1px solid #ddd; }
+        #preview-img { max-height: 150px; border-radius: 8px; border: 1px solid var(--input-border); }
         #remove-img { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 22px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
         #sendBtn { background: #42b72a; color: white; padding: 10px 20px; font-size: 16px; }
         
-        #guest-msg { text-align: center; padding: 20px; background: white; margin-top: 10px; border-radius: 8px; }
+        #guest-msg { text-align: center; padding: 20px; background: var(--bg-card); margin-top: 10px; border-radius: 8px; color: var(--text-sec); }
 
-        .post { background: #fff; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+        .post { background: var(--bg-card); padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 1px 3px var(--shadow); position: relative; }
         
         .post-header { display: flex; align-items: center; margin-bottom: 10px; }
         .avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover; }
         .author-name { color: #4267b2; font-weight: bold; font-size: 16px; }
-        .post-date { color: #90949c; font-size: 12px; }
-        .post-text { color: #1c1e21; line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
-        .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; cursor: pointer;}
+        body.dark-mode .author-name { color: #4599ff; } /* Світліший синій для темної теми */
 
-        .actions { border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px; }
-        .like-btn { background: none; color: #606770; padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        .post-date { color: var(--text-sec); font-size: 12px; }
+        .post-text { color: var(--text-main); line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px; }
+        .post-image { width: 100%; max-height: 500px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--input-border); cursor: pointer;}
+
+        .actions { border-top: 1px solid var(--input-border); padding-top: 10px; display: flex; align-items: center; gap: 15px; }
+        .like-btn { background: none; color: var(--text-sec); padding: 5px 10px; display: flex; align-items: center; gap: 5px; font-size: 14px; }
+        .like-btn:hover { background-color: var(--btn-hover); border-radius: 4px; }
         .like-active { color: #e0245e; }
 
-        .comments-section { margin-top: 10px; background: #f0f2f5; padding: 10px; border-radius: 8px; }
-        .comment { margin-bottom: 8px; font-size: 13px; }
+        .comments-section { margin-top: 10px; background: var(--input-bg); padding: 10px; border-radius: 8px; }
+        .comment { margin-bottom: 8px; font-size: 13px; color: var(--text-main); }
+        .comment strong { color: #4267b2; }
+        body.dark-mode .comment strong { color: #4599ff; }
+
         .comment-input-area { display: flex; gap: 5px; margin-top: 10px; }
-        .comment-input { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 20px; font-size: 13px; }
+        .comment-input { flex-grow: 1; padding: 8px; border: 1px solid var(--input-border); border-radius: 20px; font-size: 13px; background: var(--bg-card); color: var(--text-main); }
         .comment-btn { background: #4267b2; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; }
 
-        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; color: #ccc; font-size: 16px; }
+        .delete-btn { position: absolute; top: 15px; right: 15px; background: none; color: var(--text-sec); font-size: 16px; }
         .delete-btn:hover { color: #ff4d4d; }
 
-        /* Кнопка встановлення (PWA) */
         #installBtn { 
-            display: none; width: 100%; background: #333; color: white; padding: 15px; 
-            text-align: center; position: fixed; bottom: 0; left: 0; z-index: 1000; font-weight: bold; cursor: pointer;
+            display: none; width: 100%; background: #242526; color: white; padding: 15px; 
+            text-align: center; position: fixed; bottom: 0; left: 0; z-index: 1000; font-weight: bold; cursor: pointer; border-top: 1px solid #333;
         }
     </style>
 </head>
@@ -74,8 +126,10 @@
 
     <header>
         <div class="logo">FishNet 🐟</div>
-        <div>
-            <span id="user-display" style="font-size: 14px; margin-right: 10px;"></span>
+        <div class="header-controls">
+            <button id="themeBtn">🌙</button>
+            
+            <span id="user-display" style="font-size: 14px;"></span>
             <button id="loginBtn">Увійти</button>
             <button id="logoutBtn">Вийти</button>
         </div>
@@ -132,32 +186,43 @@
         const imageInput = document.getElementById('imageInput');
         const previewContainer = document.getElementById('preview-container');
         const previewImg = document.getElementById('preview-img');
+        const themeBtn = document.getElementById('themeBtn');
 
-        // --- PWA ЛОГІКА ---
+        // --- ЛОГІКА ТЕМНОЇ ТЕМИ ---
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeBtn.innerText = '☀️';
+        }
+
+        themeBtn.onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                themeBtn.innerText = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeBtn.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        };
+        // -------------------------
+
+        // PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js');
         }
-
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
-
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             installBtn.style.display = 'block';
         });
-
         installBtn.addEventListener('click', () => {
             installBtn.style.display = 'none';
             deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                }
-                deferredPrompt = null;
-            });
+            deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
         });
-        // ------------------
 
         let currentUser = null;
         let selectedFile = null;
@@ -212,13 +277,8 @@
                         const canvas = document.createElement('canvas');
                         const MAX_WIDTH = 800; 
                         const scale = MAX_WIDTH / img.width;
-                        if (scale < 1) {
-                            canvas.width = MAX_WIDTH;
-                            canvas.height = img.height * scale;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
+                        if (scale < 1) { canvas.width = MAX_WIDTH; canvas.height = img.height * scale; } 
+                        else { canvas.width = img.width; canvas.height = img.height; }
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                         resolve(canvas.toDataURL('image/jpeg', 0.7));
@@ -231,12 +291,10 @@
             const msg = document.getElementById('message').value;
             if((msg.trim() || selectedFile) && currentUser) {
                 sendBtn.disabled = true;
-                sendBtn.innerText = "Завантаження...";
+                sendBtn.innerText = "⏳";
                 try {
                     let imageUrl = null;
-                    if (selectedFile) {
-                        imageUrl = await compressImage(selectedFile);
-                    }
+                    if (selectedFile) imageUrl = await compressImage(selectedFile);
                     await addDoc(collection(db, "posts"), {
                         text: msg,
                         imageUrl: imageUrl, 
@@ -249,7 +307,7 @@
                     });
                     document.getElementById('message').value = '';
                     clearImage();
-                } catch (e) { alert("Помилка: " + e.message); }
+                } catch (e) { alert("Error: " + e.message); }
                 sendBtn.disabled = false;
                 sendBtn.innerText = "Публікація";
             }
