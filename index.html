@@ -2,15 +2,20 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Agro-Controller PRO v4</title>
     
     <!-- PWA META ТЕГИ -->
-    <meta name="theme-color" content="#14532d">
+    <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AgroPRO">
     <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Шрифти -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,200 +25,282 @@
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
                     colors: {
                         agro: {
-                            50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e',
-                            600: '#16a34a', 700: '#15803d', 900: '#14532d',
+                            50: '#f0fdf4', 100: '#dcfce7', 500: '#10b981', // emerald
+                            600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
+                        },
+                        dark: {
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
                         }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow-green': '0 0 15px rgba(16, 185, 129, 0.4)',
+                        'glow-red': '0 0 15px rgba(244, 63, 94, 0.4)',
                     }
                 }
             }
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tab-content { display: none; opacity: 0; }
+        .tab-content.active { 
+            display: block; 
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none !important;
+            box-shadow: none !important;
         }
 
-        @keyframes pulse-orange {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
-            50% { box-shadow: 0 0 0 10px rgba(234, 88, 12, 0); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
-        .pwa-pulse { animation: pulse-orange 2s infinite; }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+        .pwa-pulse { animation: pulse-ring 2s infinite; }
+        
+        /* Smooth progress bar transitions */
+        .progress-bar-fill { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans h-screen flex overflow-hidden">
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden w-full selection:bg-agro-500 selection:text-white">
+
+    <!-- Мобільний Backdrop -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-dark-950/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="UI.toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <aside class="w-64 bg-agro-900 text-white flex flex-col transition-all duration-300 relative z-20 shadow-xl">
-        <div class="p-6 border-b border-agro-700 flex items-center gap-3">
-            <div class="bg-white p-1.5 rounded-lg text-agro-600">
-                <i data-lucide="sprout"></i>
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 lg:w-64 bg-dark-900 text-slate-300 flex flex-col transition-transform duration-300 transform -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none h-full border-r border-slate-800">
+        <div class="p-6 border-b border-slate-800/60 flex items-center justify-between gap-3 bg-dark-950/30">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-agro-400 to-agro-600 p-2 rounded-xl text-white shadow-glow-green">
+                    <i data-lucide="sprout" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white tracking-tight">AgroPRO <span class="text-agro-400 text-xs align-top">v4</span></h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Smart Farm Control</p>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-xl leading-tight">Agro-PRO v4</h1>
-                <p class="text-xs text-agro-100 opacity-75">Commercial Smart Farm</p>
-            </div>
+            <button class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white" onclick="UI.toggleSidebar()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
 
-        <nav class="flex-1 p-4 space-y-2 flex flex-col">
-            <button onclick="UI.switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-agro-700 text-white transition-colors">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="font-medium">Дашборд</span>
+        <nav class="flex-1 p-4 space-y-1.5 flex flex-col overflow-y-auto mt-2">
+            <button onclick="UI.switchTab('dashboard')" id="nav-dashboard" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-agro-500/10 text-agro-400 font-semibold transition-all">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
+                <span>Дашборд</span>
             </button>
-            <button onclick="UI.switchTab('zones')" id="nav-zones" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-agro-100 hover:bg-agro-800 transition-colors">
-                <i data-lucide="map" class="w-5 h-5"></i>
-                <span class="font-medium">Зони поливу</span>
+            <button onclick="UI.switchTab('zones')" id="nav-zones" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-all">
+                <i data-lucide="grid-3x3" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
+                <span>Зони поливу</span>
             </button>
-            <button onclick="UI.switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-agro-100 hover:bg-agro-800 transition-colors">
-                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                <span class="font-medium">Аналітика (VPD/ET)</span>
+            <button onclick="UI.switchTab('analytics')" id="nav-analytics" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-all">
+                <i data-lucide="activity" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
+                <span>Аналітика</span>
             </button>
             
-            <div class="mt-auto pt-4">
-                <button id="pwa-install-btn" class="hidden w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white transition-colors shadow-lg pwa-pulse">
-                    <i data-lucide="download" class="w-5 h-5"></i>
-                    <span class="font-bold">Встановити додаток</span>
+            <div class="mt-auto pt-6 pb-4 lg:pb-0">
+                <button id="pwa-install-btn" class="hidden w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold transition-transform active:scale-95 shadow-lg shadow-orange-500/25">
+                    <i data-lucide="download-cloud" class="w-5 h-5"></i>
+                    <span>Встановити App</span>
                 </button>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-agro-700">
-            <div class="bg-agro-800 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden" id="ws-status-panel">
+        <div class="p-4 bg-dark-950/50 mt-auto border-t border-slate-800">
+            <div class="bg-dark-800/50 border border-slate-700/50 rounded-xl p-3.5 flex flex-col gap-2 relative overflow-hidden group cursor-pointer" id="ws-status-panel" title="Подвійний клік для реконекту">
                 <div class="flex items-center justify-between relative z-10">
-                    <span class="text-sm text-gray-300">WS Connection</span>
-                    <span id="conn-indicator" class="flex h-3 w-3 relative">
+                    <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Шлюз Зв'язку</span>
+                    <span id="conn-indicator" class="flex h-2.5 w-2.5 relative">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
                     </span>
                 </div>
-                <div id="conn-text" class="text-xs text-yellow-400 flex items-center gap-1 relative z-10">
-                    <i data-lucide="loader" class="w-3 h-3 animate-spin"></i> Ініціалізація Auth...
+                <div id="conn-text" class="text-xs text-yellow-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5">
+                    <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Ініціалізація...
                 </div>
-                <div id="reconnect-bar" class="absolute bottom-0 left-0 h-1 bg-red-500 transition-all" style="width: 0%"></div>
+                <div id="reconnect-bar" class="absolute bottom-0 left-0 h-0.5 bg-rose-500 transition-all" style="width: 0%"></div>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden">
-        <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-4 flex justify-between items-center z-10">
-            <h2 class="text-2xl font-bold text-gray-800" id="page-title">Огляд системи</h2>
-            <div class="flex items-center gap-6">
-                <!-- Weather Status API Simulation -->
-                <div id="weather-status" class="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 transition-colors">
-                    <i data-lucide="cloud" class="w-4 h-4 text-gray-500"></i>
-                    <span>Weather API Sync...</span>
+    <main class="flex-1 flex flex-col h-screen overflow-hidden w-full relative z-10">
+        <!-- Header -->
+        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-5 md:px-8 py-4 flex justify-between items-center z-20 sticky top-0 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button class="lg:hidden p-2 -ml-2 text-slate-500 rounded-xl hover:bg-slate-100 transition-colors" onclick="UI.toggleSidebar()">
+                    <i data-lucide="menu-2" class="w-6 h-6"></i>
+                </button>
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight leading-none" id="page-title">Огляд системи</h2>
                 </div>
-                <!-- User Profile -->
-                <div class="w-10 h-10 rounded-full bg-agro-100 text-agro-700 flex items-center justify-center font-bold border-2 border-agro-200" title="Admin">
-                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-5">
+                <!-- Weather Widget -->
+                <div id="weather-status" class="flex items-center gap-2 text-xs md:text-sm font-medium bg-slate-100 text-slate-600 px-3 py-2 rounded-full border border-slate-200 transition-all duration-300 shadow-sm">
+                    <i data-lucide="cloud" class="w-4 h-4 shrink-0"></i>
+                    <span class="hidden sm:inline">Синхронізація...</span>
+                </div>
+                <!-- Profile -->
+                <div class="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-bold border border-slate-300 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                    <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-8 bg-gray-50/50">
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 w-full scroll-smooth">
+            
             <!-- ДАШБОРД -->
-            <div id="tab-dashboard" class="tab-content active space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium mb-1">Ґрунт (Сер. EMA)</p>
-                                <h3 class="text-3xl font-bold text-gray-800"><span id="dash-moisture">--</span>%</h3>
+            <div id="tab-dashboard" class="tab-content active space-y-6 max-w-7xl mx-auto">
+                <!-- KPI Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    
+                    <!-- KPI 1 -->
+                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="droplets" class="w-24 h-24 text-blue-500"></i>
+                        </div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div class="p-3 bg-gradient-to-br from-blue-500 to-cyan-400 text-white rounded-2xl shadow-lg shadow-blue-500/30">
+                                <i data-lucide="droplets" class="w-6 h-6"></i>
                             </div>
-                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="droplets" class="w-6 h-6"></i></div>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-sm text-slate-500 font-medium mb-1">Вологість (Сер. EMA)</p>
+                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-moisture">--</span><span class="text-2xl text-slate-400 font-semibold ml-1">%</span></h3>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium mb-1">Повітря (Сер.)</p>
-                                <h3 class="text-3xl font-bold text-gray-800"><span id="dash-temp">--</span>°C</h3>
+
+                    <!-- KPI 2 -->
+                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="thermometer-sun" class="w-24 h-24 text-orange-500"></i>
+                        </div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div class="p-3 bg-gradient-to-br from-orange-400 to-rose-400 text-white rounded-2xl shadow-lg shadow-orange-500/30">
+                                <i data-lucide="thermometer-sun" class="w-6 h-6"></i>
                             </div>
-                            <div class="p-3 bg-orange-50 text-orange-600 rounded-xl"><i data-lucide="thermometer" class="w-6 h-6"></i></div>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-sm text-slate-500 font-medium mb-1">Температура (Сер.)</p>
+                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-temp">--</span><span class="text-2xl text-slate-400 font-semibold ml-1">°C</span></h3>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium mb-1">Реальний VPD (Max)</p>
-                                <h3 class="text-3xl font-bold text-gray-800"><span id="dash-vpd">--</span> <span class="text-lg text-gray-400 font-normal">kPa</span></h3>
+
+                    <!-- KPI 3 -->
+                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+                            <i data-lucide="wind" class="w-24 h-24 text-purple-500"></i>
+                        </div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-2xl shadow-lg shadow-purple-500/30">
+                                <i data-lucide="wind" class="w-6 h-6"></i>
                             </div>
-                            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><i data-lucide="wind" class="w-6 h-6"></i></div>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-sm text-slate-500 font-medium mb-1">Дефіцит тиску (VPD)</p>
+                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-vpd">--</span><span class="text-xl text-slate-400 font-semibold ml-1">kPa</span></h3>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+
+                    <!-- KPI 4 (Tank) -->
+                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group flex flex-col justify-between">
                         <div class="flex justify-between items-start relative z-10">
-                            <div>
-                                <p class="text-sm text-gray-500 font-medium mb-1">Головний резервуар</p>
-                                <h3 class="text-3xl font-bold text-gray-800"><span id="dash-tank">--</span> <span class="text-lg text-gray-400 font-normal">Л</span></h3>
+                            <div class="p-3 bg-gradient-to-br from-teal-400 to-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/30">
+                                <i data-lucide="container" class="w-6 h-6"></i>
                             </div>
-                            <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="container" class="w-6 h-6"></i></div>
+                            <div class="text-right">
+                                <p class="text-sm text-slate-500 font-medium mb-1">Резервуар</p>
+                                <h3 class="text-3xl font-black text-slate-800 tracking-tight"><span id="dash-tank">--</span><span class="text-lg text-slate-400 font-semibold ml-1">Л</span></h3>
+                            </div>
                         </div>
-                        <div class="absolute bottom-0 left-0 w-full bg-cyan-100 h-1.5">
-                            <div id="tank-bar" class="bg-cyan-500 h-1.5 transition-all duration-1000" style="width: 100%"></div>
+                        <div class="relative z-10 mt-6 bg-slate-100 rounded-full h-2.5 w-full overflow-hidden">
+                            <div id="tank-bar" class="progress-bar-fill h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style="width: 100%"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Системні логи -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mt-6">
-                    <div class="border-b border-gray-100 p-4 bg-gray-50 flex items-center justify-between">
-                        <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                            <i data-lucide="terminal" class="w-4 h-4 text-gray-500"></i> Журнал подій та Мережевий трафік
+                <div class="glass-card rounded-3xl shadow-soft overflow-hidden">
+                    <div class="border-b border-slate-100 px-6 py-4 bg-white/50 flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-5 h-5 text-slate-400"></i> Журнал операцій системи
                         </h3>
+                        <div class="flex gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                        </div>
                     </div>
-                    <div class="p-4 bg-gray-900 text-green-400 font-mono text-xs h-40 overflow-y-auto" id="system-logs">
+                    <div class="p-5 bg-dark-950 text-emerald-400 font-mono text-[11px] md:text-sm h-48 overflow-y-auto leading-relaxed" id="system-logs">
                         <!-- Логи генеруватимуться тут -->
                     </div>
                 </div>
             </div>
 
             <!-- ЗОНИ ПОЛИВУ -->
-            <div id="tab-zones" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="zones-container">
-                    <!-- Картки зон генеруються динамічно -->
+            <div id="tab-zones" class="tab-content space-y-6 max-w-7xl mx-auto">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="zones-container">
+                    <!-- Картки зон генеруються динамічно через JS -->
                 </div>
             </div>
 
             <!-- АНАЛІТИКА -->
-            <div id="tab-analytics" class="tab-content">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div id="tab-analytics" class="tab-content max-w-7xl mx-auto">
+                <div class="glass-card p-6 rounded-3xl shadow-soft border border-slate-200">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-lg text-gray-800">Аналітика (Реальний VPD та Ґрунт - Зона 1)</h3>
+                        <div>
+                            <h3 class="font-bold text-xl text-slate-800">Телеметрія реального часу</h3>
+                            <p class="text-sm text-slate-500 mt-1">Зона 1: Кореляція вологості та VPD</p>
+                        </div>
+                        <div class="p-2 bg-slate-100 rounded-lg text-slate-600"><i data-lucide="bar-chart-2"></i></div>
                     </div>
-                    <div class="w-full h-[400px]">
+                    <div class="w-full h-[350px] md:h-[450px]">
                         <canvas id="mainChart"></canvas>
                     </div>
                 </div>
             </div>
+            
+            <div class="h-10"></div> <!-- Spacer -->
         </div>
     </main>
 
-    <!-- PRO-LEVEL ARCHITECTURE v4 -->
+    <!-- JS ЛОГІКА -->
     <script>
-        // --- 1. БЕЗПЕКА: AUTH FLOW (Симуляція) ---
+        // --- 1. БЕЗПЕКА: AUTH FLOW ---
         const Auth = {
             getToken() {
                 let token = localStorage.getItem('agro_jwt_token');
                 if (!token) {
-                    // У реальному світі тут редірект на /login. Ми симулюємо генерацію токена.
                     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.simulated_token_" + Date.now();
                     localStorage.setItem('agro_jwt_token', token);
                     Logger.add('AUTH', 'Згенеровано новий JWT токен сесії.');
@@ -225,7 +312,7 @@
             }
         };
 
-        // --- 2. PWA (ПРОГРЕСИВНИЙ ВЕБ-ДОДАТОК з кешуванням) ---
+        // --- 2. PWA ---
         const PWA = {
             deferredPrompt: null,
 
@@ -237,14 +324,14 @@
 
             injectManifest() {
                 const manifest = {
-                    name: "Agro-Controller PRO v4",
+                    name: "Agro-Controller PRO",
                     short_name: "AgroPRO",
                     start_url: window.location.href,
                     display: "standalone",
-                    background_color: "#f9fafb",
-                    theme_color: "#14532d",
+                    background_color: "#f8fafc",
+                    theme_color: "#0f172a",
                     icons: [{
-                        src: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2316a34a'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E",
+                        src: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E",
                         sizes: "192x192",
                         type: "image/svg+xml",
                         purpose: "any maskable"
@@ -259,39 +346,24 @@
                 document.head.appendChild(link);
             },
 
-            // PRO SW: Кешування ассетів для роботи офлайн
             registerServiceWorker() {
                 if ('serviceWorker' in navigator) {
                     const swCode = `
-                        const CACHE_NAME = 'agro-pro-cache-v4';
-                        // Кешуємо поточний URL (оскільки це Single File)
+                        const CACHE_NAME = 'agro-pro-cache-v4.1';
                         const ASSETS = [ location.href ];
-                        
                         self.addEventListener('install', (e) => {
-                            e.waitUntil(
-                                caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-                            );
+                            e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
                             self.skipWaiting();
                         });
-
-                        self.addEventListener('activate', (e) => {
-                            e.waitUntil(clients.claim());
-                        });
-
+                        self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
                         self.addEventListener('fetch', (e) => {
-                            e.respondWith(
-                                caches.match(e.request).then(res => {
-                                    return res || fetch(e.request).catch(() => new Response('Network Error'));
-                                })
-                            );
+                            e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => new Response('Network Error'))));
                         });
                     `;
                     const swBlob = new Blob([swCode], { type: 'application/javascript' });
                     const swUrl = URL.createObjectURL(swBlob);
 
-                    navigator.serviceWorker.register(swUrl)
-                        .then(reg => console.log('[PWA] Service Worker з кешуванням зареєстровано'))
-                        .catch(err => console.error('[PWA] SW Error:', err));
+                    navigator.serviceWorker.register(swUrl).catch(err => console.error('[PWA] SW Error:', err));
                 }
             },
 
@@ -306,16 +378,12 @@
                             installBtn.classList.add('hidden');
                             this.deferredPrompt.prompt();
                             const { outcome } = await this.deferredPrompt.userChoice;
-                            if (outcome === 'accepted') {
-                                Logger.add('INFO', '🎉 Agro-Controller PWA встановлено.');
-                            }
+                            if (outcome === 'accepted') Logger.add('INFO', '🎉 Agro-Controller PWA встановлено.');
                             this.deferredPrompt = null;
                         });
                     }
                 });
-                window.addEventListener('appinstalled', () => {
-                    document.getElementById('pwa-install-btn').classList.add('hidden');
-                });
+                window.addEventListener('appinstalled', () => document.getElementById('pwa-install-btn').classList.add('hidden'));
             }
         };
 
@@ -324,12 +392,11 @@
             VPD_OPTIMAL: [0.8, 1.2],
             HYSTERESIS: { ON: 45, OFF: 65 },
             WS_PING_INTERVAL: 2000,
-            HEARTBEAT_TIMEOUT: 6000, // Чекаємо Pong 6 секунд
             TOGGLE_DELAY: 5000, 
             MAX_CHART_POINTS: 30,
             TANK_MAX: 1000,
             TANK_MIN: 100,
-            MAX_MISSED_PINGS: 3 // Retry Logic для Watchdog
+            MAX_MISSED_PINGS: 3 
         };
 
         const Logger = {
@@ -347,11 +414,11 @@
                     if (logsContainer) {
                         let html = '';
                         this.logs.forEach(log => {
-                            const color = log.includes('[ERROR]') ? 'text-red-400' : 
-                                          log.includes('[WARN]') ? 'text-yellow-400' : 
+                            const color = log.includes('[ERROR]') ? 'text-rose-400' : 
+                                          log.includes('[WARN]') ? 'text-amber-400' : 
                                           log.includes('[AUTH]') ? 'text-purple-400' :
-                                          log.includes('[NET]') ? 'text-cyan-400' : 'text-green-400';
-                            html += `<div class="${color}">${log}</div>`;
+                                          log.includes('[NET]') ? 'text-cyan-400' : 'text-emerald-400';
+                            html += `<div class="${color} break-words whitespace-pre-wrap py-0.5">${log}</div>`;
                         });
                         logsContainer.innerHTML = html;
                     }
@@ -366,10 +433,7 @@
                 saveTimeout = setTimeout(this.save, 2000);
             },
             save() {
-                const dataToSave = {
-                    tankLevel: State.tankLevel,
-                    zones: State.zones
-                };
+                const dataToSave = { tankLevel: State.tankLevel, zones: State.zones };
                 localStorage.setItem('agroStatePRO_v4', JSON.stringify(dataToSave));
             },
             load() {
@@ -386,14 +450,12 @@
                                     State.zones[key].temp = parsed.zones[key].temp;
                                     State.zones[key].isWatering = false; 
                                     State.zones[key].status = 'IDLE';
-                                    State.zones[key].missedPings = 0; // Скидаємо лічильники Watchdog
+                                    State.zones[key].missedPings = 0; 
                                 }
                             });
                         }
-                        Logger.add('INFO', 'Стан відновлено з локального кешу');
-                    } catch (e) {
-                        Logger.add('ERROR', 'Помилка читання кешу');
-                    }
+                        Logger.add('INFO', 'Стан відновлено з кешу');
+                    } catch (e) { Logger.add('ERROR', 'Помилка читання кешу'); }
                 }
             }
         };
@@ -401,29 +463,26 @@
         const State = {
             isOnline: false,
             weather: { isRaining: false, probability: 0, rainInMinutes: 999 },
-            tankLevel: 200,
+            tankLevel: 350,
             zones: {
-                z1: { id: 'z1', name: 'Теплиця (Огірки)', loraId: 'A1', rawMoisture: 48, moisture: 48, airHumidity: 65, trend: 0, temp: 24.5, vpd: 0.9, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 },
-                z2: { id: 'z2', name: 'Відкритий ґрунт (Томати)', loraId: 'B2', rawMoisture: 62, moisture: 62, airHumidity: 55, trend: 0, temp: 26.2, vpd: 1.3, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 }
+                z1: { id: 'z1', name: 'Теплиця (Огірки)', loraId: 'NET-A1', rawMoisture: 48, moisture: 48, airHumidity: 65, trend: 0, temp: 24.5, vpd: 0.9, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 },
+                z2: { id: 'z2', name: 'Відкритий ґрунт (Томати)', loraId: 'NET-B2', rawMoisture: 62, moisture: 62, airHumidity: 55, trend: 0, temp: 26.2, vpd: 1.3, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 }
             },
             chartInstance: null
         };
 
         const DOM = { zones: {} };
 
-        // --- 4. МАТЕМАТИКА VPD (Реальна формула) ---
+        // --- 4. МАТЕМАТИКА VPD ---
         const AgroMath = {
             calculateVPD(tempCelsius, relHumidity) {
-                // SVP (Saturation Vapor Pressure) в kPa
                 const svp = 0.61078 * Math.exp((17.27 * tempCelsius) / (tempCelsius + 237.3));
-                // AVP (Actual Vapor Pressure)
                 const avp = svp * (relHumidity / 100);
-                // VPD = SVP - AVP
                 return (svp - avp);
             }
         };
 
-        // --- 5. МЕРЕЖА: WebSocket Gateway з Exponential Backoff ---
+        // --- 5. МЕРЕЖА ---
         const NetworkWS = {
             intervalId: null,
             reconnectTimer: null,
@@ -432,28 +491,18 @@
             connect() {
                 if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
                 UI.setConnectionStatus('connecting');
-                Logger.add('NET', 'Ініціалізація WS Gateway (Handshake)...');
-                
-                // Імітуємо перевірку Auth токена
-                const token = Auth.getToken();
+                Logger.add('NET', 'Ініціалізація Secure WS Gateway...');
                 
                 setTimeout(() => {
                     State.isOnline = true;
-                    this.retries = 0; // Скидаємо лічильник після успіху
+                    this.retries = 0; 
                     document.getElementById('reconnect-bar').style.width = '0%';
-                    
                     UI.setConnectionStatus('connected');
-                    Logger.add('NET', 'WS З\'єднано. Heartbeat активний.');
+                    Logger.add('NET', 'З\'єднання встановлено (128ms)');
                     
-                    Object.values(State.zones).forEach(z => {
-                        z.lastSeen = Date.now();
-                        z.missedPings = 0;
-                    });
-
-                    this.intervalId = setInterval(() => {
-                        this.simulateIncomingData();
-                    }, CONFIG.WS_PING_INTERVAL);
-                }, 800);
+                    Object.values(State.zones).forEach(z => { z.lastSeen = Date.now(); z.missedPings = 0; });
+                    this.intervalId = setInterval(() => this.simulateIncomingData(), CONFIG.WS_PING_INTERVAL);
+                }, 1200);
             },
             
             disconnect() {
@@ -461,14 +510,9 @@
                 clearInterval(this.intervalId);
                 UI.setConnectionStatus('disconnected');
                 
-                // Exponential Backoff Логіка: 1s, 2s, 4s, 8s, 16s... Max 30s
-                const baseDelay = 1000;
-                const maxDelay = 30000;
-                const delay = Math.min(maxDelay, baseDelay * Math.pow(2, this.retries));
+                const delay = Math.min(30000, 1000 * Math.pow(2, this.retries));
+                Logger.add('ERROR', `Втрата пакетів. Відновлення через ${(delay/1000).toFixed(1)}с`);
                 
-                Logger.add('ERROR', `WS Зрив. Reconnect через ${(delay/1000).toFixed(1)}с (Спроба ${this.retries + 1})`);
-                
-                // Анімація прогресу реконекту
                 const bar = document.getElementById('reconnect-bar');
                 bar.style.transition = `width ${delay}ms linear`;
                 bar.style.width = '100%';
@@ -484,16 +528,9 @@
             },
 
             async send(command, payload) {
-                // Використовуємо реальний Auth Header
-                const headers = Auth.getHeaders();
-                Logger.add('CMD', `[LoRa Queue] CMD: ${command} | Zone: ${payload.id}`);
-                
+                Logger.add('CMD', `TX [${command}] -> ${payload.id}`);
                 return new Promise((resolve) => {
-                    const loraDelay = 800 + Math.random() * 700;
-                    setTimeout(() => {
-                        Logger.add('NET', `ACK Received. Hashed Token Validation OK.`);
-                        resolve({ success: true });
-                    }, loraDelay);
+                    setTimeout(() => resolve({ success: true }), 600 + Math.random() * 400);
                 });
             },
 
@@ -507,7 +544,7 @@
                     if (zone.isWatering) {
                         zone.rawMoisture += 2.5 + noiseM;
                         State.tankLevel -= 2; 
-                        zone.airHumidity += 0.5; // Полив локально піднімає вологість повітря
+                        zone.airHumidity += 0.5; 
                     } else {
                         zone.rawMoisture -= 0.5 + noiseM;
                         zone.airHumidity -= 0.2; 
@@ -521,13 +558,9 @@
                     zone.moisture = (dynamicAlpha * zone.rawMoisture) + ((1 - dynamicAlpha) * zone.moisture);
 
                     zone.trend = zone.moisture - prevMoisture;
-
                     zone.temp += (Math.random() * 0.4 - 0.2);
-                    
-                    // PRO: Реальний математичний розрахунок VPD
                     zone.vpd = AgroMath.calculateVPD(zone.temp, zone.airHumidity);
 
-                    // Отримано пакет = скидаємо Watchdog
                     zone.lastSeen = Date.now();
                     zone.missedPings = 0; 
                 });
@@ -540,26 +573,22 @@
 
         const WeatherService = {
             async fetch() {
-                // Симуляція запиту до OpenWeather API
                 State.weather.probability = Math.floor(Math.random() * 100);
                 State.weather.rainInMinutes = Math.floor(Math.random() * 120);
                 State.weather.isRaining = State.weather.probability > 80 && State.weather.rainInMinutes === 0; 
                 UI.updateWeatherWidget();
-                Logger.add('NET', `Weather API Sync OK. Cloud/Rain Index: ${State.weather.probability}%`);
             }
         };
 
-        // --- 6. LOGIC: Watchdog Retry, ET ---
+        // --- 6. LOGIC ---
         const Logic = {
             shouldStartWatering(zone) {
                 if (State.weather.rainInMinutes < 60 && State.weather.probability > 60) return false;
                 if (State.tankLevel < CONFIG.TANK_MIN) return false;
                 
                 let dynamicOnThreshold = CONFIG.HYSTERESIS.ON;
-                
                 if (zone.vpd > 1.6) dynamicOnThreshold += 10; 
                 else if (zone.vpd < 0.7) dynamicOnThreshold -= 5;  
-
                 if (zone.temp > 28 && State.weather.probability < 30) dynamicOnThreshold += 5; 
 
                 const predictedMoisture = zone.moisture + (zone.trend * 15);
@@ -570,26 +599,21 @@
                 const now = Date.now();
 
                 Object.values(State.zones).forEach(zone => {
-                    
-                    // PRO: Watchdog із логікою Retry
                     if (now - zone.lastSeen > CONFIG.WS_PING_INTERVAL * 2 && State.isOnline) {
                         zone.missedPings++;
                         if (zone.missedPings >= CONFIG.MAX_MISSED_PINGS) {
                             if (zone.isWatering) {
                                 zone.isWatering = false;
-                                Logger.add('ERROR', `[WATCHDOG KILL] LoRa Node ${zone.id} Dead. Аварійне перекриття води.`);
+                                NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
                             }
                             zone.status = 'OFFLINE';
                             return; 
-                        } else {
-                            Logger.add('WARN', `[WATCHDOG] Пропущено пінг від ${zone.id} (${zone.missedPings}/${CONFIG.MAX_MISSED_PINGS})`);
                         }
                     }
 
                     if (State.tankLevel < CONFIG.TANK_MIN) {
                         if (zone.isWatering) {
                             zone.isWatering = false;
-                            Logger.add('WARN', `FAIL-SAFE: Помпа зупинена. Бак порожній.`);
                             NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
                         }
                         zone.status = 'LOW_WATER';
@@ -599,48 +623,32 @@
                         if (!zone.isWatering && this.shouldStartWatering(zone) && canToggle) {
                             zone.isWatering = true;
                             zone.lastToggleTime = now;
-                            Logger.add('INFO', `[AUTO] Старт поливу ${zone.name}. Прогноз вологості критичний.`);
                             NetworkWS.send('RELAY_SET', { id: zone.id, state: true });
                         } else if (zone.isWatering && zone.moisture >= CONFIG.HYSTERESIS.OFF && canToggle) {
                             zone.isWatering = false;
                             zone.lastToggleTime = now;
-                            Logger.add('INFO', `[AUTO] Стоп поливу ${zone.name}. Цільовий рівень гістерезису досягнуто.`);
                             NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
                         }
-
                         zone.status = zone.isWatering ? 'WATERING' : 'IDLE';
                     }
                 });
             },
 
             async handleManualWatering(zoneId) {
-                if (!State.isOnline) {
-                    alert("Мережевий шлюз недоступний. Команда відхилена.");
-                    return;
-                }
-
+                if (!State.isOnline) { alert("Немає з'єднання з сервером"); return; }
                 const zone = State.zones[zoneId];
                 const now = Date.now();
                 
-                if (zone.status === 'OFFLINE') {
-                    alert("LoRa вузол не відповідає на Heartbeat. Команда неможлива.");
-                    return;
-                }
-
-                if (now - zone.lastToggleTime < CONFIG.TOGGLE_DELAY) {
-                    Logger.add('WARN', `Anti-Spam Relay Protection: Зачекайте ${CONFIG.TOGGLE_DELAY/1000}с.`);
-                    return;
-                }
-                
-                if (State.tankLevel < CONFIG.TANK_MIN && !zone.isWatering) {
-                    alert("Interlock: Рівень води занадто низький!");
-                    return;
-                }
+                if (zone.status === 'OFFLINE') { alert("Вузол не відповідає"); return; }
+                if (now - zone.lastToggleTime < CONFIG.TOGGLE_DELAY) { return; }
+                if (State.tankLevel < CONFIG.TANK_MIN && !zone.isWatering) { alert("Критичний рівень води в баку"); return; }
 
                 const newState = !zone.isWatering;
-                
                 const btnObj = DOM.zones[zoneId].btn;
-                if(btnObj) btnObj.disabled = true;
+                if(btnObj) {
+                    btnObj.disabled = true;
+                    DOM.zones[zoneId].btnIcon.classList.add('animate-spin');
+                }
 
                 const res = await NetworkWS.send('RELAY_SET', { id: zoneId, state: newState });
                 
@@ -648,18 +656,35 @@
                     zone.isWatering = newState;
                     zone.status = zone.isWatering ? 'WATERING' : 'IDLE';
                     zone.lastToggleTime = now;
-                    Logger.add('INFO', `[MANUAL_OVERRIDE] Клапан ${zone.id} -> ${newState ? 'OPEN' : 'CLOSED'}`);
                     UI.render(); 
                 }
                 
-                if(btnObj) btnObj.disabled = false;
+                if(btnObj) {
+                    btnObj.disabled = false;
+                    DOM.zones[zoneId].btnIcon.classList.remove('animate-spin');
+                }
             }
         };
 
-        // --- 7. UI (Rendering & Cache) ---
+        // --- 7. UI ---
         const UI = {
             lastValues: {},
-            titles: { 'dashboard': 'Огляд системи', 'zones': 'Управління клапанами', 'analytics': 'Аналітика (VPD/ET)' },
+            titles: { 'dashboard': 'Огляд системи', 'zones': 'Управління клапанами', 'analytics': 'Аналітичні дані' },
+
+            toggleSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                
+                sidebar.classList.toggle('-translate-x-full');
+                
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    backdrop.classList.add('opacity-0');
+                    setTimeout(() => backdrop.classList.add('hidden'), 300);
+                } else {
+                    backdrop.classList.remove('hidden');
+                    setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+                }
+            },
 
             init() {
                 DOM.dashMoisture = document.getElementById('dash-moisture');
@@ -681,43 +706,67 @@
 
                 Object.values(State.zones).forEach(zone => {
                     const html = `
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div class="border-b border-gray-100 p-5 flex justify-between items-center bg-gray-50">
+                    <div class="glass-card rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg">
+                        <!-- Header -->
+                        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white/40">
                             <div class="flex items-center gap-3">
-                                <div id="${zone.id}-indicator" class="w-3 h-3 rounded-full bg-gray-400"></div>
-                                <h3 class="font-bold text-lg text-gray-800">${zone.name}</h3>
-                            </div>
-                            <span class="text-xs font-bold px-2 py-1 bg-gray-200 rounded-md text-gray-600 font-mono">NODE:${zone.loraId}</span>
-                        </div>
-                        <div class="p-6">
-                            <div class="grid grid-cols-2 gap-4 mb-6">
-                                <div class="p-4 rounded-xl bg-blue-50 border border-blue-100 relative">
-                                    <p class="text-xs text-blue-600 font-bold mb-1 uppercase tracking-wider">Ґрунт (EMA)</p>
-                                    <div class="flex items-end gap-2">
-                                        <span class="text-3xl font-black text-gray-800" id="${zone.id}-moisture">--</span>
-                                        <span class="text-lg text-gray-500 mb-1">%</span>
-                                    </div>
-                                    <div class="w-full bg-blue-200 rounded-full h-1.5 mt-3">
-                                        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" id="${zone.id}-bar" style="width: 0%"></div>
-                                    </div>
+                                <div class="relative flex items-center justify-center">
+                                    <div id="${zone.id}-indicator-bg" class="absolute inset-0 rounded-full opacity-20 transition-all duration-300"></div>
+                                    <div id="${zone.id}-indicator" class="w-3.5 h-3.5 rounded-full bg-slate-300 shadow-sm relative z-10 transition-colors duration-300"></div>
                                 </div>
-                                <div class="p-4 rounded-xl bg-orange-50 border border-orange-100 relative">
-                                    <p class="text-xs text-orange-600 font-bold mb-1 uppercase tracking-wider">Температура</p>
-                                    <div class="flex items-end gap-2">
-                                        <span class="text-3xl font-black text-gray-800" id="${zone.id}-temp">--</span>
-                                        <span class="text-lg text-gray-500 mb-1">°C</span>
-                                    </div>
-                                    <div class="mt-2 text-xs text-orange-700">Влог. Повітря: <span id="${zone.id}-air">--</span>%</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-800">Статус: <span id="${zone.id}-status" class="text-gray-500">Очікування</span></p>
+                                    <h3 class="font-bold text-lg text-slate-800 leading-tight">${zone.name}</h3>
+                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-mono">${zone.loraId}</span>
                                 </div>
-                                <button onclick="Logic.handleManualWatering('${zone.id}')" id="btn-water-${zone.id}" class="px-5 py-2.5 bg-agro-600 hover:bg-agro-700 text-white rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2">
-                                    <i data-lucide="power" class="w-4 h-4"></i> <span id="btn-text-${zone.id}">Увімкнути</span>
-                                </button>
                             </div>
+                            <div id="${zone.id}-status-badge" class="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-500">
+                                Очікування
+                            </div>
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="p-6 flex-1 flex flex-col gap-6">
+                            <!-- Moisture Main -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Вологість ґрунту</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-4xl font-black text-slate-800" id="${zone.id}-moisture">--</span>
+                                        <span class="text-xl font-bold text-slate-400">%</span>
+                                    </div>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200/50 shadow-inner">
+                                    <div class="progress-bar-fill h-full bg-gradient-to-r from-blue-400 to-indigo-500 relative" id="${zone.id}-bar" style="width: 0%">
+                                        <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Minor Stats Grid -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
+                                    <div class="p-2 bg-orange-100 text-orange-500 rounded-xl"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Темп-ра</p>
+                                        <p class="text-xl font-bold text-slate-700"><span id="${zone.id}-temp">--</span><span class="text-sm text-slate-400">°C</span></p>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
+                                    <div class="p-2 bg-cyan-100 text-cyan-500 rounded-xl"><i data-lucide="cloud-fog" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Повітря</p>
+                                        <p class="text-xl font-bold text-slate-700"><span id="${zone.id}-air">--</span><span class="text-sm text-slate-400">%</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer / Actions -->
+                        <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+                            <button onclick="Logic.handleManualWatering('${zone.id}')" id="btn-water-${zone.id}" class="group px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 hover:bg-slate-900 shadow-md active:scale-95">
+                                <i data-lucide="power" id="btn-icon-${zone.id}" class="w-4 h-4 transition-transform group-hover:scale-110"></i> 
+                                <span id="btn-text-${zone.id}">Увімкнути</span>
+                            </button>
                         </div>
                     </div>`;
                     container.insertAdjacentHTML('beforeend', html);
@@ -727,10 +776,12 @@
                         air: document.getElementById(`${zone.id}-air`),
                         bar: document.getElementById(`${zone.id}-bar`),
                         temp: document.getElementById(`${zone.id}-temp`),
-                        status: document.getElementById(`${zone.id}-status`),
+                        statusBadge: document.getElementById(`${zone.id}-status-badge`),
                         btn: document.getElementById(`btn-water-${zone.id}`),
                         btnText: document.getElementById(`btn-text-${zone.id}`),
-                        indicator: document.getElementById(`${zone.id}-indicator`)
+                        btnIcon: document.getElementById(`btn-icon-${zone.id}`),
+                        indicator: document.getElementById(`${zone.id}-indicator`),
+                        indicatorBg: document.getElementById(`${zone.id}-indicator-bg`)
                     };
                 });
                 lucide.createIcons();
@@ -738,37 +789,40 @@
 
             switchTab(tabId) {
                 document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('bg-agro-700', 'text-white');
-                    btn.classList.add('text-agro-100');
+                    btn.classList.remove('bg-agro-500/10', 'text-agro-400');
+                    btn.classList.add('text-slate-400', 'hover:bg-slate-800');
                 });
                 
                 const activeBtn = document.getElementById('nav-' + tabId);
                 if(activeBtn) {
-                    activeBtn.classList.remove('text-agro-100');
-                    activeBtn.classList.add('bg-agro-700', 'text-white');
+                    activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800');
+                    activeBtn.classList.add('bg-agro-500/10', 'text-agro-400');
                 }
                 document.getElementById('page-title').innerText = this.titles[tabId];
 
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                 document.getElementById('tab-' + tabId).classList.add('active');
+                
+                if(window.innerWidth < 1024) {
+                    const sidebar = document.getElementById('sidebar');
+                    if(!sidebar.classList.contains('-translate-x-full')) this.toggleSidebar();
+                }
             },
 
             setConnectionStatus(status) {
                 requestAnimationFrame(() => {
                     if (status === 'connected') {
-                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="wifi" class="w-3 h-3"></i> Підключено (JWT)';
-                        DOM.connText.className = "text-xs text-green-400 flex items-center gap-1 relative z-10";
+                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>';
+                        DOM.connText.innerHTML = '<i data-lucide="wifi" class="w-3.5 h-3.5"></i> Активно';
+                        DOM.connText.className = "text-xs text-emerald-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
                     } else if (status === 'disconnected') {
-                        DOM.connIndicator.innerHTML = '<span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="wifi-off" class="w-3 h-3"></i> Зрив зв\'язку';
-                        DOM.connText.className = "text-xs text-red-400 flex items-center gap-1 relative z-10";
+                        DOM.connIndicator.innerHTML = '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>';
+                        DOM.connText.innerHTML = '<i data-lucide="wifi-off" class="w-3.5 h-3.5"></i> Зрив зв\'язку';
+                        DOM.connText.className = "text-xs text-rose-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
                     } else {
-                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i> З\'єднання...';
-                        DOM.connText.className = "text-xs text-yellow-400 flex items-center gap-1 relative z-10";
+                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>';
+                        DOM.connText.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Пошук шлюзу...';
+                        DOM.connText.className = "text-xs text-amber-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
                     }
                     lucide.createIcons();
                 });
@@ -777,16 +831,16 @@
             updateWeatherWidget() {
                 const isBlock = State.weather.rainInMinutes < 60 && State.weather.probability > 60;
                 const newClass = isBlock 
-                    ? "flex items-center gap-2 text-sm font-medium text-blue-700 bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
-                    : "flex items-center gap-2 text-sm font-medium text-green-700 bg-green-100 px-3 py-1.5 rounded-full transition-colors";
+                    ? "flex items-center gap-2 text-xs md:text-sm font-semibold text-blue-700 bg-blue-100 px-4 py-2 rounded-full transition-all shadow-sm"
+                    : "flex items-center gap-2 text-xs md:text-sm font-semibold text-amber-700 bg-amber-100 px-4 py-2 rounded-full transition-all shadow-sm";
                 
                 if(this.lastValues.weatherClass !== newClass) {
                     this.lastValues.weatherClass = newClass;
                     requestAnimationFrame(() => {
                         DOM.weatherStatus.className = newClass;
                         DOM.weatherStatus.innerHTML = isBlock
-                            ? `<i data-lucide="cloud-rain" class="w-4 h-4"></i><span>Дощ через ${State.weather.rainInMinutes} хв.</span>`
-                            : `<i data-lucide="sun" class="w-4 h-4"></i><span>Clear Sky API</span>`;
+                            ? `<i data-lucide="cloud-rain" class="w-4 h-4 shrink-0"></i><span class="hidden sm:inline">Дощ через ${State.weather.rainInMinutes} хв</span>`
+                            : `<i data-lucide="sun" class="w-4 h-4 shrink-0"></i><span class="hidden sm:inline">Ясно (API)</span>`;
                         lucide.createIcons();
                     });
                 }
@@ -813,8 +867,11 @@
                     if (this.lastValues.tank !== tnkInt) { 
                         DOM.dashTank.innerText = tnkInt; 
                         DOM.tankBar.style.width = `${(tnkInt/CONFIG.TANK_MAX)*100}%`;
-                        if(tnkInt < CONFIG.TANK_MIN) DOM.tankBar.classList.replace('bg-cyan-500', 'bg-red-500');
-                        else DOM.tankBar.classList.replace('bg-red-500', 'bg-cyan-500');
+                        
+                        // Кольори для баку
+                        DOM.tankBar.className = tnkInt < CONFIG.TANK_MIN 
+                            ? 'progress-bar-fill h-full bg-gradient-to-r from-rose-500 to-red-600 rounded-full'
+                            : 'progress-bar-fill h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full';
                         this.lastValues.tank = tnkInt; 
                     }
 
@@ -834,45 +891,44 @@
                             domZ.bar.style.width = `${mInt}%`;
                             this.lastValues[cacheKey].moisture = mInt;
                         }
-                        
-                        if (this.lastValues[cacheKey].air !== aInt) {
-                            domZ.air.innerText = aInt;
-                            this.lastValues[cacheKey].air = aInt;
-                        }
-
-                        if (this.lastValues[cacheKey].temp !== tFixed) {
-                            domZ.temp.innerText = tFixed;
-                            this.lastValues[cacheKey].temp = tFixed;
-                        }
+                        if (this.lastValues[cacheKey].air !== aInt) { domZ.air.innerText = aInt; this.lastValues[cacheKey].air = aInt; }
+                        if (this.lastValues[cacheKey].temp !== tFixed) { domZ.temp.innerText = tFixed; this.lastValues[cacheKey].temp = tFixed; }
 
                         if (this.lastValues[cacheKey].status !== z.status || !State.isOnline) {
-                            domZ.btn.className = "px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2 text-white";
+                            const baseBtnClass = "group px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center gap-2 text-white shadow-md active:scale-95 shrink-0";
                             domZ.btn.disabled = false;
-                            domZ.indicator.className = "w-3 h-3 rounded-full";
 
                             if (!State.isOnline || z.status === 'OFFLINE') {
-                                domZ.status.innerHTML = '<span class="text-gray-500">Офлайн / Timeout</span>';
-                                domZ.btn.classList.add('bg-gray-400');
+                                domZ.statusBadge.innerHTML = 'Офлайн';
+                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-500';
+                                domZ.btn.className = `${baseBtnClass} bg-slate-300 shadow-none text-slate-500 cursor-not-allowed`;
                                 domZ.btn.disabled = true;
-                                domZ.btnText.innerText = "No Route";
-                                domZ.indicator.classList.add('bg-gray-400');
+                                domZ.btnText.innerText = "Недоступно";
+                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-slate-300 relative z-10 transition-colors duration-300";
+                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-0";
                             }
                             else if (z.status === 'LOW_WATER') {
-                                domZ.status.innerHTML = '<span class="text-red-500 font-bold">Interlock: Бак</span>';
-                                domZ.btn.classList.add('bg-red-300');
+                                domZ.statusBadge.innerHTML = 'Блок (Бак)';
+                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs font-bold text-rose-600';
+                                domZ.btn.className = `${baseBtnClass} bg-rose-200 shadow-none text-rose-500 cursor-not-allowed`;
                                 domZ.btn.disabled = true; 
-                                domZ.btnText.innerText = "Блок";
-                                domZ.indicator.classList.add('bg-red-500');
+                                domZ.btnText.innerText = "Заблоковано";
+                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-rose-500 relative z-10 transition-colors duration-300";
+                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-20 bg-rose-500";
                             } else if (z.status === 'WATERING') {
-                                domZ.status.innerHTML = '<span class="text-blue-500 font-bold">Відкрито...</span>';
-                                domZ.btn.classList.add('bg-red-500', 'hover:bg-red-600');
-                                domZ.btnText.innerText = "Вимкнути";
-                                domZ.indicator.classList.add('bg-blue-500', 'animate-pulse');
+                                domZ.statusBadge.innerHTML = '<span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Полив активний</span>';
+                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-600';
+                                domZ.btn.className = `${baseBtnClass} bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-500/30 hover:shadow-rose-500/50`;
+                                domZ.btnText.innerText = "Зупинити";
+                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-blue-500 relative z-10 transition-colors duration-300 animate-pulse";
+                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-30 bg-blue-500 animate-ping";
                             } else {
-                                domZ.status.innerHTML = 'Очікування';
-                                domZ.btn.classList.add('bg-agro-600', 'hover:bg-agro-700');
+                                domZ.statusBadge.innerHTML = 'Готовий';
+                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-600';
+                                domZ.btn.className = `${baseBtnClass} bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/30 hover:shadow-emerald-500/50`;
                                 domZ.btnText.innerText = "Увімкнути";
-                                domZ.indicator.classList.add('bg-green-500');
+                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-emerald-500 relative z-10 transition-colors duration-300";
+                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-20 bg-emerald-500";
                             }
                             this.lastValues[cacheKey].status = z.status;
                         }
@@ -884,28 +940,47 @@
 
             initChart() {
                 const ctx = document.getElementById('mainChart').getContext('2d');
+                
+                // Стилізація графіку під новий дизайн
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                Chart.defaults.color = '#64748b'; // slate-500
+                
                 State.chartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: [],
                         datasets: [
                             {
-                                label: 'Зона 1: Ґрунт (%) EMA', data: [],
-                                borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                label: 'Вологість ґрунту (%)', data: [],
+                                borderColor: '#3b82f6', // blue-500
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#3b82f6',
+                                pointBorderWidth: 2,
+                                pointRadius: 3,
                                 yAxisID: 'y', tension: 0.4, fill: true
                             },
                             {
-                                label: 'Зона 1: Real VPD (kPa)', data: [],
-                                borderColor: '#9333ea',
+                                label: 'VPD (kPa)', data: [],
+                                borderColor: '#8b5cf6', // violet-500
+                                borderWidth: 2,
+                                pointRadius: 0,
                                 yAxisID: 'y1', tension: 0.4, borderDash: [5, 5]
                             }
                         ]
                     },
                     options: {
-                        responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, 
+                        responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600' } } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 13 }, padding: 12, cornerRadius: 8 }
+                        },
                         scales: {
-                            y: { min: 0, max: 100 },
-                            y1: { position: 'right', min: 0, max: 2.5, grid: { drawOnChartArea: false } }
+                            x: { grid: { display: false } },
+                            y: { min: 0, max: 100, border: { display: false }, grid: { color: '#f1f5f9' } },
+                            y1: { position: 'right', min: 0, max: 2.5, border: { display: false }, grid: { drawOnChartArea: false } }
                         }
                     }
                 });
@@ -920,7 +995,7 @@
 
                 data.labels.push(timeStr);
                 data.datasets[0].data.push(moisture);
-                data.datasets[1].data.push(vpd.toFixed(2)); // VPD з 2 знаками
+                data.datasets[1].data.push(vpd.toFixed(2)); 
 
                 if (data.labels.length > CONFIG.MAX_CHART_POINTS) {
                     data.labels.shift();
@@ -934,26 +1009,18 @@
 
         // --- 8. APP INIT ---
         document.addEventListener("DOMContentLoaded", async () => {
-            Logger.add('INFO', 'Boot sequence: Agro-Controller PRO v4');
+            Logger.add('INFO', 'Boot: AgroPRO v4.1 (Neo Glass Edition)');
             
-            // 1. Init Security (Імітація перевірки токена)
             Auth.getToken();
-
-            // 2. Init PWA (Повноцінний кеш)
             PWA.init();
-            
-            // 3. Відновлення стану
             Storage.load(); 
             UI.init();
             
-            // 4. Зовнішні API
             await WeatherService.fetch();
             setInterval(WeatherService.fetch, 60000); 
 
-            // 5. Старт мережі
             NetworkWS.connect(); 
 
-            // Відключення для тестування Exponential Backoff Reconnect
             document.getElementById('ws-status-panel').addEventListener('dblclick', () => {
                 if(State.isOnline) NetworkWS.disconnect();
                 else NetworkWS.connect();
