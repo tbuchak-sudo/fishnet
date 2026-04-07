@@ -1,6 +1,6 @@
 {
-  "name": "Gromada",
-  "short_name": "Gromada",
+  "name": "Agro-Controller",
+  "short_name": "Agro-Controller",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#e9ebee",
