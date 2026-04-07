@@ -17,10 +17,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Бібліотеки -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Налаштування Tailwind -->
     <script>
         tailwind.config = {
             theme: {
@@ -30,7 +32,7 @@
                     },
                     colors: {
                         agro: {
-                            50: '#f0fdf4', 100: '#dcfce7', 500: '#10b981', // emerald
+                            50: '#f0fdf4', 100: '#dcfce7', 400: '#34d399', 500: '#10b981', // emerald
                             600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
                         },
                         dark: {
@@ -46,6 +48,8 @@
             }
         }
     </script>
+    
+    <!-- Кастомні стилі -->
     <style>
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         
@@ -87,6 +91,12 @@
         
         /* Smooth progress bar transitions */
         .progress-bar-fill { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Shimmer effect for progress bars */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden w-full selection:bg-agro-500 selection:text-white">
@@ -348,22 +358,9 @@
 
             registerServiceWorker() {
                 if ('serviceWorker' in navigator) {
-                    const swCode = `
-                        const CACHE_NAME = 'agro-pro-cache-v4.1';
-                        const ASSETS = [ location.href ];
-                        self.addEventListener('install', (e) => {
-                            e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
-                            self.skipWaiting();
-                        });
-                        self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                        self.addEventListener('fetch', (e) => {
-                            e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => new Response('Network Error'))));
-                        });
-                    `;
-                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(swBlob);
-
-                    navigator.serviceWorker.register(swUrl).catch(err => console.error('[PWA] SW Error:', err));
+                    // Браузери не підтримують реєстрацію Service Worker через blob: або data: протоколи з міркувань безпеки.
+                    // Для повноцінної роботи кешування PWA необхідний окремий файл (наприклад, sw.js).
+                    console.warn('[PWA] Service Worker registration skipped: Security constraints prevent blob: URL registration. A separate sw.js file is required.');
                 }
             },
 
@@ -735,7 +732,7 @@
                                         <span class="text-xl font-bold text-slate-400">%</span>
                                     </div>
                                 </div>
-                                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200/50 shadow-inner">
+                                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200/50 shadow-inner relative">
                                     <div class="progress-bar-fill h-full bg-gradient-to-r from-blue-400 to-indigo-500 relative" id="${zone.id}-bar" style="width: 0%">
                                         <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
                                     </div>
