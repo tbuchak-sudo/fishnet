@@ -2,1028 +2,552 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Agro-Controller PRO v4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СуховоляТех - Прокат Інструменту</title>
     
-    <!-- PWA META ТЕГИ -->
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="AgroPRO">
-    <meta name="mobile-web-app-capable" content="yes">
-
-    <!-- Шрифти -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Бібліотеки -->
+    <!-- Підключаємо стилі Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Налаштування Tailwind -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        agro: {
-                            50: '#f0fdf4', 100: '#dcfce7', 400: '#34d399', 500: '#10b981', // emerald
-                            600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
-                        },
-                        dark: {
-                            800: '#1e293b', 900: '#0f172a', 950: '#020617'
-                        }
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'glow-green': '0 0 15px rgba(16, 185, 129, 0.4)',
-                        'glow-red': '0 0 15px rgba(244, 63, 94, 0.4)',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Підключаємо іконки FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Кастомні стилі -->
+    <!-- Підключаємо React та ReactDOM для роботи логіки -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Підключаємо Babel, щоб браузер розумів сучасний код (JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .tab-content { display: none; opacity: 0; }
-        .tab-content.active { 
-            display: block; 
-            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        /* Сховуємо скроллбар для мобільних пристроїв, залишаючи можливість гортати */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        
-        @keyframes slideUpFade {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
-            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
-        }
-        .pwa-pulse { animation: pulse-ring 2s infinite; }
-        
-        /* Smooth progress bar transitions */
-        .progress-bar-fill { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* Shimmer effect for progress bars */
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden w-full selection:bg-agro-500 selection:text-white">
+<body class="bg-slate-50 text-slate-900 font-sans">
+    
+    <!-- Тут буде намальований наш додаток -->
+    <div id="root"></div>
 
-    <!-- Мобільний Backdrop -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-dark-950/40 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="UI.toggleSidebar()"></div>
+    <script type="text/babel">
+        const { useState, useMemo } = React;
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 lg:w-64 bg-dark-900 text-slate-300 flex flex-col transition-transform duration-300 transform -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none h-full border-r border-slate-800">
-        <div class="p-6 border-b border-slate-800/60 flex items-center justify-between gap-3 bg-dark-950/30">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-agro-400 to-agro-600 p-2 rounded-xl text-white shadow-glow-green">
-                    <i data-lucide="sprout" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg text-white tracking-tight">AgroPRO <span class="text-agro-400 text-xs align-top">v4</span></h1>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Smart Farm Control</p>
-                </div>
-            </div>
-            <button class="lg:hidden p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white" onclick="UI.toggleSidebar()">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
-        </div>
+        // Початкова база даних інструментів з фотографіями
+        const initialTools = [
+            { id: 1, name: 'Віброплита (трамбовка) 90кг', category: 'Важка техніка', price: 700, status: 'available', image: 'https://images.unsplash.com/photo-1590846406792-0adc7f928f1e?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Ідеально для ущільнення ґрунту та бруківки.' },
+            { id: 2, name: 'Бетономішалка 160л', category: 'Важка техніка', price: 400, status: 'available', image: 'https://images.unsplash.com/photo-1621252179022-817887341819?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Електрична бетономішалка, 220В.' },
+            { id: 3, name: 'Лазерний нівелір 360°', category: 'Вимірювальний', price: 300, status: 'rented', image: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Професійний зелений лазер з триногою.' },
+            { id: 4, name: 'Відбійний молоток', category: 'Електроінструмент', price: 600, status: 'available', image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Сила удару 45 Дж. Для демонтажу бетону.' },
+            { id: 5, name: 'Мийка високого тиску Karcher', category: 'Сад і Дім', price: 500, status: 'available', image: 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для миття авто, фасадів, дахів.' },
+            { id: 6, name: 'Перфоратор Bosch', category: 'Електроінструмент', price: 250, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'З набором бурів до 24мм.' },
+            { id: 7, name: 'Паяльник для труб', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1584285406086-fb7c6d482200?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для зварювання пластикових (поліпропіленових) труб.' },
+            { id: 8, name: 'Глибинний вібратор (Слон)', category: 'Важка техніка', price: 400, status: 'available', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для ущільнення бетонних сумішей при заливці фундаментів.' },
+            { id: 9, name: 'Болгарка (КШМ) 125/230мм', category: 'Електроінструмент', price: 200, status: 'available', image: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Кутова шліфмашина для різки металу та бетону.' },
+            { id: 10, name: 'Дриль ударний', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Потужний дриль для свердління дерева, металу та цегли.' },
+            { id: 11, name: 'Шуруповерт акумуляторний', category: 'Електроінструмент', price: 250, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'З двома акумуляторами, для монтажних робіт.' },
+            { id: 12, name: 'Шліфмашина для стін (Жираф)', category: 'Електроінструмент', price: 500, status: 'available', image: 'https://images.unsplash.com/photo-1584285406086-fb7c6d482200?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для шліфування штукатурки та шпаклівки на стінах і стелях.' },
+            { id: 13, name: 'Зварювальний апарат (Інвертор)', category: 'Електроінструмент', price: 350, status: 'available', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Компактний інвертор для зварювання електродами.' },
+            { id: 14, name: 'Будівельний фен', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для зняття фарби, сушіння та термоусадки.' },
+            { id: 15, name: 'Гайковерт ударний', category: 'Електроінструмент', price: 300, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Акумуляторний ударний гайковерт для авто та конструкцій.' },
+            { id: 16, name: 'Будівельна тачка', category: 'Сад і Дім', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1590846406792-0adc7f928f1e?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Посилена тачка для перевезення землі, щебеню або розчину.' },
+            { id: 17, name: 'Бетонозмішувач 180л', category: 'Важка техніка', price: 450, status: 'available', image: 'https://images.unsplash.com/photo-1621252179022-817887341819?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Збільшеного об\'єму для інтенсивних робіт.' }
+        ];
 
-        <nav class="flex-1 p-4 space-y-1.5 flex flex-col overflow-y-auto mt-2">
-            <button onclick="UI.switchTab('dashboard')" id="nav-dashboard" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-agro-500/10 text-agro-400 font-semibold transition-all">
-                <i data-lucide="layout-dashboard" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
-                <span>Дашборд</span>
-            </button>
-            <button onclick="UI.switchTab('zones')" id="nav-zones" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-all">
-                <i data-lucide="grid-3x3" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
-                <span>Зони поливу</span>
-            </button>
-            <button onclick="UI.switchTab('analytics')" id="nav-analytics" class="nav-btn group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-slate-800 text-slate-400 font-medium transition-all">
-                <i data-lucide="activity" class="w-5 h-5 transition-transform group-hover:scale-110"></i>
-                <span>Аналітика</span>
-            </button>
+        const categories = ['Всі', 'Електроінструмент', 'Важка техніка', 'Вимірювальний', 'Сад і Дім'];
+
+        function App() {
+            const [tools, setTools] = useState(initialTools);
+            const [viewMode, setViewMode] = useState('client'); // 'client' або 'admin'
+            const [search, setSearch] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Всі');
             
-            <div class="mt-auto pt-6 pb-4 lg:pb-0">
-                <button id="pwa-install-btn" class="hidden w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold transition-transform active:scale-95 shadow-lg shadow-orange-500/25">
-                    <i data-lucide="download-cloud" class="w-5 h-5"></i>
-                    <span>Встановити App</span>
-                </button>
-            </div>
-        </nav>
+            // Стан кошика та модального вікна
+            const [cart, setCart] = useState([]);
+            const [isCartOpen, setIsCartOpen] = useState(false);
+            const [bookingDays, setBookingDays] = useState(1);
 
-        <div class="p-4 bg-dark-950/50 mt-auto border-t border-slate-800">
-            <div class="bg-dark-800/50 border border-slate-700/50 rounded-xl p-3.5 flex flex-col gap-2 relative overflow-hidden group cursor-pointer" id="ws-status-panel" title="Подвійний клік для реконекту">
-                <div class="flex items-center justify-between relative z-10">
-                    <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Шлюз Зв'язку</span>
-                    <span id="conn-indicator" class="flex h-2.5 w-2.5 relative">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
-                    </span>
-                </div>
-                <div id="conn-text" class="text-xs text-yellow-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5">
-                    <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Ініціалізація...
-                </div>
-                <div id="reconnect-bar" class="absolute bottom-0 left-0 h-0.5 bg-rose-500 transition-all" style="width: 0%"></div>
-            </div>
-        </div>
-    </aside>
+            // Стан для форми додавання нового інструмента
+            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+            const [newTool, setNewTool] = useState({
+                name: '', category: 'Електроінструмент', price: '', desc: '', image: ''
+            });
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden w-full relative z-10">
-        <!-- Header -->
-        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-5 md:px-8 py-4 flex justify-between items-center z-20 sticky top-0 shadow-sm">
-            <div class="flex items-center gap-4">
-                <button class="lg:hidden p-2 -ml-2 text-slate-500 rounded-xl hover:bg-slate-100 transition-colors" onclick="UI.toggleSidebar()">
-                    <i data-lucide="menu-2" class="w-6 h-6"></i>
-                </button>
-                <div>
-                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight leading-none" id="page-title">Огляд системи</h2>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-3 md:gap-5">
-                <!-- Weather Widget -->
-                <div id="weather-status" class="flex items-center gap-2 text-xs md:text-sm font-medium bg-slate-100 text-slate-600 px-3 py-2 rounded-full border border-slate-200 transition-all duration-300 shadow-sm">
-                    <i data-lucide="cloud" class="w-4 h-4 shrink-0"></i>
-                    <span class="hidden sm:inline">Синхронізація...</span>
-                </div>
-                <!-- Profile -->
-                <div class="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center font-bold border border-slate-300 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                    <i data-lucide="user" class="w-5 h-5"></i>
-                </div>
-            </div>
-        </header>
+            // Фільтрація каталогу
+            const filteredTools = useMemo(() => {
+                return tools.filter(tool => {
+                    const matchSearch = tool.name.toLowerCase().includes(search.toLowerCase());
+                    const matchCategory = activeCategory === 'Всі' || tool.category === activeCategory;
+                    return matchSearch && matchCategory;
+                });
+            }, [tools, search, activeCategory]);
 
-        <!-- Scrollable Content -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 w-full scroll-smooth">
-            
-            <!-- ДАШБОРД -->
-            <div id="tab-dashboard" class="tab-content active space-y-6 max-w-7xl mx-auto">
-                <!-- KPI Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                    
-                    <!-- KPI 1 -->
-                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
-                            <i data-lucide="droplets" class="w-24 h-24 text-blue-500"></i>
-                        </div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div class="p-3 bg-gradient-to-br from-blue-500 to-cyan-400 text-white rounded-2xl shadow-lg shadow-blue-500/30">
-                                <i data-lucide="droplets" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <div class="relative z-10">
-                            <p class="text-sm text-slate-500 font-medium mb-1">Вологість (Сер. EMA)</p>
-                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-moisture">--</span><span class="text-2xl text-slate-400 font-semibold ml-1">%</span></h3>
-                        </div>
-                    </div>
-
-                    <!-- KPI 2 -->
-                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
-                            <i data-lucide="thermometer-sun" class="w-24 h-24 text-orange-500"></i>
-                        </div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div class="p-3 bg-gradient-to-br from-orange-400 to-rose-400 text-white rounded-2xl shadow-lg shadow-orange-500/30">
-                                <i data-lucide="thermometer-sun" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <div class="relative z-10">
-                            <p class="text-sm text-slate-500 font-medium mb-1">Температура (Сер.)</p>
-                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-temp">--</span><span class="text-2xl text-slate-400 font-semibold ml-1">°C</span></h3>
-                        </div>
-                    </div>
-
-                    <!-- KPI 3 -->
-                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
-                            <i data-lucide="wind" class="w-24 h-24 text-purple-500"></i>
-                        </div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 text-white rounded-2xl shadow-lg shadow-purple-500/30">
-                                <i data-lucide="wind" class="w-6 h-6"></i>
-                            </div>
-                        </div>
-                        <div class="relative z-10">
-                            <p class="text-sm text-slate-500 font-medium mb-1">Дефіцит тиску (VPD)</p>
-                            <h3 class="text-4xl font-black text-slate-800 tracking-tight"><span id="dash-vpd">--</span><span class="text-xl text-slate-400 font-semibold ml-1">kPa</span></h3>
-                        </div>
-                    </div>
-
-                    <!-- KPI 4 (Tank) -->
-                    <div class="glass-card p-6 rounded-3xl shadow-soft relative overflow-hidden group flex flex-col justify-between">
-                        <div class="flex justify-between items-start relative z-10">
-                            <div class="p-3 bg-gradient-to-br from-teal-400 to-emerald-500 text-white rounded-2xl shadow-lg shadow-emerald-500/30">
-                                <i data-lucide="container" class="w-6 h-6"></i>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm text-slate-500 font-medium mb-1">Резервуар</p>
-                                <h3 class="text-3xl font-black text-slate-800 tracking-tight"><span id="dash-tank">--</span><span class="text-lg text-slate-400 font-semibold ml-1">Л</span></h3>
-                            </div>
-                        </div>
-                        <div class="relative z-10 mt-6 bg-slate-100 rounded-full h-2.5 w-full overflow-hidden">
-                            <div id="tank-bar" class="progress-bar-fill h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Системні логи -->
-                <div class="glass-card rounded-3xl shadow-soft overflow-hidden">
-                    <div class="border-b border-slate-100 px-6 py-4 bg-white/50 flex items-center justify-between">
-                        <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="terminal" class="w-5 h-5 text-slate-400"></i> Журнал операцій системи
-                        </h3>
-                        <div class="flex gap-1.5">
-                            <div class="w-3 h-3 rounded-full bg-rose-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-                        </div>
-                    </div>
-                    <div class="p-5 bg-dark-950 text-emerald-400 font-mono text-[11px] md:text-sm h-48 overflow-y-auto leading-relaxed" id="system-logs">
-                        <!-- Логи генеруватимуться тут -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- ЗОНИ ПОЛИВУ -->
-            <div id="tab-zones" class="tab-content space-y-6 max-w-7xl mx-auto">
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="zones-container">
-                    <!-- Картки зон генеруються динамічно через JS -->
-                </div>
-            </div>
-
-            <!-- АНАЛІТИКА -->
-            <div id="tab-analytics" class="tab-content max-w-7xl mx-auto">
-                <div class="glass-card p-6 rounded-3xl shadow-soft border border-slate-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h3 class="font-bold text-xl text-slate-800">Телеметрія реального часу</h3>
-                            <p class="text-sm text-slate-500 mt-1">Зона 1: Кореляція вологості та VPD</p>
-                        </div>
-                        <div class="p-2 bg-slate-100 rounded-lg text-slate-600"><i data-lucide="bar-chart-2"></i></div>
-                    </div>
-                    <div class="w-full h-[350px] md:h-[450px]">
-                        <canvas id="mainChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="h-10"></div> <!-- Spacer -->
-        </div>
-    </main>
-
-    <!-- JS ЛОГІКА -->
-    <script>
-        // --- 1. БЕЗПЕКА: AUTH FLOW ---
-        const Auth = {
-            getToken() {
-                let token = localStorage.getItem('agro_jwt_token');
-                if (!token) {
-                    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.simulated_token_" + Date.now();
-                    localStorage.setItem('agro_jwt_token', token);
-                    Logger.add('AUTH', 'Згенеровано новий JWT токен сесії.');
+            // Функції кошика
+            const addToCart = (tool) => {
+                if (!cart.find(item => item.id === tool.id)) {
+                    setCart([...cart, tool]);
                 }
-                return token;
-            },
-            getHeaders() {
-                return { 'Authorization': `Bearer ${this.getToken()}` };
-            }
-        };
+            };
+            const removeFromCart = (id) => setCart(cart.filter(item => item.id !== id));
+            const cartTotal = cart.reduce((sum, item) => sum + item.price, 0) * bookingDays;
 
-        // --- 2. PWA ---
-        const PWA = {
-            deferredPrompt: null,
-
-            init() {
-                this.injectManifest();
-                this.registerServiceWorker();
-                this.setupInstallPrompt();
-            },
-
-            injectManifest() {
-                const manifest = {
-                    name: "Agro-Controller PRO",
-                    short_name: "AgroPRO",
-                    start_url: window.location.href,
-                    display: "standalone",
-                    background_color: "#f8fafc",
-                    theme_color: "#0f172a",
-                    icons: [{
-                        src: "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E",
-                        sizes: "192x192",
-                        type: "image/svg+xml",
-                        purpose: "any maskable"
-                    }]
+            // Функція додавання нового інструмента
+            const handleAddTool = (e) => {
+                e.preventDefault();
+                
+                const toolToAdd = {
+                    id: tools.length > 0 ? Math.max(...tools.map(t => t.id)) + 1 : 1, // Генеруємо новий ID
+                    name: newTool.name,
+                    category: newTool.category,
+                    price: Number(newTool.price),
+                    status: 'available',
+                    // Якщо фото не вказане, ставимо красиву заглушку
+                    image: newTool.image || 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300',
+                    desc: newTool.desc
                 };
 
-                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-                const manifestUrl = URL.createObjectURL(blob);
-                const link = document.createElement('link');
-                link.rel = 'manifest';
-                link.href = manifestUrl;
-                document.head.appendChild(link);
-            },
-
-            registerServiceWorker() {
-                if ('serviceWorker' in navigator) {
-                    // Браузери не підтримують реєстрацію Service Worker через blob: або data: протоколи з міркувань безпеки.
-                    // Для повноцінної роботи кешування PWA необхідний окремий файл (наприклад, sw.js).
-                    console.warn('[PWA] Service Worker registration skipped: Security constraints prevent blob: URL registration. A separate sw.js file is required.');
-                }
-            },
-
-            setupInstallPrompt() {
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    this.deferredPrompt = e;
-                    const installBtn = document.getElementById('pwa-install-btn');
-                    if (installBtn) {
-                        installBtn.classList.remove('hidden');
-                        installBtn.addEventListener('click', async () => {
-                            installBtn.classList.add('hidden');
-                            this.deferredPrompt.prompt();
-                            const { outcome } = await this.deferredPrompt.userChoice;
-                            if (outcome === 'accepted') Logger.add('INFO', '🎉 Agro-Controller PWA встановлено.');
-                            this.deferredPrompt = null;
-                        });
-                    }
-                });
-                window.addEventListener('appinstalled', () => document.getElementById('pwa-install-btn').classList.add('hidden'));
-            }
-        };
-
-        // --- 3. CONFIG та Стан ---
-        const CONFIG = {
-            VPD_OPTIMAL: [0.8, 1.2],
-            HYSTERESIS: { ON: 45, OFF: 65 },
-            WS_PING_INTERVAL: 2000,
-            TOGGLE_DELAY: 5000, 
-            MAX_CHART_POINTS: 30,
-            TANK_MAX: 1000,
-            TANK_MIN: 100,
-            MAX_MISSED_PINGS: 3 
-        };
-
-        const Logger = {
-            logs: [],
-            add(level, message) {
-                const now = new Date();
-                const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-                const logEntry = `[${time}] [${level}] ${message}`;
+                // Додаємо новий інструмент на початок списку
+                setTools([toolToAdd, ...tools]);
                 
-                this.logs.unshift(logEntry);
-                if (this.logs.length > 50) this.logs.pop(); 
-                
-                requestAnimationFrame(() => {
-                    const logsContainer = document.getElementById('system-logs');
-                    if (logsContainer) {
-                        let html = '';
-                        this.logs.forEach(log => {
-                            const color = log.includes('[ERROR]') ? 'text-rose-400' : 
-                                          log.includes('[WARN]') ? 'text-amber-400' : 
-                                          log.includes('[AUTH]') ? 'text-purple-400' :
-                                          log.includes('[NET]') ? 'text-cyan-400' : 'text-emerald-400';
-                            html += `<div class="${color} break-words whitespace-pre-wrap py-0.5">${log}</div>`;
-                        });
-                        logsContainer.innerHTML = html;
-                    }
-                });
-            }
-        };
+                // Закриваємо модалку та очищаємо форму
+                setIsAddModalOpen(false);
+                setNewTool({ name: '', category: 'Електроінструмент', price: '', desc: '', image: '' });
+            };
 
-        let saveTimeout;
-        const Storage = {
-            scheduleSave() {
-                clearTimeout(saveTimeout);
-                saveTimeout = setTimeout(this.save, 2000);
-            },
-            save() {
-                const dataToSave = { tankLevel: State.tankLevel, zones: State.zones };
-                localStorage.setItem('agroStatePRO_v4', JSON.stringify(dataToSave));
-            },
-            load() {
-                const saved = localStorage.getItem('agroStatePRO_v4');
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        if (parsed.tankLevel) State.tankLevel = parsed.tankLevel;
-                        if (parsed.zones) {
-                            Object.keys(parsed.zones).forEach(key => {
-                                if (State.zones[key]) {
-                                    State.zones[key].moisture = parsed.zones[key].moisture;
-                                    State.zones[key].rawMoisture = parsed.zones[key].moisture;
-                                    State.zones[key].temp = parsed.zones[key].temp;
-                                    State.zones[key].isWatering = false; 
-                                    State.zones[key].status = 'IDLE';
-                                    State.zones[key].missedPings = 0; 
-                                }
-                            });
-                        }
-                        Logger.add('INFO', 'Стан відновлено з кешу');
-                    } catch (e) { Logger.add('ERROR', 'Помилка читання кешу'); }
-                }
-            }
-        };
-
-        const State = {
-            isOnline: false,
-            weather: { isRaining: false, probability: 0, rainInMinutes: 999 },
-            tankLevel: 350,
-            zones: {
-                z1: { id: 'z1', name: 'Теплиця (Огірки)', loraId: 'NET-A1', rawMoisture: 48, moisture: 48, airHumidity: 65, trend: 0, temp: 24.5, vpd: 0.9, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 },
-                z2: { id: 'z2', name: 'Відкритий ґрунт (Томати)', loraId: 'NET-B2', rawMoisture: 62, moisture: 62, airHumidity: 55, trend: 0, temp: 26.2, vpd: 1.3, isWatering: false, status: 'IDLE', lastToggleTime: 0, lastSeen: Date.now(), missedPings: 0 }
-            },
-            chartInstance: null
-        };
-
-        const DOM = { zones: {} };
-
-        // --- 4. МАТЕМАТИКА VPD ---
-        const AgroMath = {
-            calculateVPD(tempCelsius, relHumidity) {
-                const svp = 0.61078 * Math.exp((17.27 * tempCelsius) / (tempCelsius + 237.3));
-                const avp = svp * (relHumidity / 100);
-                return (svp - avp);
-            }
-        };
-
-        // --- 5. МЕРЕЖА ---
-        const NetworkWS = {
-            intervalId: null,
-            reconnectTimer: null,
-            retries: 0,
-            
-            connect() {
-                if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-                UI.setConnectionStatus('connecting');
-                Logger.add('NET', 'Ініціалізація Secure WS Gateway...');
-                
-                setTimeout(() => {
-                    State.isOnline = true;
-                    this.retries = 0; 
-                    document.getElementById('reconnect-bar').style.width = '0%';
-                    UI.setConnectionStatus('connected');
-                    Logger.add('NET', 'З\'єднання встановлено (128ms)');
-                    
-                    Object.values(State.zones).forEach(z => { z.lastSeen = Date.now(); z.missedPings = 0; });
-                    this.intervalId = setInterval(() => this.simulateIncomingData(), CONFIG.WS_PING_INTERVAL);
-                }, 1200);
-            },
-            
-            disconnect() {
-                State.isOnline = false;
-                clearInterval(this.intervalId);
-                UI.setConnectionStatus('disconnected');
-                
-                const delay = Math.min(30000, 1000 * Math.pow(2, this.retries));
-                Logger.add('ERROR', `Втрата пакетів. Відновлення через ${(delay/1000).toFixed(1)}с`);
-                
-                const bar = document.getElementById('reconnect-bar');
-                bar.style.transition = `width ${delay}ms linear`;
-                bar.style.width = '100%';
-                
-                this.reconnectTimer = setTimeout(() => {
-                    bar.style.transition = 'none';
-                    bar.style.width = '0%';
-                    this.retries++;
-                    this.connect();
-                }, delay);
-                
-                UI.render();
-            },
-
-            async send(command, payload) {
-                Logger.add('CMD', `TX [${command}] -> ${payload.id}`);
-                return new Promise((resolve) => {
-                    setTimeout(() => resolve({ success: true }), 600 + Math.random() * 400);
-                });
-            },
-
-            simulateIncomingData() {
-                if (document.hidden) return; 
-
-                Object.values(State.zones).forEach(zone => {
-                    const prevMoisture = zone.moisture;
-                    const noiseM = (Math.random() - 0.5) * 4;
-                    
-                    if (zone.isWatering) {
-                        zone.rawMoisture += 2.5 + noiseM;
-                        State.tankLevel -= 2; 
-                        zone.airHumidity += 0.5; 
-                    } else {
-                        zone.rawMoisture -= 0.5 + noiseM;
-                        zone.airHumidity -= 0.2; 
-                    }
-                    
-                    zone.rawMoisture = Math.max(0, Math.min(100, zone.rawMoisture));
-                    zone.airHumidity = Math.max(30, Math.min(100, zone.airHumidity));
-
-                    const diff = Math.abs(zone.rawMoisture - zone.moisture);
-                    const dynamicAlpha = diff > 4 ? 0.4 : 0.1;
-                    zone.moisture = (dynamicAlpha * zone.rawMoisture) + ((1 - dynamicAlpha) * zone.moisture);
-
-                    zone.trend = zone.moisture - prevMoisture;
-                    zone.temp += (Math.random() * 0.4 - 0.2);
-                    zone.vpd = AgroMath.calculateVPD(zone.temp, zone.airHumidity);
-
-                    zone.lastSeen = Date.now();
-                    zone.missedPings = 0; 
-                });
-
-                Storage.scheduleSave();
-                Logic.processSensors();
-                UI.render();
-            }
-        };
-
-        const WeatherService = {
-            async fetch() {
-                State.weather.probability = Math.floor(Math.random() * 100);
-                State.weather.rainInMinutes = Math.floor(Math.random() * 120);
-                State.weather.isRaining = State.weather.probability > 80 && State.weather.rainInMinutes === 0; 
-                UI.updateWeatherWidget();
-            }
-        };
-
-        // --- 6. LOGIC ---
-        const Logic = {
-            shouldStartWatering(zone) {
-                if (State.weather.rainInMinutes < 60 && State.weather.probability > 60) return false;
-                if (State.tankLevel < CONFIG.TANK_MIN) return false;
-                
-                let dynamicOnThreshold = CONFIG.HYSTERESIS.ON;
-                if (zone.vpd > 1.6) dynamicOnThreshold += 10; 
-                else if (zone.vpd < 0.7) dynamicOnThreshold -= 5;  
-                if (zone.temp > 28 && State.weather.probability < 30) dynamicOnThreshold += 5; 
-
-                const predictedMoisture = zone.moisture + (zone.trend * 15);
-                return predictedMoisture < dynamicOnThreshold;
-            },
-
-            processSensors() {
-                const now = Date.now();
-
-                Object.values(State.zones).forEach(zone => {
-                    if (now - zone.lastSeen > CONFIG.WS_PING_INTERVAL * 2 && State.isOnline) {
-                        zone.missedPings++;
-                        if (zone.missedPings >= CONFIG.MAX_MISSED_PINGS) {
-                            if (zone.isWatering) {
-                                zone.isWatering = false;
-                                NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
-                            }
-                            zone.status = 'OFFLINE';
-                            return; 
-                        }
-                    }
-
-                    if (State.tankLevel < CONFIG.TANK_MIN) {
-                        if (zone.isWatering) {
-                            zone.isWatering = false;
-                            NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
-                        }
-                        zone.status = 'LOW_WATER';
-                    } else if(zone.status !== 'OFFLINE') {
-                        const canToggle = (now - zone.lastToggleTime > CONFIG.TOGGLE_DELAY);
-
-                        if (!zone.isWatering && this.shouldStartWatering(zone) && canToggle) {
-                            zone.isWatering = true;
-                            zone.lastToggleTime = now;
-                            NetworkWS.send('RELAY_SET', { id: zone.id, state: true });
-                        } else if (zone.isWatering && zone.moisture >= CONFIG.HYSTERESIS.OFF && canToggle) {
-                            zone.isWatering = false;
-                            zone.lastToggleTime = now;
-                            NetworkWS.send('RELAY_SET', { id: zone.id, state: false });
-                        }
-                        zone.status = zone.isWatering ? 'WATERING' : 'IDLE';
-                    }
-                });
-            },
-
-            async handleManualWatering(zoneId) {
-                if (!State.isOnline) { alert("Немає з'єднання з сервером"); return; }
-                const zone = State.zones[zoneId];
-                const now = Date.now();
-                
-                if (zone.status === 'OFFLINE') { alert("Вузол не відповідає"); return; }
-                if (now - zone.lastToggleTime < CONFIG.TOGGLE_DELAY) { return; }
-                if (State.tankLevel < CONFIG.TANK_MIN && !zone.isWatering) { alert("Критичний рівень води в баку"); return; }
-
-                const newState = !zone.isWatering;
-                const btnObj = DOM.zones[zoneId].btn;
-                if(btnObj) {
-                    btnObj.disabled = true;
-                    DOM.zones[zoneId].btnIcon.classList.add('animate-spin');
-                }
-
-                const res = await NetworkWS.send('RELAY_SET', { id: zoneId, state: newState });
-                
-                if (res.success) {
-                    zone.isWatering = newState;
-                    zone.status = zone.isWatering ? 'WATERING' : 'IDLE';
-                    zone.lastToggleTime = now;
-                    UI.render(); 
-                }
-                
-                if(btnObj) {
-                    btnObj.disabled = false;
-                    DOM.zones[zoneId].btnIcon.classList.remove('animate-spin');
-                }
-            }
-        };
-
-        // --- 7. UI ---
-        const UI = {
-            lastValues: {},
-            titles: { 'dashboard': 'Огляд системи', 'zones': 'Управління клапанами', 'analytics': 'Аналітичні дані' },
-
-            toggleSidebar() {
-                const sidebar = document.getElementById('sidebar');
-                const backdrop = document.getElementById('sidebar-backdrop');
-                
-                sidebar.classList.toggle('-translate-x-full');
-                
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    backdrop.classList.add('opacity-0');
-                    setTimeout(() => backdrop.classList.add('hidden'), 300);
-                } else {
-                    backdrop.classList.remove('hidden');
-                    setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-                }
-            },
-
-            init() {
-                DOM.dashMoisture = document.getElementById('dash-moisture');
-                DOM.dashTemp = document.getElementById('dash-temp');
-                DOM.dashVpd = document.getElementById('dash-vpd');
-                DOM.dashTank = document.getElementById('dash-tank');
-                DOM.tankBar = document.getElementById('tank-bar');
-                DOM.connIndicator = document.getElementById('conn-indicator');
-                DOM.connText = document.getElementById('conn-text');
-                DOM.weatherStatus = document.getElementById('weather-status');
-
-                this.initZonesUI();
-                this.initChart();
-            },
-
-            initZonesUI() {
-                const container = document.getElementById('zones-container');
-                container.innerHTML = ''; 
-
-                Object.values(State.zones).forEach(zone => {
-                    const html = `
-                    <div class="glass-card rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg">
-                        <!-- Header -->
-                        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white/40">
-                            <div class="flex items-center gap-3">
-                                <div class="relative flex items-center justify-center">
-                                    <div id="${zone.id}-indicator-bg" class="absolute inset-0 rounded-full opacity-20 transition-all duration-300"></div>
-                                    <div id="${zone.id}-indicator" class="w-3.5 h-3.5 rounded-full bg-slate-300 shadow-sm relative z-10 transition-colors duration-300"></div>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-lg text-slate-800 leading-tight">${zone.name}</h3>
-                                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-mono">${zone.loraId}</span>
-                                </div>
-                            </div>
-                            <div id="${zone.id}-status-badge" class="px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-500">
-                                Очікування
-                            </div>
+            // Функція для відображення інтерфейсу клієнта
+            const renderClientView = () => (
+                <div className="min-h-screen bg-slate-50 pb-20">
+                    <div className="bg-amber-500 text-slate-900 py-12 px-4 shadow-inner relative overflow-hidden">
+                        <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
+                            <i className="fa-solid fa-screwdriver-wrench" style={{ fontSize: '300px', transform: 'rotate(-20deg)', position: 'absolute', top: '-50px', right: '-50px' }}></i>
                         </div>
                         
-                        <!-- Body -->
-                        <div class="p-6 flex-1 flex flex-col gap-6">
-                            <!-- Moisture Main -->
+                        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
                             <div>
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Вологість ґрунту</span>
-                                    <div class="flex items-baseline gap-1">
-                                        <span class="text-4xl font-black text-slate-800" id="${zone.id}-moisture">--</span>
-                                        <span class="text-xl font-bold text-slate-400">%</span>
-                                    </div>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200/50 shadow-inner relative">
-                                    <div class="progress-bar-fill h-full bg-gradient-to-r from-blue-400 to-indigo-500 relative" id="${zone.id}-bar" style="width: 0%">
-                                        <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
-                                    </div>
-                                </div>
+                                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">Прокат Інструменту</h2>
+                                <p className="text-lg md:text-xl font-medium opacity-90">Надійне обладнання для ваших проектів. с. Суховоля.</p>
                             </div>
-
-                            <!-- Minor Stats Grid -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
-                                    <div class="p-2 bg-orange-100 text-orange-500 rounded-xl"><i data-lucide="thermometer" class="w-5 h-5"></i></div>
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Темп-ра</p>
-                                        <p class="text-xl font-bold text-slate-700"><span id="${zone.id}-temp">--</span><span class="text-sm text-slate-400">°C</span></p>
-                                    </div>
+                            <div className="flex gap-4">
+                                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm border border-white/30 text-center min-w-[120px]">
+                                    <div className="text-3xl font-extrabold">{tools.length}</div>
+                                    <div className="text-sm font-semibold uppercase tracking-wider mt-1 opacity-80">Одиниць</div>
                                 </div>
-                                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
-                                    <div class="p-2 bg-cyan-100 text-cyan-500 rounded-xl"><i data-lucide="cloud-fog" class="w-5 h-5"></i></div>
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Повітря</p>
-                                        <p class="text-xl font-bold text-slate-700"><span id="${zone.id}-air">--</span><span class="text-sm text-slate-400">%</span></p>
-                                    </div>
+                                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm border border-white/30 text-center min-w-[120px]">
+                                    <div className="text-3xl font-extrabold">24/7</div>
+                                    <div className="text-sm font-semibold uppercase tracking-wider mt-1 opacity-80">Підтримка</div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Footer / Actions -->
-                        <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
-                            <button onclick="Logic.handleManualWatering('${zone.id}')" id="btn-water-${zone.id}" class="group px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center gap-2 text-white bg-slate-800 hover:bg-slate-900 shadow-md active:scale-95">
-                                <i data-lucide="power" id="btn-icon-${zone.id}" class="w-4 h-4 transition-transform group-hover:scale-110"></i> 
-                                <span id="btn-text-${zone.id}">Увімкнути</span>
+                    <div className="max-w-6xl mx-auto px-4 mt-8">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                            <div className="relative w-full md:w-96">
+                                <i className="fa-solid fa-magnifying-glass absolute left-4 top-4 text-slate-400"></i>
+                                <input 
+                                    type="text" 
+                                    placeholder="Пошук інструменту..." 
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:ring-0 focus:border-amber-500 transition-colors shadow-sm outline-none font-medium"
+                                />
+                            </div>
+                            
+                            <div className="flex overflow-x-auto gap-2 w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setActiveCategory(cat)}
+                                        className={`whitespace-nowrap px-5 py-2.5 rounded-xl font-bold transition-all ${
+                                            activeCategory === cat 
+                                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-800/20' 
+                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {filteredTools.map(tool => (
+                                <div key={tool.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group flex flex-col">
+                                    <div className="h-56 bg-slate-100 relative overflow-hidden">
+                                        <img 
+                                            src={tool.image} 
+                                            alt={tool.name} 
+                                            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${tool.status === 'rented' ? 'grayscale opacity-70' : ''}`}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                        
+                                        {tool.status === 'rented' && (
+                                            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
+                                                <span className="bg-red-500 text-white px-5 py-2 rounded-full font-bold shadow-xl transform -rotate-6 border-2 border-white tracking-wide uppercase text-sm">
+                                                    В оренді
+                                                </span>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full font-extrabold text-slate-900 shadow-sm text-sm">
+                                            {tool.price} ₴ <span className="text-slate-500 font-medium text-xs">/ доба</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-6 flex flex-col flex-grow">
+                                        <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2">{tool.category}</div>
+                                        <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight">{tool.name}</h3>
+                                        <p className="text-slate-500 text-sm mb-6 flex-grow leading-relaxed">{tool.desc}</p>
+                                        
+                                        <button 
+                                            onClick={() => addToCart(tool)}
+                                            disabled={tool.status === 'rented'}
+                                            className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                                                tool.status === 'rented' 
+                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                                                : cart.find(i => i.id === tool.id)
+                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20'
+                                            }`}
+                                        >
+                                            {cart.find(i => i.id === tool.id) ? <><i className="fa-solid fa-check"></i> У кошику</> : <><i className="fa-solid fa-plus"></i> Додати до замовлення</>}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {filteredTools.length === 0 && (
+                            <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 mt-8">
+                                <i className="fa-solid fa-box-open text-7xl text-slate-300 block mb-6"></i>
+                                <h3 className="text-2xl font-bold text-slate-700 mb-2">Нічого не знайдено</h3>
+                                <p className="text-slate-500 text-lg">Спробуйте змінити пошуковий запит або вибрати іншу категорію.</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {cart.length > 0 && (
+                        <button 
+                            onClick={() => setIsCartOpen(true)}
+                            className="fixed bottom-8 right-8 bg-amber-500 text-slate-900 p-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3 z-40 border-4 border-white group"
+                        >
+                            <div className="relative">
+                                <i className="fa-solid fa-cart-shopping text-2xl group-hover:scale-110 transition-transform"></i>
+                                <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                                    {cart.length}
+                                </span>
+                            </div>
+                            <span className="font-bold hidden md:inline pr-2 text-lg">Оформити</span>
+                        </button>
+                    )}
+
+                    {isCartOpen && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
+                            <div className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in duration-200">
+                                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+                                    <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center gap-3">
+                                        <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
+                                            <i className="fa-solid fa-cart-shopping text-2xl"></i>
+                                        </div>
+                                        Ваше замовлення
+                                    </h2>
+                                    <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 w-10 h-10 flex items-center justify-center">
+                                        <i className="fa-solid fa-xmark text-xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <div className="p-6 md:p-8 flex-grow bg-slate-50/50">
+                                    <div className="space-y-4 mb-8">
+                                        {cart.map(item => (
+                                            <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-100 flex-shrink-0">
+                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-slate-900 text-lg mb-1">{item.name}</div>
+                                                        <div className="text-amber-600 font-semibold">{item.price} ₴ <span className="text-slate-400 font-normal text-sm">/ доба</span></div>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => removeFromCart(item.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-3 rounded-xl transition-all w-10 h-10 flex items-center justify-center">
+                                                    <i className="fa-solid fa-xmark text-lg"></i>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="bg-amber-500 text-slate-900 p-6 md:p-8 rounded-3xl shadow-inner mb-8">
+                                        <label className="block text-lg font-bold mb-4 opacity-90">На скільки днів потрібен інструмент?</label>
+                                        <div className="flex items-center gap-6 mb-6">
+                                            <input 
+                                                type="range" 
+                                                min="1" max="14" 
+                                                value={bookingDays} 
+                                                onChange={(e) => setBookingDays(parseInt(e.target.value))}
+                                                className="w-full h-3 bg-white/30 rounded-lg appearance-none cursor-pointer accent-slate-900"
+                                            />
+                                            <span className="bg-slate-900 text-white px-5 py-3 rounded-xl font-extrabold text-xl shadow-lg min-w-[80px] text-center">
+                                                {bookingDays}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex justify-between items-end mt-8 pt-6 border-t border-slate-900/10">
+                                            <span className="text-lg font-semibold opacity-80 mb-1">Загальна сума:</span>
+                                            <div className="text-right">
+                                                <div className="text-4xl md:text-5xl font-black">{cartTotal} ₴</div>
+                                                <div className="text-sm font-medium opacity-75 mt-1">Оплата при отриманні</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert('Бронювання відправлено! Скоро з вами зв\'яжуться.'); setIsCartOpen(false); setCart([]); }}>
+                                        <h3 className="text-xl font-bold text-slate-800 mb-4">Ваші контакти</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Ім'я</label>
+                                                <input type="text" required className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 outline-none transition-colors font-medium bg-white" placeholder="Наприклад, Іван" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Телефон</label>
+                                                <input type="tel" required className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 outline-none transition-colors font-medium bg-white" placeholder="+38 (000) 000-00-00" />
+                                            </div>
+                                        </div>
+                                        <button type="submit" className="w-full bg-slate-900 text-white font-extrabold text-lg py-5 rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 transition-all flex justify-center items-center gap-3 mt-6">
+                                            <i className="fa-solid fa-check"></i> Підтвердити замовлення
+                                        </button>
+                                        <p className="text-center text-xs text-slate-500 mt-4 font-medium">
+                                            Натискаючи кнопку, ви погоджуєтесь з умовами прокату
+                                        </p>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            // Функція для відображення панелі адміністратора
+            const renderAdminView = () => (
+                <div className="min-h-screen bg-slate-100 p-4 md:p-8 pb-20 relative">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <div>
+                                <h2 className="text-3xl font-extrabold text-slate-900">Адмін Панель</h2>
+                                <p className="text-slate-500 font-medium mt-1">Керування інструментами та замовленнями</p>
+                            </div>
+                            <button 
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="bg-amber-500 text-slate-900 px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors"
+                            >
+                                <i className="fa-solid fa-plus"></i> Додати позицію
                             </button>
                         </div>
-                    </div>`;
-                    container.insertAdjacentHTML('beforeend', html);
-                    
-                    DOM.zones[zone.id] = {
-                        moisture: document.getElementById(`${zone.id}-moisture`),
-                        air: document.getElementById(`${zone.id}-air`),
-                        bar: document.getElementById(`${zone.id}-bar`),
-                        temp: document.getElementById(`${zone.id}-temp`),
-                        statusBadge: document.getElementById(`${zone.id}-status-badge`),
-                        btn: document.getElementById(`btn-water-${zone.id}`),
-                        btnText: document.getElementById(`btn-text-${zone.id}`),
-                        btnIcon: document.getElementById(`btn-icon-${zone.id}`),
-                        indicator: document.getElementById(`${zone.id}-indicator`),
-                        indicatorBg: document.getElementById(`${zone.id}-indicator-bg`)
-                    };
-                });
-                lucide.createIcons();
-            },
 
-            switchTab(tabId) {
-                document.querySelectorAll('.nav-btn').forEach(btn => {
-                    btn.classList.remove('bg-agro-500/10', 'text-agro-400');
-                    btn.classList.add('text-slate-400', 'hover:bg-slate-800');
-                });
-                
-                const activeBtn = document.getElementById('nav-' + tabId);
-                if(activeBtn) {
-                    activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800');
-                    activeBtn.classList.add('bg-agro-500/10', 'text-agro-400');
-                }
-                document.getElementById('page-title').innerText = this.titles[tabId];
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                                <div className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-3">Всього в базі</div>
+                                <div className="text-5xl font-black text-slate-900 mt-auto">{tools.length}</div>
+                            </div>
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                                <div className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-3">Зараз в оренді</div>
+                                <div className="text-5xl font-black text-amber-500 mt-auto">{tools.filter(t => t.status === 'rented').length}</div>
+                            </div>
+                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+                                <div className="text-slate-400 font-bold uppercase tracking-wider text-xs mb-3">Дохід за місяць</div>
+                                <div className="text-4xl font-black text-green-400 mt-auto">12 400 ₴</div>
+                            </div>
+                        </div>
 
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.getElementById('tab-' + tabId).classList.add('active');
-                
-                if(window.innerWidth < 1024) {
-                    const sidebar = document.getElementById('sidebar');
-                    if(!sidebar.classList.contains('-translate-x-full')) this.toggleSidebar();
-                }
-            },
+                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-slate-900">Список інструменту</h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-slate-400 border-b border-slate-100 uppercase text-xs tracking-wider bg-slate-50/50">
+                                            <th className="p-5 font-bold">Фото / Назва</th>
+                                            <th className="p-5 font-bold">Категорія</th>
+                                            <th className="p-5 font-bold">Ціна</th>
+                                            <th className="p-5 font-bold">Статус</th>
+                                            <th className="p-5 font-bold text-right">Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {tools.map(tool => (
+                                            <tr key={tool.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="p-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0">
+                                                            <img src={tool.image} alt={tool.name} className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-900">{tool.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-5 text-slate-500 font-medium text-sm">{tool.category}</td>
+                                                <td className="p-5 font-bold text-slate-700">{tool.price} ₴</td>
+                                                <td className="p-5">
+                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                                                        tool.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                        {tool.status === 'available' ? 'На складі' : 'В оренді'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 text-right">
+                                                    <button 
+                                                        onClick={() => {
+                                                            const updated = tools.map(t => t.id === tool.id ? {...t, status: t.status === 'available' ? 'rented' : 'available'} : t);
+                                                            setTools(updated);
+                                                        }}
+                                                        className={`text-sm font-bold px-4 py-2 rounded-xl transition-colors ${
+                                                            tool.status === 'available' 
+                                                            ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' 
+                                                            : 'text-green-700 bg-green-50 hover:bg-green-100'
+                                                        }`}
+                                                    >
+                                                        {tool.status === 'available' ? 'Видати' : 'Повернути'}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
-            setConnectionStatus(status) {
-                requestAnimationFrame(() => {
-                    if (status === 'connected') {
-                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="wifi" class="w-3.5 h-3.5"></i> Активно';
-                        DOM.connText.className = "text-xs text-emerald-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
-                    } else if (status === 'disconnected') {
-                        DOM.connIndicator.innerHTML = '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="wifi-off" class="w-3.5 h-3.5"></i> Зрив зв\'язку';
-                        DOM.connText.className = "text-xs text-rose-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
-                    } else {
-                        DOM.connIndicator.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>';
-                        DOM.connText.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Пошук шлюзу...';
-                        DOM.connText.className = "text-xs text-amber-400 font-medium flex items-center gap-1.5 relative z-10 mt-0.5";
-                    }
-                    lucide.createIcons();
-                });
-            },
+                    {/* Модальне вікно для додавання нової позиції */}
+                    {isAddModalOpen && (
+                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
+                            <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl flex flex-col animate-in fade-in zoom-in duration-200">
+                                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                    <h2 className="text-2xl font-bold text-slate-900">Нова позиція</h2>
+                                    <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 w-10 h-10 flex items-center justify-center">
+                                        <i className="fa-solid fa-xmark text-xl"></i>
+                                    </button>
+                                </div>
+                                
+                                <form onSubmit={handleAddTool} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Назва інструменту</label>
+                                        <input 
+                                            type="text" 
+                                            required 
+                                            value={newTool.name} 
+                                            onChange={e => setNewTool({...newTool, name: e.target.value})} 
+                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
+                                            placeholder="Наприклад, Перфоратор Makita" 
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Категорія</label>
+                                            <select 
+                                                value={newTool.category} 
+                                                onChange={e => setNewTool({...newTool, category: e.target.value})} 
+                                                className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors bg-white cursor-pointer"
+                                            >
+                                                {categories.filter(c => c !== 'Всі').map(c => (
+                                                    <option key={c} value={c}>{c}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Ціна (₴/доба)</label>
+                                            <input 
+                                                type="number" 
+                                                required 
+                                                min="1" 
+                                                value={newTool.price} 
+                                                onChange={e => setNewTool({...newTool, price: e.target.value})} 
+                                                className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
+                                                placeholder="300" 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">URL фотографії (необов'язково)</label>
+                                        <input 
+                                            type="url" 
+                                            value={newTool.image} 
+                                            onChange={e => setNewTool({...newTool, image: e.target.value})} 
+                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
+                                            placeholder="https://..." 
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Опис</label>
+                                        <textarea 
+                                            required 
+                                            rows="2" 
+                                            value={newTool.desc} 
+                                            onChange={e => setNewTool({...newTool, desc: e.target.value})} 
+                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors resize-none" 
+                                            placeholder="Короткий опис характеристик..."
+                                        ></textarea>
+                                    </div>
+                                    <button type="submit" className="w-full bg-amber-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 mt-2 flex items-center justify-center gap-2">
+                                        <i className="fa-solid fa-check"></i> Зберегти в базу
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
 
-            updateWeatherWidget() {
-                const isBlock = State.weather.rainInMinutes < 60 && State.weather.probability > 60;
-                const newClass = isBlock 
-                    ? "flex items-center gap-2 text-xs md:text-sm font-semibold text-blue-700 bg-blue-100 px-4 py-2 rounded-full transition-all shadow-sm"
-                    : "flex items-center gap-2 text-xs md:text-sm font-semibold text-amber-700 bg-amber-100 px-4 py-2 rounded-full transition-all shadow-sm";
-                
-                if(this.lastValues.weatherClass !== newClass) {
-                    this.lastValues.weatherClass = newClass;
-                    requestAnimationFrame(() => {
-                        DOM.weatherStatus.className = newClass;
-                        DOM.weatherStatus.innerHTML = isBlock
-                            ? `<i data-lucide="cloud-rain" class="w-4 h-4 shrink-0"></i><span class="hidden sm:inline">Дощ через ${State.weather.rainInMinutes} хв</span>`
-                            : `<i data-lucide="sun" class="w-4 h-4 shrink-0"></i><span class="hidden sm:inline">Ясно (API)</span>`;
-                        lucide.createIcons();
-                    });
-                }
-            },
+            return (
+                <div className="font-sans text-slate-900 bg-slate-50 min-h-screen">
+                    <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+                        <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-amber-500 text-slate-900 w-10 h-10 rounded-xl flex items-center justify-center">
+                                    <i className="fa-solid fa-gear text-xl"></i>
+                                </div>
+                                <span className="text-2xl font-black tracking-tight hidden sm:block">Суховоля<span className="text-amber-500">Тех</span></span>
+                            </div>
+                            
+                            <div className="flex items-center gap-6">
+                                <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-slate-500 mr-4">
+                                    <span className="flex items-center gap-2 hover:text-slate-900 transition-colors cursor-pointer">
+                                        <i className="fa-solid fa-phone"></i> 067 123 45 67
+                                    </span>
+                                    <span className="flex items-center gap-2">
+                                        <i className="fa-solid fa-location-dot"></i> с. Суховоля
+                                    </span>
+                                </div>
+                                <div className="bg-slate-100 p-1.5 rounded-xl flex shadow-inner">
+                                    <button 
+                                        onClick={() => setViewMode('client')}
+                                        className={`px-5 py-2 rounded-lg text-sm font-extrabold transition-all ${viewMode === 'client' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Клієнт
+                                    </button>
+                                    <button 
+                                        onClick={() => setViewMode('admin')}
+                                        className={`px-5 py-2 rounded-lg text-sm font-extrabold transition-all ${viewMode === 'admin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                    >
+                                        Адмін
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
 
-            render() {
-                const tnkInt = Math.floor(State.tankLevel);
-                let avgMoisture = 0, avgTemp = 0, maxVpd = 0;
-                const zonesArr = Object.values(State.zones);
-                
-                zonesArr.forEach(z => {
-                    avgMoisture += z.moisture;
-                    avgTemp += z.temp;
-                    if(z.vpd > maxVpd) maxVpd = z.vpd;
-                });
-                avgMoisture = Math.floor(avgMoisture / zonesArr.length);
-                avgTemp = (avgTemp / zonesArr.length).toFixed(1);
-                maxVpd = maxVpd.toFixed(2);
+                    <main>
+                        {viewMode === 'client' ? renderClientView() : renderAdminView()}
+                    </main>
+                </div>
+            );
+        }
 
-                requestAnimationFrame(() => {
-                    if (this.lastValues.avgM !== avgMoisture) { DOM.dashMoisture.innerText = avgMoisture; this.lastValues.avgM = avgMoisture; }
-                    if (this.lastValues.avgT !== avgTemp) { DOM.dashTemp.innerText = avgTemp; this.lastValues.avgT = avgTemp; }
-                    if (this.lastValues.maxV !== maxVpd) { DOM.dashVpd.innerText = maxVpd; this.lastValues.maxV = maxVpd; }
-                    if (this.lastValues.tank !== tnkInt) { 
-                        DOM.dashTank.innerText = tnkInt; 
-                        DOM.tankBar.style.width = `${(tnkInt/CONFIG.TANK_MAX)*100}%`;
-                        
-                        // Кольори для баку
-                        DOM.tankBar.className = tnkInt < CONFIG.TANK_MIN 
-                            ? 'progress-bar-fill h-full bg-gradient-to-r from-rose-500 to-red-600 rounded-full'
-                            : 'progress-bar-fill h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full';
-                        this.lastValues.tank = tnkInt; 
-                    }
-
-                    zonesArr.forEach(z => {
-                        const domZ = DOM.zones[z.id];
-                        if (!domZ) return;
-
-                        const mInt = Math.floor(z.moisture);
-                        const aInt = Math.floor(z.airHumidity);
-                        const tFixed = z.temp.toFixed(1);
-                        const cacheKey = `z_${z.id}`;
-
-                        if(!this.lastValues[cacheKey]) this.lastValues[cacheKey] = {};
-
-                        if (this.lastValues[cacheKey].moisture !== mInt) {
-                            domZ.moisture.innerText = mInt;
-                            domZ.bar.style.width = `${mInt}%`;
-                            this.lastValues[cacheKey].moisture = mInt;
-                        }
-                        if (this.lastValues[cacheKey].air !== aInt) { domZ.air.innerText = aInt; this.lastValues[cacheKey].air = aInt; }
-                        if (this.lastValues[cacheKey].temp !== tFixed) { domZ.temp.innerText = tFixed; this.lastValues[cacheKey].temp = tFixed; }
-
-                        if (this.lastValues[cacheKey].status !== z.status || !State.isOnline) {
-                            const baseBtnClass = "group px-6 py-3 rounded-2xl font-bold transition-all duration-300 flex items-center gap-2 text-white shadow-md active:scale-95 shrink-0";
-                            domZ.btn.disabled = false;
-
-                            if (!State.isOnline || z.status === 'OFFLINE') {
-                                domZ.statusBadge.innerHTML = 'Офлайн';
-                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-500';
-                                domZ.btn.className = `${baseBtnClass} bg-slate-300 shadow-none text-slate-500 cursor-not-allowed`;
-                                domZ.btn.disabled = true;
-                                domZ.btnText.innerText = "Недоступно";
-                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-slate-300 relative z-10 transition-colors duration-300";
-                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-0";
-                            }
-                            else if (z.status === 'LOW_WATER') {
-                                domZ.statusBadge.innerHTML = 'Блок (Бак)';
-                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs font-bold text-rose-600';
-                                domZ.btn.className = `${baseBtnClass} bg-rose-200 shadow-none text-rose-500 cursor-not-allowed`;
-                                domZ.btn.disabled = true; 
-                                domZ.btnText.innerText = "Заблоковано";
-                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-rose-500 relative z-10 transition-colors duration-300";
-                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-20 bg-rose-500";
-                            } else if (z.status === 'WATERING') {
-                                domZ.statusBadge.innerHTML = '<span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Полив активний</span>';
-                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-600';
-                                domZ.btn.className = `${baseBtnClass} bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-500/30 hover:shadow-rose-500/50`;
-                                domZ.btnText.innerText = "Зупинити";
-                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-blue-500 relative z-10 transition-colors duration-300 animate-pulse";
-                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-30 bg-blue-500 animate-ping";
-                            } else {
-                                domZ.statusBadge.innerHTML = 'Готовий';
-                                domZ.statusBadge.className = 'px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-600';
-                                domZ.btn.className = `${baseBtnClass} bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/30 hover:shadow-emerald-500/50`;
-                                domZ.btnText.innerText = "Увімкнути";
-                                domZ.indicator.className = "w-3.5 h-3.5 rounded-full bg-emerald-500 relative z-10 transition-colors duration-300";
-                                domZ.indicatorBg.className = "absolute inset-0 rounded-full opacity-20 bg-emerald-500";
-                            }
-                            this.lastValues[cacheKey].status = z.status;
-                        }
-                    });
-                });
-
-                this.updateChartLive(State.zones.z1.moisture, State.zones.z1.vpd);
-            },
-
-            initChart() {
-                const ctx = document.getElementById('mainChart').getContext('2d');
-                
-                // Стилізація графіку під новий дизайн
-                Chart.defaults.font.family = "'Inter', sans-serif";
-                Chart.defaults.color = '#64748b'; // slate-500
-                
-                State.chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [
-                            {
-                                label: 'Вологість ґрунту (%)', data: [],
-                                borderColor: '#3b82f6', // blue-500
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                borderWidth: 3,
-                                pointBackgroundColor: '#fff',
-                                pointBorderColor: '#3b82f6',
-                                pointBorderWidth: 2,
-                                pointRadius: 3,
-                                yAxisID: 'y', tension: 0.4, fill: true
-                            },
-                            {
-                                label: 'VPD (kPa)', data: [],
-                                borderColor: '#8b5cf6', // violet-500
-                                borderWidth: 2,
-                                pointRadius: 0,
-                                yAxisID: 'y1', tension: 0.4, borderDash: [5, 5]
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { weight: '600' } } },
-                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 13 }, bodyFont: { size: 13 }, padding: 12, cornerRadius: 8 }
-                        },
-                        scales: {
-                            x: { grid: { display: false } },
-                            y: { min: 0, max: 100, border: { display: false }, grid: { color: '#f1f5f9' } },
-                            y1: { position: 'right', min: 0, max: 2.5, border: { display: false }, grid: { drawOnChartArea: false } }
-                        }
-                    }
-                });
-            },
-
-            updateChartLive(moisture, vpd) {
-                if (!State.chartInstance || !State.isOnline) return;
-
-                const now = new Date();
-                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-                const data = State.chartInstance.data;
-
-                data.labels.push(timeStr);
-                data.datasets[0].data.push(moisture);
-                data.datasets[1].data.push(vpd.toFixed(2)); 
-
-                if (data.labels.length > CONFIG.MAX_CHART_POINTS) {
-                    data.labels.shift();
-                    data.datasets[0].data.shift();
-                    data.datasets[1].data.shift();
-                }
-
-                State.chartInstance.update('none');
-            }
-        };
-
-        // --- 8. APP INIT ---
-        document.addEventListener("DOMContentLoaded", async () => {
-            Logger.add('INFO', 'Boot: AgroPRO v4.1 (Neo Glass Edition)');
-            
-            Auth.getToken();
-            PWA.init();
-            Storage.load(); 
-            UI.init();
-            
-            await WeatherService.fetch();
-            setInterval(WeatherService.fetch, 60000); 
-
-            NetworkWS.connect(); 
-
-            document.getElementById('ws-status-panel').addEventListener('dblclick', () => {
-                if(State.isOnline) NetworkWS.disconnect();
-                else NetworkWS.connect();
-            });
-        });
-
+        // Запуск додатку
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
