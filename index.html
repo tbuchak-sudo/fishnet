@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Розрахунок ЗП</title>
+    <title>Розрахунок ЗП | Bader</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Зарплата">
     <link id="manifest-link" rel="manifest" href="">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -33,48 +33,62 @@
     <style>
         body { 
             -webkit-tap-highlight-color: transparent; 
+            background-color: #07182e;
+            background-image: 
+                linear-gradient(to bottom, rgba(7, 24, 46, 0.95), rgba(4, 15, 30, 0.98)),
+                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.01) 0, rgba(255, 255, 255, 0.01) 1px, transparent 0, transparent 50px);
         }
+
         .app-input {
             width: 100%;
             text-align: right;
-            font-weight: 600;
+            font-weight: 700;
             border-radius: 0.75rem;
             padding: 0.5rem 0.75rem;
             transition: all 0.2s ease;
             outline: none;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
         }
         
-        @media (prefers-color-scheme: light) {
-            .input-highlight {
-                background-color: #fef08a; border: 1px solid #eab308; color: #1f2937;
-            }
-            .input-highlight:focus {
-                background-color: #fde047; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3);
-            }
-            .input-regular {
-                background-color: #f9fafb; border: 1px solid #d1d5db; color: #1f2937;
-            }
-            .input-regular:focus {
-                background-color: #ffffff; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-            }
-            .output-highlight { background-color: #ffedd5; color: #9a3412; }
+        .bader-card {
+            background-color: #0f284c;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            color: #ffffff;
         }
-
-        @media (prefers-color-scheme: dark) {
-            .input-highlight {
-                background-color: #422006; border: 1px solid #a16207; color: #fef08a;
-            }
-            .input-highlight:focus {
-                background-color: #713f12; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.4);
-            }
-            .input-regular {
-                background-color: #1e293b; border: 1px solid #334155; color: #f8fafc;
-            }
-            .input-regular:focus {
-                background-color: #0f172a; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-            }
-            .output-highlight { background-color: #7c2d12; color: #ffedd5; }
+        .bader-card-sub {
+            background-color: #0b1e38;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .input-highlight {
+            background-color: #fef08a; 
+            border: 2px solid #eab308; 
+            color: #111827;
+        }
+        .input-highlight:focus {
+            background-color: #fde047; 
+            border-color: #ca8a04;
+            box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.4);
+        }
+        .input-regular {
+            background-color: #ffffff; 
+            border: 2px solid #94a3b8; 
+            color: #111827;
+        }
+        .input-regular:focus {
+            background-color: #ffffff; 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Виправлено контраст виведених результатів */
+        .output-highlight { 
+            background-color: #1e293b; 
+            color: #38bdf8; 
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            font-weight: 700;
         }
 
         input[type=number]::-webkit-inner-spin-button, 
@@ -83,24 +97,55 @@
         }
         
         .glass-panel {
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .bader-logo-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            border: 2px solid #ffffff;
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            font-family: 'Times New Roman', Times, serif;
+            font-weight: bold;
+            font-size: 26px;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .bader-logo-text {
+            font-family: 'Times New Roman', Times, serif;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen pb-24 md:pb-8">
+<body class="text-white min-h-screen pb-24 md:pb-8">
 
     <div class="max-w-4xl mx-auto p-4 space-y-6">
         
         <!-- Шапка -->
-        <header class="flex justify-between items-center py-2">
-            <div>
-                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                    <i class="fas fa-wallet mr-2 text-blue-600 dark:text-blue-400"></i>Зарплата
-                </h1>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Автоматичний розрахунок</p>
+        <header class="flex justify-between items-center py-3 px-4 bader-card rounded-2xl">
+            <div class="flex items-center gap-3">
+                <div class="bader-logo-box">
+                    B
+                    <span style="font-size: 10px; position: absolute; top: 2px; right: 3px; font-weight: normal;">®</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide text-white flex items-center">
+                        <span class="bader-logo-text">BADER</span>
+                        <span class="text-xs ml-2 px-2 py-0.5 rounded bg-blue-600 text-white border border-blue-400 uppercase tracking-widest font-sans font-bold">Зарплата</span>
+                    </h1>
+                    <p class="text-xs text-blue-200 font-medium mt-0.5">Автоматичний розрахунок премій та виплат</p>
+                </div>
             </div>
-            <button onclick="window.print()" class="hidden md:flex bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition items-center gap-2">
+            <button onclick="window.print()" class="hidden md:flex bg-blue-600 hover:bg-blue-500 text-white border border-blue-400 px-4 py-2 rounded-xl text-sm font-semibold transition items-center gap-2 shadow-md">
                 <i class="fas fa-print"></i> Друк
             </button>
         </header>
@@ -109,67 +154,67 @@
             
             <!-- Блок вхідних даних -->
             <div class="space-y-4">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
-                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fas fa-keyboard"></i> Базові дані
+                <div class="bader-card rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-xs font-bold text-yellow-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fas fa-keyboard text-yellow-400"></i> Базові дані
                     </h2>
                     
                     <div class="space-y-4">
                         <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-medium">Розряд</label>
+                            <label class="text-sm font-semibold text-white">Розряд</label>
                             <div class="w-32">
-                                <select id="rankSelect" class="app-input input-highlight appearance-none text-center"></select>
+                                <select id="rankSelect" class="app-input input-highlight appearance-none text-center cursor-pointer"></select>
                             </div>
                         </div>
                         
                         <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-medium">Ставка / розряд</label>
+                            <label class="text-sm font-semibold text-white">Ставка / розряд</label>
                             <div class="w-32">
                                 <input type="number" id="baseRate" value="12600" inputmode="decimal" class="app-input input-regular">
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between gap-4">
-                            <label class="text-sm font-medium">Робочих днів</label>
+                            <label class="text-sm font-semibold text-white">Робочих днів</label>
                             <div class="w-32">
                                 <input type="number" id="workDays" value="23" inputmode="numeric" class="app-input input-highlight">
                             </div>
                         </div>
                         
-                        <div class="flex justify-end text-xs text-blue-600 dark:text-blue-400 font-medium">
-                            <span>Годинна ставка: <span id="hourlyRateDisplay">0.00</span></span>
+                        <div class="flex justify-end text-xs text-cyan-300 font-bold">
+                            <span>Годинна ставка: <span id="hourlyRateDisplay" class="text-cyan-200">0.00</span></span>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-white/20">
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">Стаж</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">Стаж</label>
                                 <input type="number" id="experienceBonus" value="1402" inputmode="decimal" class="app-input input-highlight">
                             </div>
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">Відвідування</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">Відвідування</label>
                                 <input type="number" id="attendanceBonus" value="1568" inputmode="decimal" class="app-input input-highlight">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">Коеф. премії</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">Коеф. премії</label>
                                 <input type="number" id="coefficient" value="1" step="0.1" inputmode="decimal" class="app-input input-regular">
                             </div>
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">База премії</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">База премії</label>
                                 <input type="number" id="qualityPremiumBase" value="7068" inputmode="decimal" class="app-input input-highlight">
                             </div>
                         </div>
 
-                        <!-- Нові поля: Додаткові доплати та Відпустка -->
-                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+                        <!-- Додаткові доплати та Відпустка -->
+                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-white/20">
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">Додаткові доплати</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">Додаткові доплати</label>
                                 <input type="number" id="extraPayments" value="0" inputmode="decimal" class="app-input input-highlight">
                             </div>
                             <div>
-                                <label class="text-xs text-gray-500 block mb-1">Відпустка</label>
+                                <label class="text-xs font-medium text-blue-200 block mb-1">Відпустка</label>
                                 <input type="number" id="vacationPayment" value="0" inputmode="decimal" class="app-input input-highlight">
                             </div>
                         </div>
@@ -177,131 +222,133 @@
                 </div>
 
                 <!-- Блок змін -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
-                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fas fa-calendar-alt"></i> Зміни та години
+                <div class="bader-card rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-xs font-bold text-yellow-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-yellow-400"></i> Зміни та години
                     </h2>
                     
                     <div class="space-y-3">
-                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
-                            <span class="text-sm font-medium">1 зміна</span>
+                        <div class="flex justify-between items-center bader-card-sub p-2.5 rounded-xl">
+                            <span class="text-sm font-semibold text-white">1 зміна</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400">будні</span>
+                                <span class="text-xs text-gray-300">будні</span>
                                 <input type="number" id="shift1Days" value="9" class="w-16 app-input input-highlight !px-2">
                                 <span class="text-xs text-red-400 font-bold ml-1">суб</span>
                                 <input type="number" id="satShift1Days" value="2" class="w-16 app-input input-highlight !px-2">
                             </div>
                         </div>
                         
-                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
-                            <span class="text-sm font-medium">2 зміна <span class="text-xs text-green-500 ml-1">+20%</span></span>
+                        <div class="flex justify-between items-center bader-card-sub p-2.5 rounded-xl">
+                            <span class="text-sm font-semibold text-white">2 зміна <span class="text-xs text-emerald-300 font-bold ml-1">+20%</span></span>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400">будні</span>
+                                <span class="text-xs text-gray-300">будні</span>
                                 <input type="number" id="shift2Days" value="14" class="w-16 app-input input-highlight !px-2">
                                 <span class="text-xs text-red-400 font-bold ml-1">суб</span>
                                 <input type="number" id="satShift2Days" value="2" class="w-16 app-input input-highlight !px-2">
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
-                            <span class="text-sm font-medium">3 зміна <span class="text-xs text-green-500 ml-1">+40%</span></span>
+                        <div class="flex justify-between items-center bader-card-sub p-2.5 rounded-xl">
+                            <span class="text-sm font-semibold text-white">3 зміна <span class="text-xs text-emerald-300 font-bold ml-1">+40%</span></span>
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-400">будні</span>
+                                <span class="text-xs text-gray-300">будні</span>
                                 <input type="number" id="shift3Days" value="0" class="w-16 app-input input-highlight !px-2">
-                                <span class="text-xs text-gray-400 ml-1 invisible">суб</span>
+                                <span class="text-xs text-gray-300 ml-1 invisible">суб</span>
                                 <div class="w-16"></div>
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center pt-2">
-                            <span class="text-sm font-medium">Понаднормові (год) <span class="text-xs text-red-500 ml-1">x2</span></span>
+                        <div class="flex justify-between items-center pt-2 px-1">
+                            <span class="text-sm font-semibold text-white">Понаднормові (год) <span class="text-xs text-red-400 font-bold ml-1">x2</span></span>
                             <input type="number" id="overtimeHours" value="0" class="w-20 app-input input-highlight">
                         </div>
                     </div>
                 </div>
                 
                 <!-- Аванс -->
-                <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 p-5">
+                <div class="bg-red-950/80 rounded-2xl shadow-xl border border-red-500/50 p-5">
                     <div class="flex justify-between items-center">
-                        <span class="font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
-                            <i class="fas fa-hand-holding-usd"></i> Аванс (відняти)
+                        <span class="font-bold text-red-200 flex items-center gap-2">
+                            <i class="fas fa-hand-holding-usd text-red-400"></i> Аванс
                         </span>
-                        <input type="number" id="advancePayment" value="9800" class="w-28 app-input bg-white dark:bg-red-950 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400">
+                        <input type="number" id="advancePayment" value="9800" class="w-28 app-input bg-red-900 border border-red-400 text-white font-bold">
                     </div>
                 </div>
             </div>
 
             <!-- Блок результатів -->
             <div class="space-y-4">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 h-full">
-                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fas fa-receipt"></i> Деталізація
-                    </h2>
-                    
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Премія (прод.якість)</span>
-                            <span id="calcQualityPremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">1 зміна (будні)</span>
-                            <span id="calcShift1" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">2 зміна (будні +20%)</span>
-                            <span id="calcShift2" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">3 зміна (будні +40%)</span>
-                            <span id="calcShift3" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Субота 1 зміна (x2)</span>
-                            <span id="calcSatShift1" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Субота 2 зміна (x2)</span>
-                            <span id="calcSatShift2" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Понаднормові (x2)</span>
-                            <span id="calcOvertime" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Премія за суботи</span>
-                            <span id="calcSatPremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="text-gray-500 dark:text-gray-400">Премія за понаднорм.</span>
-                            <span id="calcOvertimePremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за стаж</span>
-                            <span id="calcExp" class="font-mono font-bold">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за відвідування</span>
-                            <span id="calcAtt" class="font-mono font-bold">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">Додаткові доплати</span>
-                            <span id="calcExtra" class="font-mono font-bold">0.00</span>
-                        </div>
-                        <div class="flex justify-between py-2">
-                            <span class="font-medium text-gray-700 dark:text-gray-300">Відпустка</span>
-                            <span id="calcVacation" class="font-mono font-bold">0.00</span>
+                <div class="bader-card rounded-2xl p-5 shadow-xl h-full flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-xs font-bold text-yellow-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="fas fa-receipt text-yellow-400"></i> Деталізація
+                        </h2>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Премія (прод.якість)</span>
+                                <span id="calcQualityPremium" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">1 зміна (будні)</span>
+                                <span id="calcShift1" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">2 зміна (будні +20%)</span>
+                                <span id="calcShift2" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">3 зміна (будні +40%)</span>
+                                <span id="calcShift3" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Субота 1 зміна (x2)</span>
+                                <span id="calcSatShift1" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Субота 2 зміна (x2)</span>
+                                <span id="calcSatShift2" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Понаднормові (x2)</span>
+                                <span id="calcOvertime" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Премія за суботи</span>
+                                <span id="calcSatPremium" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="text-gray-200 font-medium">Премія за понаднорм.</span>
+                                <span id="calcOvertimePremium" class="font-mono font-bold output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="font-semibold text-white">Доплата за стаж</span>
+                                <span id="calcExp" class="font-mono font-bold text-cyan-300 output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="font-semibold text-white">Доплата за відвідування</span>
+                                <span id="calcAtt" class="font-mono font-bold text-cyan-300 output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/10">
+                                <span class="font-semibold text-white">Додаткові доплати</span>
+                                <span id="calcExtra" class="font-mono font-bold text-cyan-300 output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="font-semibold text-white">Відпустка</span>
+                                <span id="calcVacation" class="font-mono font-bold text-cyan-300 output-highlight px-2.5 py-1 rounded-lg">0.00</span>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Десктопний підсумок -->
                     <div class="hidden md:block mt-8 space-y-4">
-                        <div class="flex justify-between items-center p-4 rounded-xl bg-gray-100 dark:bg-gray-700">
-                            <span class="font-bold text-gray-600 dark:text-gray-300">Нараховано:</span>
-                            <span id="finalAccruedDesktop" class="font-bold text-xl font-mono">0.00</span>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-blue-950 border border-blue-400/40">
+                            <span class="font-bold text-white">Нараховано:</span>
+                            <span id="finalAccruedDesktop" class="font-bold text-xl font-mono text-cyan-200">0.00</span>
                         </div>
-                        <div class="flex justify-between items-center p-5 rounded-xl bg-green-500 text-white shadow-lg shadow-green-500/30">
+                        <div class="flex justify-between items-center p-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/60 border border-blue-300">
                             <span class="font-bold text-lg">До видачі:</span>
-                            <span id="finalToPayDesktop" class="font-bold text-3xl font-mono tracking-tight">0.00</span>
+                            <span id="finalToPayDesktop" class="font-bold text-3xl font-mono tracking-tight text-white">0.00</span>
                         </div>
                     </div>
                 </div>
@@ -310,27 +357,27 @@
     </div>
 
     <!-- Мобільна плаваюча панель результатів (Sticky Footer) -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 p-4 glass-panel bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+    <div class="md:hidden fixed bottom-0 left-0 right-0 p-4 glass-panel bg-slate-950/95 border-t border-blue-400/40 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
         <div class="flex justify-between items-center mb-1 px-2">
-            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Загалом нараховано</span>
-            <span id="finalAccruedMobile" class="text-sm font-mono font-medium text-gray-600 dark:text-gray-300">0.00</span>
+            <span class="text-xs font-bold text-blue-200 uppercase tracking-wider">Загалом нараховано</span>
+            <span id="finalAccruedMobile" class="text-sm font-mono font-bold text-cyan-200">0.00</span>
         </div>
         <div class="flex justify-between items-end px-2">
-            <span class="text-lg font-bold text-gray-900 dark:text-white pb-1">До видачі:</span>
-            <span id="finalToPayMobile" class="text-4xl font-bold font-mono text-green-600 dark:text-green-400 tracking-tight">0.00</span>
+            <span class="text-lg font-bold text-white pb-1">До видачі:</span>
+            <span id="finalToPayMobile" class="text-4xl font-bold font-mono text-emerald-300 tracking-tight">0.00</span>
         </div>
     </div>
 
     <script>
         const manifest = {
-            name: "Розрахунок Зарплати",
+            name: "Розрахунок Зарплати Bader",
             short_name: "Зарплата",
             start_url: location.href,
             display: "standalone",
-            background_color: "#f9fafb",
-            theme_color: "#3b82f6",
+            background_color: "#07182e",
+            theme_color: "#1e3a8a",
             icons: [{
-                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E",
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E",
                 sizes: "192x192",
                 type: "image/svg+xml",
                 purpose: "any maskable"
@@ -420,11 +467,11 @@
             const overtimePremium = (actualQualityPremium / (workDays * 8)) * overtimeHours;
 
             document.getElementById('calcQualityPremium').textContent = actualQualityPremium.toFixed(2);
-            document.getElementById('calcShift1').textContent = payShift1.toFixed(5);
-            document.getElementById('calcShift2').textContent = payShift2.toFixed(5);
+            document.getElementById('calcShift1').textContent = payShift1.toFixed(2);
+            document.getElementById('calcShift2').textContent = payShift2.toFixed(2);
             document.getElementById('calcShift3').textContent = payShift3.toFixed(2);
-            document.getElementById('calcSatShift1').textContent = paySatShift1.toFixed(5);
-            document.getElementById('calcSatShift2').textContent = paySatShift2.toFixed(5);
+            document.getElementById('calcSatShift1').textContent = paySatShift1.toFixed(2);
+            document.getElementById('calcSatShift2').textContent = paySatShift2.toFixed(2);
             document.getElementById('calcOvertime').textContent = payOvertime.toFixed(2);
             document.getElementById('calcSatPremium').textContent = satPremium.toFixed(2);
             document.getElementById('calcOvertimePremium').textContent = overtimePremium.toFixed(2);
