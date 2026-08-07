@@ -190,10 +190,13 @@
                                 <label class="text-xs font-medium text-blue-200 block mb-1">Стаж</label>
                                 <input type="number" id="experienceBonus" value="1402" inputmode="decimal" class="app-input input-highlight">
                             </div>
-                            <div>
-                                <label class="text-xs font-medium text-blue-200 block mb-1">Відвідування</label>
-                                <input type="number" id="attendanceBonus" value="1568" inputmode="decimal" class="app-input input-highlight">
+                           <div class="flex flex-col">
+                               <label class="text-xs font-medium text-blue-200 block mb-1" for="attendanceBonus"> Відвідування (1568 ₴)</label>
+                               <div class="flex items-center justify-end h-[38px] px-3 bg-[#fef08a] border-2 border-[#eab308] rounded-xl cursor-pointer" onclick="document.getElementById('attendanceBonus').click()">
+                                <span class="mr-3 text-gray-800 font-bold text-sm">Рахувати</span>
+                                <input type="checkbox" id="attendanceBonus" checked class="w-5 h-5 accent-yellow-600 cursor-pointer">
                             </div>
+                          </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -436,7 +439,8 @@
             const baseRate = getVal('baseRate');
             const workDays = getValDay('workDays');
             const expBonus = getVal('experienceBonus');
-            const attBonus = getVal('attendanceBonus');
+            // Якщо галочка стоїть, даємо 1568, якщо ні — 0
+const attBonus = document.getElementById('attendanceBonus').checked ? 1568 : 0;
             const coef = getVal('coefficient');
             const qualPremiumBase = getVal('qualityPremiumBase');
             const extraPayments = getVal('extraPayments');
@@ -458,7 +462,7 @@
             const actualQualityPremium = (qualPremiumBase / workDays) * totalWeekdayShifts * coef;
             
             const payShift1 = shift1Days * 8 * hourlyRate;
-            const payShift2 = shift2Days * 8 * hourlyRate * 1.2;
+            const payShift2 = shift2Days * 8 * hourlyRate *1.2;
             const payShift3 = shift3Days * 8 * hourlyRate * 1.4; 
             const paySatShift1 = satShift1Days * 8 * hourlyRate * 2;
             const paySatShift2 = satShift2Days * 8 * hourlyRate * 2;
