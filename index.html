@@ -19,7 +19,7 @@
     
     <script>
         tailwind.config = {
-            darkMode: 'media', // Автоматично підхоплює тему системи
+            darkMode: 'media',
             theme: {
                 extend: {
                     fontFamily: {
@@ -34,7 +34,6 @@
         body { 
             -webkit-tap-highlight-color: transparent; 
         }
-        /* Адаптивні поля вводу */
         .app-input {
             width: 100%;
             text-align: right;
@@ -46,7 +45,6 @@
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
-        /* Світла тема для інпутів (Жовтий стиль Excel) */
         @media (prefers-color-scheme: light) {
             .input-highlight {
                 background-color: #fef08a; border: 1px solid #eab308; color: #1f2937;
@@ -63,7 +61,6 @@
             .output-highlight { background-color: #ffedd5; color: #9a3412; }
         }
 
-        /* Темна тема для інпутів */
         @media (prefers-color-scheme: dark) {
             .input-highlight {
                 background-color: #422006; border: 1px solid #a16207; color: #fef08a;
@@ -80,7 +77,6 @@
             .output-highlight { background-color: #7c2d12; color: #ffedd5; }
         }
 
-        /* Прибираємо стрілки в number input */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; margin: 0; 
@@ -163,6 +159,18 @@
                             <div>
                                 <label class="text-xs text-gray-500 block mb-1">База премії</label>
                                 <input type="number" id="qualityPremiumBase" value="7068" inputmode="decimal" class="app-input input-highlight">
+                            </div>
+                        </div>
+
+                        <!-- Нові поля: Додаткові доплати та Відпустка -->
+                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">Додаткові доплати</label>
+                                <input type="number" id="extraPayments" value="0" inputmode="decimal" class="app-input input-highlight">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">Відпустка</label>
+                                <input type="number" id="vacationPayment" value="0" inputmode="decimal" class="app-input input-highlight">
                             </div>
                         </div>
                     </div>
@@ -271,9 +279,17 @@
                             <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за стаж</span>
                             <span id="calcExp" class="font-mono font-bold">0.00</span>
                         </div>
-                        <div class="flex justify-between py-2">
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
                             <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за відвідування</span>
                             <span id="calcAtt" class="font-mono font-bold">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Додаткові доплати</span>
+                            <span id="calcExtra" class="font-mono font-bold">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Відпустка</span>
+                            <span id="calcVacation" class="font-mono font-bold">0.00</span>
                         </div>
                     </div>
                     
@@ -306,7 +322,6 @@
     </div>
 
     <script>
-        // Створення маніфесту на льоту для PWA
         const manifest = {
             name: "Розрахунок Зарплати",
             short_name: "Зарплата",
@@ -324,7 +339,6 @@
         const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
         document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
 
-        // Дані розрядів
         const rankData = {
             1: { netto: 10510.5, coef: 1, advance: 7700 },
             2: { netto: 10895.5, coef: 1, advance: 7800 },
@@ -351,7 +365,6 @@
             select.addEventListener('change', applyRankData);
             document.querySelectorAll('input').forEach(input => {
                 input.addEventListener('input', calculate);
-                // Фокус виділяє весь текст для швидкої заміни на смартфоні
                 input.addEventListener('focus', function() { this.select(); });
             });
 
@@ -379,6 +392,8 @@
             const attBonus = getVal('attendanceBonus');
             const coef = getVal('coefficient');
             const qualPremiumBase = getVal('qualityPremiumBase');
+            const extraPayments = getVal('extraPayments');
+            const vacationPayment = getVal('vacationPayment');
             
             const shift1Days = getVal('shift1Days');
             const shift2Days = getVal('shift2Days');
@@ -415,15 +430,15 @@
             document.getElementById('calcOvertimePremium').textContent = overtimePremium.toFixed(2);
             document.getElementById('calcExp').textContent = expBonus.toFixed(2);
             document.getElementById('calcAtt').textContent = attBonus.toFixed(2);
+            document.getElementById('calcExtra').textContent = extraPayments.toFixed(2);
+            document.getElementById('calcVacation').textContent = vacationPayment.toFixed(2);
 
-            const totalAccrued = payShift1 + payShift2 + payShift3 + paySatShift1 + paySatShift2 + payOvertime + actualQualityPremium + satPremium + overtimePremium + expBonus + attBonus;
+            const totalAccrued = payShift1 + payShift2 + payShift3 + paySatShift1 + paySatShift2 + payOvertime + actualQualityPremium + satPremium + overtimePremium + expBonus + attBonus + extraPayments + vacationPayment;
             const totalToPay = totalAccrued - advance;
 
-            // Оновлюємо десктоп
             document.getElementById('finalAccruedDesktop').textContent = totalAccrued.toFixed(2) + ' ₴';
             document.getElementById('finalToPayDesktop').textContent = totalToPay.toFixed(2) + ' ₴';
             
-            // Оновлюємо мобілку
             document.getElementById('finalAccruedMobile').textContent = totalAccrued.toFixed(2) + ' ₴';
             document.getElementById('finalToPayMobile').textContent = totalToPay.toFixed(2) + ' ₴';
         }
