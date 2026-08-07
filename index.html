@@ -454,7 +454,8 @@
             document.getElementById('hourlyRateDisplay').textContent = hourlyRate.toFixed(2);
             
             const totalSaturdays = satShift1Days + satShift2Days;
-            const actualQualityPremium = qualPremiumBase * coef;
+            const totalWeekdayShifts = shift1Days + shift2Days + shift3Days;
+            const actualQualityPremium = (qualPremiumBase / workDays) * totalWeekdayShifts * coef;
             
             const payShift1 = shift1Days * 8 * hourlyRate;
             const payShift2 = shift2Days * 8 * hourlyRate * 1.2;
@@ -463,8 +464,8 @@
             const paySatShift2 = satShift2Days * 8 * hourlyRate * 2;
             const payOvertime = overtimeHours * hourlyRate * 2;
 
-            const satPremium = (actualQualityPremium / workDays) * totalSaturdays;
-            const overtimePremium = (actualQualityPremium / (workDays * 8)) * overtimeHours;
+            const satPremium = (qualPremiumBase / workDays) * totalSaturdays;
+            const overtimePremium = (qualPremiumBase / (workDays * 8)) * overtimeHours;
 
             document.getElementById('calcQualityPremium').textContent = actualQualityPremium.toFixed(2);
             document.getElementById('calcShift1').textContent = payShift1.toFixed(2);
