@@ -1,553 +1,434 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" class="antialiased">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>СуховоляТех - Прокат Інструменту</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Розрахунок ЗП</title>
     
-    <!-- Підключаємо стилі Tailwind CSS -->
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Зарплата">
+    <link id="manifest-link" rel="manifest" href="">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E">
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
-    <!-- Підключаємо іконки FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Підключаємо React та ReactDOM для роботи логіки -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- Підключаємо Babel, щоб браузер розумів сучасний код (JSX) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'media', // Автоматично підхоплює тему системи
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        /* Сховуємо скроллбар для мобільних пристроїв, залишаючи можливість гортати */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
+        body { 
+            -webkit-tap-highlight-color: transparent; 
         }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        /* Адаптивні поля вводу */
+        .app-input {
+            width: 100%;
+            text-align: right;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+            outline: none;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Світла тема для інпутів (Жовтий стиль Excel) */
+        @media (prefers-color-scheme: light) {
+            .input-highlight {
+                background-color: #fef08a; border: 1px solid #eab308; color: #1f2937;
+            }
+            .input-highlight:focus {
+                background-color: #fde047; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3);
+            }
+            .input-regular {
+                background-color: #f9fafb; border: 1px solid #d1d5db; color: #1f2937;
+            }
+            .input-regular:focus {
+                background-color: #ffffff; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            }
+            .output-highlight { background-color: #ffedd5; color: #9a3412; }
+        }
+
+        /* Темна тема для інпутів */
+        @media (prefers-color-scheme: dark) {
+            .input-highlight {
+                background-color: #422006; border: 1px solid #a16207; color: #fef08a;
+            }
+            .input-highlight:focus {
+                background-color: #713f12; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.4);
+            }
+            .input-regular {
+                background-color: #1e293b; border: 1px solid #334155; color: #f8fafc;
+            }
+            .input-regular:focus {
+                background-color: #0f172a; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+            }
+            .output-highlight { background-color: #7c2d12; color: #ffedd5; }
+        }
+
+        /* Прибираємо стрілки в number input */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
-    
-    <!-- Тут буде намальований наш додаток -->
-    <div id="root"></div>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen pb-24 md:pb-8">
 
-    <script type="text/babel">
-        const { useState, useMemo } = React;
+    <div class="max-w-4xl mx-auto p-4 space-y-6">
+        
+        <!-- Шапка -->
+        <header class="flex justify-between items-center py-2">
+            <div>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                    <i class="fas fa-wallet mr-2 text-blue-600 dark:text-blue-400"></i>Зарплата
+                </h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Автоматичний розрахунок</p>
+            </div>
+            <button onclick="window.print()" class="hidden md:flex bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition items-center gap-2">
+                <i class="fas fa-print"></i> Друк
+            </button>
+        </header>
 
-        // Початкова база даних інструментів з фотографіями
-        const initialTools = [
-            { id: 1, name: 'Віброплита (трамбовка) 90кг', category: 'Важка техніка', price: 700, status: 'available', image: 'https://images.unsplash.com/photo-1590846406792-0adc7f928f1e?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Ідеально для ущільнення ґрунту та бруківки.' },
-            { id: 2, name: 'Бетономішалка 160л', category: 'Важка техніка', price: 400, status: 'available', image: 'https://images.unsplash.com/photo-1621252179022-817887341819?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Електрична бетономішалка, 220В.' },
-            { id: 3, name: 'Лазерний нівелір 360°', category: 'Вимірювальний', price: 300, status: 'rented', image: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Професійний зелений лазер з триногою.' },
-            { id: 4, name: 'Відбійний молоток', category: 'Електроінструмент', price: 600, status: 'available', image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Сила удару 45 Дж. Для демонтажу бетону.' },
-            { id: 5, name: 'Мийка високого тиску Karcher', category: 'Сад і Дім', price: 500, status: 'available', image: 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для миття авто, фасадів, дахів.' },
-            { id: 6, name: 'Перфоратор Bosch', category: 'Електроінструмент', price: 250, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'З набором бурів до 24мм.' },
-            { id: 7, name: 'Паяльник для труб', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1584285406086-fb7c6d482200?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для зварювання пластикових (поліпропіленових) труб.' },
-            { id: 8, name: 'Глибинний вібратор (Слон)', category: 'Важка техніка', price: 400, status: 'available', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для ущільнення бетонних сумішей при заливці фундаментів.' },
-            { id: 9, name: 'Болгарка (КШМ) 125/230мм', category: 'Електроінструмент', price: 200, status: 'available', image: 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Кутова шліфмашина для різки металу та бетону.' },
-            { id: 10, name: 'Дриль ударний', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Потужний дриль для свердління дерева, металу та цегли.' },
-            { id: 11, name: 'Шуруповерт акумуляторний', category: 'Електроінструмент', price: 250, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'З двома акумуляторами, для монтажних робіт.' },
-            { id: 12, name: 'Шліфмашина для стін (Жираф)', category: 'Електроінструмент', price: 500, status: 'available', image: 'https://images.unsplash.com/photo-1584285406086-fb7c6d482200?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для шліфування штукатурки та шпаклівки на стінах і стелях.' },
-            { id: 13, name: 'Зварювальний апарат (Інвертор)', category: 'Електроінструмент', price: 350, status: 'available', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Компактний інвертор для зварювання електродами.' },
-            { id: 14, name: 'Будівельний фен', category: 'Електроінструмент', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Для зняття фарби, сушіння та термоусадки.' },
-            { id: 15, name: 'Гайковерт ударний', category: 'Електроінструмент', price: 300, status: 'available', image: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Акумуляторний ударний гайковерт для авто та конструкцій.' },
-            { id: 16, name: 'Будівельна тачка', category: 'Сад і Дім', price: 150, status: 'available', image: 'https://images.unsplash.com/photo-1590846406792-0adc7f928f1e?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Посилена тачка для перевезення землі, щебеню або розчину.' },
-            { id: 17, name: 'Бетонозмішувач 180л', category: 'Важка техніка', price: 450, status: 'available', image: 'https://images.unsplash.com/photo-1621252179022-817887341819?auto=format&fit=crop&q=80&w=400&h=300', desc: 'Збільшеного об\'єму для інтенсивних робіт.' }
-        ];
-
-        const categories = ['Всі', 'Електроінструмент', 'Важка техніка', 'Вимірювальний', 'Сад і Дім'];
-
-        function App() {
-            const [tools, setTools] = useState(initialTools);
-            const [viewMode, setViewMode] = useState('client'); // 'client' або 'admin'
-            const [search, setSearch] = useState('');
-            const [activeCategory, setActiveCategory] = useState('Всі');
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            // Стан кошика та модального вікна
-            const [cart, setCart] = useState([]);
-            const [isCartOpen, setIsCartOpen] = useState(false);
-            const [bookingDays, setBookingDays] = useState(1);
+            <!-- Блок вхідних даних -->
+            <div class="space-y-4">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fas fa-keyboard"></i> Базові дані
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <label class="text-sm font-medium">Розряд</label>
+                            <div class="w-32">
+                                <select id="rankSelect" class="app-input input-highlight appearance-none text-center"></select>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between gap-4">
+                            <label class="text-sm font-medium">Ставка / розряд</label>
+                            <div class="w-32">
+                                <input type="number" id="baseRate" value="12600" inputmode="decimal" class="app-input input-regular">
+                            </div>
+                        </div>
 
-            // Стан для форми додавання нового інструмента
-            const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-            const [newTool, setNewTool] = useState({
-                name: '', category: 'Електроінструмент', price: '', desc: '', image: ''
+                        <div class="flex items-center justify-between gap-4">
+                            <label class="text-sm font-medium">Робочих днів</label>
+                            <div class="w-32">
+                                <input type="number" id="workDays" value="23" inputmode="numeric" class="app-input input-highlight">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            <span>Годинна ставка: <span id="hourlyRateDisplay">0.00</span></span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">Стаж</label>
+                                <input type="number" id="experienceBonus" value="1402" inputmode="decimal" class="app-input input-highlight">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">Відвідування</label>
+                                <input type="number" id="attendanceBonus" value="1568" inputmode="decimal" class="app-input input-highlight">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">Коеф. премії</label>
+                                <input type="number" id="coefficient" value="1" step="0.1" inputmode="decimal" class="app-input input-regular">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-500 block mb-1">База премії</label>
+                                <input type="number" id="qualityPremiumBase" value="7068" inputmode="decimal" class="app-input input-highlight">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок змін -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fas fa-calendar-alt"></i> Зміни та години
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
+                            <span class="text-sm font-medium">1 зміна</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">будні</span>
+                                <input type="number" id="shift1Days" value="9" class="w-16 app-input input-highlight !px-2">
+                                <span class="text-xs text-red-400 font-bold ml-1">суб</span>
+                                <input type="number" id="satShift1Days" value="2" class="w-16 app-input input-highlight !px-2">
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
+                            <span class="text-sm font-medium">2 зміна <span class="text-xs text-green-500 ml-1">+20%</span></span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">будні</span>
+                                <input type="number" id="shift2Days" value="14" class="w-16 app-input input-highlight !px-2">
+                                <span class="text-xs text-red-400 font-bold ml-1">суб</span>
+                                <input type="number" id="satShift2Days" value="2" class="w-16 app-input input-highlight !px-2">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl">
+                            <span class="text-sm font-medium">3 зміна <span class="text-xs text-green-500 ml-1">+40%</span></span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">будні</span>
+                                <input type="number" id="shift3Days" value="0" class="w-16 app-input input-highlight !px-2">
+                                <span class="text-xs text-gray-400 ml-1 invisible">суб</span>
+                                <div class="w-16"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-sm font-medium">Понаднормові (год) <span class="text-xs text-red-500 ml-1">x2</span></span>
+                            <input type="number" id="overtimeHours" value="0" class="w-20 app-input input-highlight">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Аванс -->
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 p-5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+                            <i class="fas fa-hand-holding-usd"></i> Аванс (відняти)
+                        </span>
+                        <input type="number" id="advancePayment" value="9800" class="w-28 app-input bg-white dark:bg-red-950 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок результатів -->
+            <div class="space-y-4">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 h-full">
+                    <h2 class="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fas fa-receipt"></i> Деталізація
+                    </h2>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Премія (прод.якість)</span>
+                            <span id="calcQualityPremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">1 зміна (будні)</span>
+                            <span id="calcShift1" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">2 зміна (будні +20%)</span>
+                            <span id="calcShift2" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">3 зміна (будні +40%)</span>
+                            <span id="calcShift3" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Субота 1 зміна (x2)</span>
+                            <span id="calcSatShift1" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Субота 2 зміна (x2)</span>
+                            <span id="calcSatShift2" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Понаднормові (x2)</span>
+                            <span id="calcOvertime" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Премія за суботи</span>
+                            <span id="calcSatPremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="text-gray-500 dark:text-gray-400">Премія за понаднорм.</span>
+                            <span id="calcOvertimePremium" class="font-mono font-medium output-highlight px-2 py-0.5 rounded">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-50 dark:border-gray-700/50">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за стаж</span>
+                            <span id="calcExp" class="font-mono font-bold">0.00</span>
+                        </div>
+                        <div class="flex justify-between py-2">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Доплата за відвідування</span>
+                            <span id="calcAtt" class="font-mono font-bold">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Десктопний підсумок -->
+                    <div class="hidden md:block mt-8 space-y-4">
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-gray-100 dark:bg-gray-700">
+                            <span class="font-bold text-gray-600 dark:text-gray-300">Нараховано:</span>
+                            <span id="finalAccruedDesktop" class="font-bold text-xl font-mono">0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center p-5 rounded-xl bg-green-500 text-white shadow-lg shadow-green-500/30">
+                            <span class="font-bold text-lg">До видачі:</span>
+                            <span id="finalToPayDesktop" class="font-bold text-3xl font-mono tracking-tight">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Мобільна плаваюча панель результатів (Sticky Footer) -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 p-4 glass-panel bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700 z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <div class="flex justify-between items-center mb-1 px-2">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Загалом нараховано</span>
+            <span id="finalAccruedMobile" class="text-sm font-mono font-medium text-gray-600 dark:text-gray-300">0.00</span>
+        </div>
+        <div class="flex justify-between items-end px-2">
+            <span class="text-lg font-bold text-gray-900 dark:text-white pb-1">До видачі:</span>
+            <span id="finalToPayMobile" class="text-4xl font-bold font-mono text-green-600 dark:text-green-400 tracking-tight">0.00</span>
+        </div>
+    </div>
+
+    <script>
+        // Створення маніфесту на льоту для PWA
+        const manifest = {
+            name: "Розрахунок Зарплати",
+            short_name: "Зарплата",
+            start_url: location.href,
+            display: "standalone",
+            background_color: "#f9fafb",
+            theme_color: "#3b82f6",
+            icons: [{
+                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E",
+                sizes: "192x192",
+                type: "image/svg+xml",
+                purpose: "any maskable"
+            }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+
+        // Дані розрядів
+        const rankData = {
+            1: { netto: 10510.5, coef: 1, advance: 7700 },
+            2: { netto: 10895.5, coef: 1, advance: 7800 },
+            3: { netto: 11396, coef: 1, advance: 8100 },
+            4: { netto: 11858, coef: 1, advance: 8400 },
+            5: { netto: 12358.5, coef: 1, advance: 8500 },
+            6: { netto: 12820.5, coef: 1.1, advance: 8800 },
+            7: { netto: 13552, coef: 1.2, advance: 9100 },
+            8: { netto: 14206.5, coef: 1.3, advance: 9800 },
+            9: { netto: 14938, coef: 1.3, advance: 10500 },
+            10: { netto: 15554, coef: 1.4, advance: 11200 }
+        };
+
+        function init() {
+            const select = document.getElementById('rankSelect');
+            for (let i = 1; i <= 10; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.text = `Розряд ${i}`;
+                if(i === 8) option.selected = true;
+                select.appendChild(option);
+            }
+
+            select.addEventListener('change', applyRankData);
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', calculate);
+                // Фокус виділяє весь текст для швидкої заміни на смартфоні
+                input.addEventListener('focus', function() { this.select(); });
             });
 
-            // Фільтрація каталогу
-            const filteredTools = useMemo(() => {
-                return tools.filter(tool => {
-                    const matchSearch = tool.name.toLowerCase().includes(search.toLowerCase());
-                    const matchCategory = activeCategory === 'Всі' || tool.category === activeCategory;
-                    return matchSearch && matchCategory;
-                });
-            }, [tools, search, activeCategory]);
-
-            // Функції кошика
-            const addToCart = (tool) => {
-                if (!cart.find(item => item.id === tool.id)) {
-                    setCart([...cart, tool]);
-                }
-            };
-            const removeFromCart = (id) => setCart(cart.filter(item => item.id !== id));
-            const cartTotal = cart.reduce((sum, item) => sum + item.price, 0) * bookingDays;
-
-            // Функція додавання нового інструмента
-            const handleAddTool = (e) => {
-                e.preventDefault();
-                
-                const toolToAdd = {
-                    id: tools.length > 0 ? Math.max(...tools.map(t => t.id)) + 1 : 1, // Генеруємо новий ID
-                    name: newTool.name,
-                    category: newTool.category,
-                    price: Number(newTool.price),
-                    status: 'available',
-                    // Якщо фото не вказане, ставимо красиву заглушку
-                    image: newTool.image || 'https://images.unsplash.com/photo-1585207797723-5e9858548bb9?auto=format&fit=crop&q=80&w=400&h=300',
-                    desc: newTool.desc
-                };
-
-                // Додаємо новий інструмент на початок списку
-                setTools([toolToAdd, ...tools]);
-                
-                // Закриваємо модалку та очищаємо форму
-                setIsAddModalOpen(false);
-                setNewTool({ name: '', category: 'Електроінструмент', price: '', desc: '', image: '' });
-            };
-
-            // Функція для відображення інтерфейсу клієнта
-            const renderClientView = () => (
-                <div className="min-h-screen bg-slate-50 pb-20">
-                    <div className="bg-amber-500 text-slate-900 py-12 px-4 shadow-inner relative overflow-hidden">
-                        <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-                            <i className="fa-solid fa-screwdriver-wrench" style={{ fontSize: '300px', transform: 'rotate(-20deg)', position: 'absolute', top: '-50px', right: '-50px' }}></i>
-                        </div>
-                        
-                        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
-                            <div>
-                                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">Прокат Інструменту</h2>
-                                <p className="text-lg md:text-xl font-medium opacity-90">Надійне обладнання для ваших проектів. с. Суховоля.</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm border border-white/30 text-center min-w-[120px]">
-                                    <div className="text-3xl font-extrabold">{tools.length}</div>
-                                    <div className="text-sm font-semibold uppercase tracking-wider mt-1 opacity-80">Одиниць</div>
-                                </div>
-                                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm border border-white/30 text-center min-w-[120px]">
-                                    <div className="text-3xl font-extrabold">24/7</div>
-                                    <div className="text-sm font-semibold uppercase tracking-wider mt-1 opacity-80">Підтримка</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="max-w-6xl mx-auto px-4 mt-8">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-                            <div className="relative w-full md:w-96">
-                                <i className="fa-solid fa-magnifying-glass absolute left-4 top-4 text-slate-400"></i>
-                                <input 
-                                    type="text" 
-                                    placeholder="Пошук інструменту..." 
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-slate-200 focus:ring-0 focus:border-amber-500 transition-colors shadow-sm outline-none font-medium"
-                                />
-                            </div>
-                            
-                            <div className="flex overflow-x-auto gap-2 w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat}
-                                        onClick={() => setActiveCategory(cat)}
-                                        className={`whitespace-nowrap px-5 py-2.5 rounded-xl font-bold transition-all ${
-                                            activeCategory === cat 
-                                            ? 'bg-slate-800 text-white shadow-lg shadow-slate-800/20' 
-                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
-                                        }`}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {filteredTools.map(tool => (
-                                <div key={tool.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group flex flex-col">
-                                    <div className="h-56 bg-slate-100 relative overflow-hidden">
-                                        <img 
-                                            src={tool.image} 
-                                            alt={tool.name} 
-                                            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${tool.status === 'rented' ? 'grayscale opacity-70' : ''}`}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                        
-                                        {tool.status === 'rented' && (
-                                            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
-                                                <span className="bg-red-500 text-white px-5 py-2 rounded-full font-bold shadow-xl transform -rotate-6 border-2 border-white tracking-wide uppercase text-sm">
-                                                    В оренді
-                                                </span>
-                                            </div>
-                                        )}
-                                        
-                                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full font-extrabold text-slate-900 shadow-sm text-sm">
-                                            {tool.price} ₴ <span className="text-slate-500 font-medium text-xs">/ доба</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="p-6 flex flex-col flex-grow">
-                                        <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-2">{tool.category}</div>
-                                        <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight">{tool.name}</h3>
-                                        <p className="text-slate-500 text-sm mb-6 flex-grow leading-relaxed">{tool.desc}</p>
-                                        
-                                        <button 
-                                            onClick={() => addToCart(tool)}
-                                            disabled={tool.status === 'rented'}
-                                            className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                                                tool.status === 'rented' 
-                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
-                                                : cart.find(i => i.id === tool.id)
-                                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                                                : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20'
-                                            }`}
-                                        >
-                                            {cart.find(i => i.id === tool.id) ? <><i className="fa-solid fa-check"></i> У кошику</> : <><i className="fa-solid fa-plus"></i> Додати до замовлення</>}
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        
-                        {filteredTools.length === 0 && (
-                            <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 mt-8">
-                                <i className="fa-solid fa-box-open text-7xl text-slate-300 block mb-6"></i>
-                                <h3 className="text-2xl font-bold text-slate-700 mb-2">Нічого не знайдено</h3>
-                                <p className="text-slate-500 text-lg">Спробуйте змінити пошуковий запит або вибрати іншу категорію.</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {cart.length > 0 && (
-                        <button 
-                            onClick={() => setIsCartOpen(true)}
-                            className="fixed bottom-8 right-8 bg-amber-500 text-slate-900 p-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center gap-3 z-40 border-4 border-white group"
-                        >
-                            <div className="relative">
-                                <i className="fa-solid fa-cart-shopping text-2xl group-hover:scale-110 transition-transform"></i>
-                                <span className="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-                                    {cart.length}
-                                </span>
-                            </div>
-                            <span className="font-bold hidden md:inline pr-2 text-lg">Оформити</span>
-                        </button>
-                    )}
-
-                    {isCartOpen && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
-                            <div className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in duration-200">
-                                <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
-                                    <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center gap-3">
-                                        <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
-                                            <i className="fa-solid fa-cart-shopping text-2xl"></i>
-                                        </div>
-                                        Ваше замовлення
-                                    </h2>
-                                    <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 w-10 h-10 flex items-center justify-center">
-                                        <i className="fa-solid fa-xmark text-xl"></i>
-                                    </button>
-                                </div>
-                                
-                                <div className="p-6 md:p-8 flex-grow bg-slate-50/50">
-                                    <div className="space-y-4 mb-8">
-                                        {cart.map(item => (
-                                            <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
-                                                <div className="flex items-center gap-5">
-                                                    <div className="w-20 h-20 rounded-xl overflow-hidden border border-slate-100 flex-shrink-0">
-                                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-slate-900 text-lg mb-1">{item.name}</div>
-                                                        <div className="text-amber-600 font-semibold">{item.price} ₴ <span className="text-slate-400 font-normal text-sm">/ доба</span></div>
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => removeFromCart(item.id)} className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-3 rounded-xl transition-all w-10 h-10 flex items-center justify-center">
-                                                    <i className="fa-solid fa-xmark text-lg"></i>
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="bg-amber-500 text-slate-900 p-6 md:p-8 rounded-3xl shadow-inner mb-8">
-                                        <label className="block text-lg font-bold mb-4 opacity-90">На скільки днів потрібен інструмент?</label>
-                                        <div className="flex items-center gap-6 mb-6">
-                                            <input 
-                                                type="range" 
-                                                min="1" max="14" 
-                                                value={bookingDays} 
-                                                onChange={(e) => setBookingDays(parseInt(e.target.value))}
-                                                className="w-full h-3 bg-white/30 rounded-lg appearance-none cursor-pointer accent-slate-900"
-                                            />
-                                            <span className="bg-slate-900 text-white px-5 py-3 rounded-xl font-extrabold text-xl shadow-lg min-w-[80px] text-center">
-                                                {bookingDays}
-                                            </span>
-                                        </div>
-                                        
-                                        <div className="flex justify-between items-end mt-8 pt-6 border-t border-slate-900/10">
-                                            <span className="text-lg font-semibold opacity-80 mb-1">Загальна сума:</span>
-                                            <div className="text-right">
-                                                <div className="text-4xl md:text-5xl font-black">{cartTotal} ₴</div>
-                                                <div className="text-sm font-medium opacity-75 mt-1">Оплата при отриманні</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert('Бронювання відправлено! Скоро з вами зв\'яжуться.'); setIsCartOpen(false); setCart([]); }}>
-                                        <h3 className="text-xl font-bold text-slate-800 mb-4">Ваші контакти</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Ім'я</label>
-                                                <input type="text" required className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 outline-none transition-colors font-medium bg-white" placeholder="Наприклад, Іван" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Телефон</label>
-                                                <input type="tel" required className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-amber-500 focus:ring-0 outline-none transition-colors font-medium bg-white" placeholder="+38 (000) 000-00-00" />
-                                            </div>
-                                        </div>
-                                        <button type="submit" className="w-full bg-slate-900 text-white font-extrabold text-lg py-5 rounded-2xl hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 transition-all flex justify-center items-center gap-3 mt-6">
-                                            <i className="fa-solid fa-check"></i> Підтвердити замовлення
-                                        </button>
-                                        <p className="text-center text-xs text-slate-500 mt-4 font-medium">
-                                            Натискаючи кнопку, ви погоджуєтесь з умовами прокату
-                                        </p>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-
-            // Функція для відображення панелі адміністратора
-            const renderAdminView = () => (
-                <div className="min-h-screen bg-slate-100 p-4 md:p-8 pb-20 relative">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                            <div>
-                                <h2 className="text-3xl font-extrabold text-slate-900">Адмін Панель</h2>
-                                <p className="text-slate-500 font-medium mt-1">Керування інструментами та замовленнями</p>
-                            </div>
-                            <button 
-                                onClick={() => setIsAddModalOpen(true)}
-                                className="bg-amber-500 text-slate-900 px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-amber-500/20 hover:bg-amber-400 transition-colors"
-                            >
-                                <i className="fa-solid fa-plus"></i> Додати позицію
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
-                                <div className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-3">Всього в базі</div>
-                                <div className="text-5xl font-black text-slate-900 mt-auto">{tools.length}</div>
-                            </div>
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
-                                <div className="text-slate-500 font-bold uppercase tracking-wider text-xs mb-3">Зараз в оренді</div>
-                                <div className="text-5xl font-black text-amber-500 mt-auto">{tools.filter(t => t.status === 'rented').length}</div>
-                            </div>
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-                                <div className="text-slate-400 font-bold uppercase tracking-wider text-xs mb-3">Дохід за місяць</div>
-                                <div className="text-4xl font-black text-green-400 mt-auto">12 400 ₴</div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-center">
-                                <h3 className="text-xl font-bold text-slate-900">Список інструменту</h3>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="text-slate-400 border-b border-slate-100 uppercase text-xs tracking-wider bg-slate-50/50">
-                                            <th className="p-5 font-bold">Фото / Назва</th>
-                                            <th className="p-5 font-bold">Категорія</th>
-                                            <th className="p-5 font-bold">Ціна</th>
-                                            <th className="p-5 font-bold">Статус</th>
-                                            <th className="p-5 font-bold text-right">Дії</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {tools.map(tool => (
-                                            <tr key={tool.id} className="hover:bg-slate-50/50 transition-colors group">
-                                                <td className="p-5">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0">
-                                                            <img src={tool.image} alt={tool.name} className="w-full h-full object-cover" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-900">{tool.name}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5 text-slate-500 font-medium text-sm">{tool.category}</td>
-                                                <td className="p-5 font-bold text-slate-700">{tool.price} ₴</td>
-                                                <td className="p-5">
-                                                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                                                        tool.status === 'available' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                                                    }`}>
-                                                        {tool.status === 'available' ? 'На складі' : 'В оренді'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-5 text-right">
-                                                    <button 
-                                                        onClick={() => {
-                                                            const updated = tools.map(t => t.id === tool.id ? {...t, status: t.status === 'available' ? 'rented' : 'available'} : t);
-                                                            setTools(updated);
-                                                        }}
-                                                        className={`text-sm font-bold px-4 py-2 rounded-xl transition-colors ${
-                                                            tool.status === 'available' 
-                                                            ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' 
-                                                            : 'text-green-700 bg-green-50 hover:bg-green-100'
-                                                        }`}
-                                                    >
-                                                        {tool.status === 'available' ? 'Видати' : 'Повернути'}
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Модальне вікно для додавання нової позиції */}
-                    {isAddModalOpen && (
-                        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
-                            <div className="bg-white rounded-[2rem] w-full max-w-lg shadow-2xl flex flex-col animate-in fade-in zoom-in duration-200">
-                                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                                    <h2 className="text-2xl font-bold text-slate-900">Нова позиція</h2>
-                                    <button onClick={() => setIsAddModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 w-10 h-10 flex items-center justify-center">
-                                        <i className="fa-solid fa-xmark text-xl"></i>
-                                    </button>
-                                </div>
-                                
-                                <form onSubmit={handleAddTool} className="p-6 space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Назва інструменту</label>
-                                        <input 
-                                            type="text" 
-                                            required 
-                                            value={newTool.name} 
-                                            onChange={e => setNewTool({...newTool, name: e.target.value})} 
-                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
-                                            placeholder="Наприклад, Перфоратор Makita" 
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Категорія</label>
-                                            <select 
-                                                value={newTool.category} 
-                                                onChange={e => setNewTool({...newTool, category: e.target.value})} 
-                                                className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors bg-white cursor-pointer"
-                                            >
-                                                {categories.filter(c => c !== 'Всі').map(c => (
-                                                    <option key={c} value={c}>{c}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Ціна (₴/доба)</label>
-                                            <input 
-                                                type="number" 
-                                                required 
-                                                min="1" 
-                                                value={newTool.price} 
-                                                onChange={e => setNewTool({...newTool, price: e.target.value})} 
-                                                className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
-                                                placeholder="300" 
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">URL фотографії (необов'язково)</label>
-                                        <input 
-                                            type="url" 
-                                            value={newTool.image} 
-                                            onChange={e => setNewTool({...newTool, image: e.target.value})} 
-                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors" 
-                                            placeholder="https://..." 
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-600 mb-2 ml-1">Опис</label>
-                                        <textarea 
-                                            required 
-                                            rows="2" 
-                                            value={newTool.desc} 
-                                            onChange={e => setNewTool({...newTool, desc: e.target.value})} 
-                                            className="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-amber-500 outline-none transition-colors resize-none" 
-                                            placeholder="Короткий опис характеристик..."
-                                        ></textarea>
-                                    </div>
-                                    <button type="submit" className="w-full bg-amber-500 text-slate-900 font-extrabold text-lg py-4 rounded-2xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 mt-2 flex items-center justify-center gap-2">
-                                        <i className="fa-solid fa-check"></i> Зберегти в базу
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-
-            return (
-                <div className="font-sans text-slate-900 bg-slate-50 min-h-screen">
-                    <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-                        <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-amber-500 text-slate-900 w-10 h-10 rounded-xl flex items-center justify-center">
-                                    <i className="fa-solid fa-gear text-xl"></i>
-                                </div>
-                                <span className="text-2xl font-black tracking-tight hidden sm:block">Суховоля<span className="text-amber-500">Тех</span></span>
-                            </div>
-                            
-                            <div className="flex items-center gap-6">
-                                <div className="hidden lg:flex items-center gap-6 text-sm font-bold text-slate-500 mr-4">
-                                    <span className="flex items-center gap-2 hover:text-slate-900 transition-colors cursor-pointer">
-                                        <i className="fa-solid fa-phone"></i> 067 123 45 67
-                                    </span>
-                                    <span className="flex items-center gap-2">
-                                        <i className="fa-solid fa-location-dot"></i> с. Суховоля
-                                    </span>
-                                </div>
-                                <div className="bg-slate-100 p-1.5 rounded-xl flex shadow-inner">
-                                    <button 
-                                        onClick={() => setViewMode('client')}
-                                        className={`px-5 py-2 rounded-lg text-sm font-extrabold transition-all ${viewMode === 'client' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                    >
-                                        Клієнт
-                                    </button>
-                                    <button 
-                                        onClick={() => setViewMode('admin')}
-                                        className={`px-5 py-2 rounded-lg text-sm font-extrabold transition-all ${viewMode === 'admin' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                    >
-                                        Адмін
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </nav>
-
-                    <main>
-                        {viewMode === 'client' ? renderClientView() : renderAdminView()}
-                    </main>
-                </div>
-            );
+            applyRankData();
         }
 
-        // Запуск додатку
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        function applyRankData() {
+            const rank = document.getElementById('rankSelect').value;
+            const data = rankData[rank];
+            if(data) {
+                document.getElementById('baseRate').value = data.netto; 
+                document.getElementById('coefficient').value = data.coef;
+                document.getElementById('advancePayment').value = data.advance;
+                calculate();
+            }
+        }
+
+        function calculate() {
+            const getVal = (id) => parseFloat(document.getElementById(id).value) || 0;
+            const getValDay = (id) => parseFloat(document.getElementById(id).value) || 1;
+
+            const baseRate = getVal('baseRate');
+            const workDays = getValDay('workDays');
+            const expBonus = getVal('experienceBonus');
+            const attBonus = getVal('attendanceBonus');
+            const coef = getVal('coefficient');
+            const qualPremiumBase = getVal('qualityPremiumBase');
+            
+            const shift1Days = getVal('shift1Days');
+            const shift2Days = getVal('shift2Days');
+            const shift3Days = getVal('shift3Days');
+            const satShift1Days = getVal('satShift1Days');
+            const satShift2Days = getVal('satShift2Days');
+            const overtimeHours = getVal('overtimeHours');
+            const advance = getVal('advancePayment');
+
+            const hourlyRate = baseRate / (workDays * 8);
+            document.getElementById('hourlyRateDisplay').textContent = hourlyRate.toFixed(2);
+            
+            const totalSaturdays = satShift1Days + satShift2Days;
+            const actualQualityPremium = qualPremiumBase * coef;
+            
+            const payShift1 = shift1Days * 8 * hourlyRate;
+            const payShift2 = shift2Days * 8 * hourlyRate * 1.2;
+            const payShift3 = shift3Days * 8 * hourlyRate * 1.4; 
+            const paySatShift1 = satShift1Days * 8 * hourlyRate * 2;
+            const paySatShift2 = satShift2Days * 8 * hourlyRate * 2;
+            const payOvertime = overtimeHours * hourlyRate * 2;
+
+            const satPremium = (actualQualityPremium / workDays) * totalSaturdays;
+            const overtimePremium = (actualQualityPremium / (workDays * 8)) * overtimeHours;
+
+            document.getElementById('calcQualityPremium').textContent = actualQualityPremium.toFixed(2);
+            document.getElementById('calcShift1').textContent = payShift1.toFixed(5);
+            document.getElementById('calcShift2').textContent = payShift2.toFixed(5);
+            document.getElementById('calcShift3').textContent = payShift3.toFixed(2);
+            document.getElementById('calcSatShift1').textContent = paySatShift1.toFixed(5);
+            document.getElementById('calcSatShift2').textContent = paySatShift2.toFixed(5);
+            document.getElementById('calcOvertime').textContent = payOvertime.toFixed(2);
+            document.getElementById('calcSatPremium').textContent = satPremium.toFixed(2);
+            document.getElementById('calcOvertimePremium').textContent = overtimePremium.toFixed(2);
+            document.getElementById('calcExp').textContent = expBonus.toFixed(2);
+            document.getElementById('calcAtt').textContent = attBonus.toFixed(2);
+
+            const totalAccrued = payShift1 + payShift2 + payShift3 + paySatShift1 + paySatShift2 + payOvertime + actualQualityPremium + satPremium + overtimePremium + expBonus + attBonus;
+            const totalToPay = totalAccrued - advance;
+
+            // Оновлюємо десктоп
+            document.getElementById('finalAccruedDesktop').textContent = totalAccrued.toFixed(2) + ' ₴';
+            document.getElementById('finalToPayDesktop').textContent = totalToPay.toFixed(2) + ' ₴';
+            
+            // Оновлюємо мобілку
+            document.getElementById('finalAccruedMobile').textContent = totalAccrued.toFixed(2) + ' ₴';
+            document.getElementById('finalToPayMobile').textContent = totalToPay.toFixed(2) + ' ₴';
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
