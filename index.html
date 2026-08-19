@@ -162,6 +162,7 @@
 
         ::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #060f1e;
@@ -218,7 +219,7 @@
         }
     </style>
 </head>
-<body class="text-white min-h-screen pb-32 md:pb-10 selection:bg-blue-500 selection:text-white">
+<body class="text-white min-h-screen pb-40 md:pb-10 selection:bg-blue-500 selection:text-white">
 
     <!-- Прихований інпут для імпорту файлу -->
     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
@@ -227,7 +228,7 @@
     <div class="max-w-5xl mx-auto p-4 sm:p-6 space-y-6 no-print">
         
         <!-- Шапка -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 px-5 glass-panel rounded-3xl">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 py-4 px-5 glass-panel rounded-3xl">
             <div class="flex items-center gap-4">
                 <div class="bader-logo-box">
                     B
@@ -241,17 +242,18 @@
                     <p class="text-xs sm:text-sm text-slate-300 font-medium mt-0.5">Інтелектуальний розрахунок премій та виплат</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                <button onclick="document.getElementById('timesheetModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg shadow-indigo-900/20">
+            <!-- Виправлено: додано повноцінну прокрутку та уникнення обрізання -->
+            <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-thin">
+                <button onclick="document.getElementById('timesheetModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg shadow-indigo-900/20 shrink-0">
                     <i class="fas fa-paste"></i> Вставити табель
                 </button>
-                <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
+                <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shrink-0">
                     <i class="fas fa-file-import"></i> Імпорт
                 </button>
-                <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap">
+                <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shrink-0">
                     <i class="fas fa-file-export"></i> Експорт
                 </button>
-                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/40 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 items-center gap-2 shadow-lg shadow-blue-900/30 active:scale-95 flex whitespace-nowrap">
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/40 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all duration-200 items-center gap-2 shadow-lg shadow-blue-900/30 active:scale-95 flex whitespace-nowrap shrink-0">
                     <i class="fas fa-print text-blue-200"></i> <span class="hidden sm:inline">Друк звіту</span>
                 </button>
             </div>
@@ -561,8 +563,8 @@
                         </div>
                     </div>
                     
-                    <!-- Підсумок -->
-                    <div class="flex flex-col mt-8 space-y-3 pt-6 border-t border-white/10">
+                    <!-- Підсумок (Приховано на мобільних, щоб не дублюватись із плаваючою панеллю) -->
+                    <div class="hidden md:flex flex-col mt-8 space-y-3 pt-6 border-t border-white/10">
                         <div class="flex justify-between items-center p-4 rounded-2xl glass-panel-sub border border-blue-400/20">
                             <span class="font-bold text-white text-base">Нараховано:</span>
                             <div class="flex items-center gap-4">
