@@ -10,8 +10,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Зарплата Bader">
-    <link id="manifest-link" rel="manifest" href="">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E">
+    
+    <!-- PWA / ICON -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -902,23 +905,6 @@
     </div>
 
     <script>
-        const manifest = {
-            name: "Розрахунок Зарплати Bader",
-            short_name: "Зарплата",
-            start_url: location.href,
-            display: "standalone",
-            background_color: "#060f1e",
-            theme_color: "#0d1b2a",
-            icons: [{
-                src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2z'/%3E%3C/svg%3E",
-                sizes: "192x192",
-                type: "image/svg+xml",
-                purpose: "any maskable"
-            }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
-
         const rankData = {
             1: { netto: 10510.5, coef: 1, advance: 7700 },
             2: { netto: 10895.5, coef: 1, advance: 7800 },
@@ -1098,22 +1084,18 @@
                 useCalendar = false;
             }
 
-            // Шукаємо де починаються години (пропускаємо ПІБ та службові числа на кшталт ID, табельних чи телефонів)
             let startIndex = -1;
             let nameParts = [];
 
             for (let i = 0; i < cells.length; i++) {
                 let val = cells[i] ? cells[i].trim() : "";
                 
-                // Якщо елемент схожий на години (напр. 8,0, 8,1, 16,1) або код відсутності (В, нз тощо)
                 if (val.match(/^(\d+,\d+|[А-Яа-яІіЇїЄєҐґ]+)$/)) {
-                    // Перевіряємо чи це дійсно схоже на день місяця (не текст імені)
                     if (val.match(/^\d+,\d+$/) || ['нз', 'ДВ', 'тн', 'пр', 'на'].includes(val)) {
                         startIndex = i;
                         break;
                     }
                 }
-                // Збираємо все до годин як ПІБ (ігноруючи цифрові службові поля)
                 if (val && !val.match(/^\d+$/)) {
                     nameParts.push(val);
                 }
@@ -1124,7 +1106,7 @@
             }
 
             if (startIndex === -1) {
-                startIndex = Math.min(cells.length, 5); // запасний варіант
+                startIndex = Math.min(cells.length, 5);
             }
 
             let shift1 = 0; 
@@ -1148,7 +1130,7 @@
                     let date = new Date(year, month - 1, day);
                     if (date.getMonth() !== month - 1) continue;
                     
-                    let dayOfWeek = date.getDay(); // 0 - неділя, 6 - субота
+                    let dayOfWeek = date.getDay();
                     let isSaturday = (dayOfWeek === 6);
                     let isSunday = (dayOfWeek === 0);
 
