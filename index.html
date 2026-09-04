@@ -242,7 +242,6 @@
                     <p class="text-xs sm:text-sm text-slate-300 font-medium mt-0.5">Інтелектуальний розрахунок премій та виплат</p>
                 </div>
             </div>
-            <!-- Виправлено: додано повноцінну прокрутку та уникнення обрізання -->
             <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-thin">
                 <button onclick="document.getElementById('timesheetModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg shadow-indigo-900/20 shrink-0">
                     <i class="fas fa-paste"></i> Вставити табель
@@ -563,7 +562,7 @@
                         </div>
                     </div>
                     
-                    <!-- Підсумок (Приховано на мобільних, щоб не дублюватись із плаваючою панеллю) -->
+                    <!-- Підсумок -->
                     <div class="hidden md:flex flex-col mt-8 space-y-3 pt-6 border-t border-white/10">
                         <div class="flex justify-between items-center p-4 rounded-2xl glass-panel-sub border border-blue-400/20">
                             <span class="font-bold text-white text-base">Нараховано:</span>
@@ -1259,17 +1258,22 @@
             const totalWeekdayShifts = shift1Days + shift2Days + shift3Days;
             const actualQualityPremium = (qualPremiumBase / workDays) * totalWeekdayShifts * coef;
             
+            // Розрахунок годин змін (включаючи суботу для другої зміни)
             const hoursShift1 = (shift1Days + shift2Days + shift3Days) * 8;
-            const hoursShift2 = shift2Days * 3.5;
-            const hoursShift3 = (shift2Days * 2) + (shift3Days * 6.5);
             const hoursSatShift1 = satShift1Days * 8;
             const hoursSatShift2 = satShift2Days * 8;
             
+            const satShift2_evening = satShift2Days * 3.5;
+            const satShift2_night = satShift2Days * 2;
+
+            const totalHoursShift2 = (shift2Days * 3.5) + satShift2_evening;
+            const totalHoursShift3 = (shift2Days * 2) + (shift3Days * 6.5) + satShift2_night;
+            
             const payShift1 = hoursShift1 * hourlyRate;
-            const payShift2 = hoursShift2 * 1.2 * hourlyRate;
-            const payShift3 = hoursShift3 * 1.4 * hourlyRate; 
+            const payShift2 = totalHoursShift2 * 0.2 * hourlyRate;
+            const payShift3 = totalHoursShift3 * 0.4 * hourlyRate; 
             const paySatShift1 = hoursSatShift1 * hourlyRate * 2;
-            const paySatShift2 = hoursSatShift2 * 1.2 * hourlyRate * 2;
+            const paySatShift2 = hoursSatShift2 * hourlyRate * 2;
             const payOvertime = overtimeHours * hourlyRate * 2;
 
             const satPremium = (qualPremiumBase / workDays) * totalSaturdays;
@@ -1284,8 +1288,8 @@
 
             updateRow('calcQualityPremium', '-', actualQualityPremium);
             updateRow('calcShift1', hoursShift1, payShift1);
-            updateRow('calcShift2', hoursShift2.toFixed(1), payShift2);
-            updateRow('calcShift3', hoursShift3.toFixed(1), payShift3);
+            updateRow('calcShift2', totalHoursShift2.toFixed(1), payShift2);
+            updateRow('calcShift3', totalHoursShift3.toFixed(1), payShift3);
             updateRow('calcSatShift1', hoursSatShift1, paySatShift1);
             updateRow('calcSatShift2', hoursSatShift2, paySatShift2);
             updateRow('calcOvertime', overtimeHours, payOvertime);
@@ -1333,9 +1337,9 @@
             
             document.getElementById('pShift1Hours').textContent = hoursShift1;
             document.getElementById('pShift1Sum').textContent = (payShift1 / 0.77).toFixed(2);
-            document.getElementById('pShift2Hours').textContent = hoursShift2.toFixed(1);
+            document.getElementById('pShift2Hours').textContent = totalHoursShift2.toFixed(1);
             document.getElementById('pShift2Sum').textContent = (payShift2 / 0.77).toFixed(2);
-            document.getElementById('pShift3Hours').textContent = hoursShift3.toFixed(1);
+            document.getElementById('pShift3Hours').textContent = totalHoursShift3.toFixed(1);
             document.getElementById('pShift3Sum').textContent = (payShift3 / 0.77).toFixed(2);
             document.getElementById('pSat1Hours').textContent = hoursSatShift1;
             document.getElementById('pSat1Sum').textContent = (paySatShift1 / 0.77).toFixed(2);
