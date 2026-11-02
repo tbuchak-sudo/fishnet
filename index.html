@@ -242,7 +242,6 @@
                     <p class="text-xs sm:text-sm text-slate-300 font-medium mt-0.5">Інтелектуальний розрахунок премій та виплат</p>
                 </div>
             </div>
-            <!-- Виправлено: додано повноцінну прокрутку та уникнення обрізання -->
             <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-thin">
                 <button onclick="document.getElementById('timesheetModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/40 px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap shadow-lg shadow-indigo-900/20 shrink-0">
                     <i class="fas fa-paste"></i> Вставити табель
@@ -922,6 +921,10 @@
 
         const STORAGE_KEY = 'bader_salary_data_v2';
 
+        // Коди відсутності та відмітки табеля
+        const ABSENCE_CODES = ['нз', 'ДВ', 'тн', 'пр', 'на'];
+        const isMark = (v) => /^\d+,\d+$/.test(v) || ABSENCE_CODES.includes(v) || v === 'В';
+
         function init() {
             const select = document.getElementById('rankSelect');
             for (let i = 1; i <= 10; i++) {
@@ -1086,29 +1089,42 @@
                 useCalendar = false;
             }
 
-            let startIndex = -1;
-            let nameParts = [];
-
+            // ===============================
+            // ВИЗНАЧЕННЯ ПІБ І ПОЧАТКУ КАЛЕНДАРЯ
+            // ===============================
+            let phoneIdx = -1;
             for (let i = 0; i < cells.length; i++) {
-                let val = cells[i] ? cells[i].trim() : "";
-                
-                if (val.match(/^(\d+,\d+|[А-Яа-яІіЇїЄєҐґ]+)$/)) {
-                    if (val.match(/^\d+,\d+$/) || ['нз', 'ДВ', 'тн', 'пр', 'на'].includes(val)) {
-                        startIndex = i;
-                        break;
+                const v = cells[i] ? cells[i].trim() : '';
+                if (/^0\d{9}$/.test(v)) {
+                    phoneIdx = i;
+                    break;
+                }
+            }
+
+            let startIndex = 4; // резервний варіант
+
+            if (phoneIdx !== -1) {
+                let nameParts = [];
+                for (let i = 0; i < phoneIdx; i++) {
+                    const v = cells[i] ? cells[i].trim() : '';
+                    if (v && !/^\d+$/.test(v) && !ABSENCE_CODES.includes(v) && !/^\d+,\d+$/.test(v)) {
+                        nameParts.push(v);
                     }
                 }
-                if (val && !val.match(/^\d+$/)) {
-                    nameParts.push(val);
+                if (nameParts.length) {
+                    document.getElementById('employeeName').value = nameParts.join(' ');
                 }
+                startIndex = phoneIdx + 1;
             }
 
-            if (nameParts.length > 0) {
-                document.getElementById('employeeName').value = nameParts.join(' ');
-            }
-
-            if (startIndex === -1) {
-                startIndex = Math.min(cells.length, 5);
+            // Дебаг-лог для перевірки зсуву колонок
+            console.log("phoneIdx =", phoneIdx);
+            console.log("startIndex =", startIndex);
+            for (let day = 1; day <= 30; day++) {
+                const idx = startIndex + day - 1;
+                if (idx < cells.length) {
+                    console.log("День:", day, "Значення:", cells[idx]);
+                }
             }
 
             let shift1 = 0; 
@@ -1119,7 +1135,6 @@
             
             let hasAbsence = false;
             let hasVacation = false;
-            const absenceCodes = ['нз', 'ДВ', 'тн', 'пр', 'на'];
 
             if (useCalendar) {
                 for (let day = 1; day <= 31; day++) {
@@ -1136,7 +1151,7 @@
                     let isSaturday = (dayOfWeek === 6);
                     let isSunday = (dayOfWeek === 0);
 
-                    if (absenceCodes.includes(c)) hasAbsence = true;
+                    if (ABSENCE_CODES.includes(c)) hasAbsence = true;
                     if (c === 'В') hasVacation = true;
 
                     if (c === '8,0') {
@@ -1153,6 +1168,7 @@
                             shift2++;
                         }
                     } else if (c === '16,1') {
+                        console.log('16,1 на даті:', day, date.toLocaleDateString('uk-UA'), 'субота:', isSaturday);
                         if (isSaturday) {
                             satShift1++;
                             satShift2++;
@@ -1167,7 +1183,7 @@
             } else {
                 cells.forEach(cell => {
                     const c = cell.trim();
-                    if (absenceCodes.includes(c)) hasAbsence = true;
+                    if (ABSENCE_CODES.includes(c)) hasAbsence = true;
                     if (c === 'В') hasVacation = true;
 
                     if (c === '8,0') shift1++; 
